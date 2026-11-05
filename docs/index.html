@@ -5,6 +5,14 @@
 <meta http-equiv="Cache-Control" content="no-cache">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel de mercado</title>
+<meta name="description" content="Score, macro, COT, sazonalidade, agenda ao vivo e notícias para EURUSD, GBPUSD, USDJPY, USDCHF, ouro e Nasdaq.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-180.png" type="image/png" sizes="180x180">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f7f6f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161614" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Painel de mercado"><meta property="og:image" content="icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -146,12 +154,82 @@
     .mi-ag-t th:nth-child(5), .mi-ag-t td:nth-child(5) { display: none; }
     .mi-exp { font-size: 11.5px; }
   }
+
+  /* ================= acabamento visual ================= */
+  :root { --cds-radius: 14px; --shadow-card: 0 1px 2px rgba(20,18,14,.04), 0 4px 16px rgba(20,18,14,.05); --shadow-hover: 0 2px 4px rgba(20,18,14,.06), 0 10px 28px rgba(20,18,14,.09); --accent: #c98a12; }
+  @media (prefers-color-scheme: dark) { :root { --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 6px 20px rgba(0,0,0,.25); --shadow-hover: 0 2px 6px rgba(0,0,0,.45), 0 12px 32px rgba(0,0,0,.35); --accent: #e0a83a; } }
+  body { background: radial-gradient(1200px 500px at 10% -10%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%), radial-gradient(900px 400px at 100% 0%, color-mix(in srgb, #3b7dd8 6%, transparent), transparent 70%), var(--color-bg); background-attachment: fixed; -webkit-font-smoothing: antialiased; }
+  ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .op-card { box-shadow: var(--shadow-card); transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease; }
+  .op-card:hover { box-shadow: var(--shadow-hover); border-color: color-mix(in srgb, var(--color-fg) 14%, var(--color-border-line)); }
+  .op-card h2 { display: flex; align-items: center; gap: 8px; letter-spacing: -.005em; }
+  .op-card h2::before { content: ""; width: 4px; height: 16px; border-radius: 2px; background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 40%, transparent)); flex: none; }
+  .op-head h1 { font-size: 30px; letter-spacing: -.015em; }
+  .op-tile .v { font-size: 30px; letter-spacing: -.01em; }
+  .op-tile > .s:first-child { text-transform: uppercase; letter-spacing: .06em; font-size: 11px; font-weight: 600; }
+  /* topo de vidro */
+  .topo { background: color-mix(in srgb, var(--color-bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+  .hj-bar { box-shadow: var(--shadow-card); }
+  .brand { display: inline-flex; align-items: center; gap: 8px; margin-right: 10px; padding-right: 12px; border-right: 1px solid var(--color-border-line); }
+  .brand img { border-radius: 6px; display: block; } .brand b { font-family: var(--font-anthropic-serif); font-weight: 500; font-size: 16px; }
+  /* abas em pílula */
+  .op-tabs { border-bottom: 0; gap: 4px; padding: 3px; background: color-mix(in srgb, var(--color-fg) 5%, transparent); border-radius: 999px; width: fit-content; max-width: 100%; }
+  .op-tab { border-bottom: 0; border-radius: 999px; padding: 6px 16px; font-weight: 500; transition: background .15s ease, color .15s ease; }
+  .op-tab:hover { color: var(--color-fg); }
+  .op-tab[aria-selected="true"] { background: var(--color-panel); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  /* ativos */
+  .ativos button { border-radius: 14px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; box-shadow: var(--shadow-card); }
+  .ativos button:hover { transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+  .ativos button[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset, var(--shadow-hover); }
+  /* botões e tabelas */
+  .op-btn, .mi-lgb { transition: border-color .15s ease, background .15s ease; } .op-btn:hover { border-color: color-mix(in srgb, var(--color-fg) 40%, transparent); }
+  .op-btn[aria-pressed="true"] { background: var(--color-fg); color: var(--color-panel); border-color: var(--color-fg); }
+  .op-table tbody tr { transition: background .12s ease; } .op-table tbody tr:hover td { background: color-mix(in srgb, var(--color-fg) 4%, transparent); }
+  .op-tablebox { border-radius: 10px; }
+  .op-tablebox::-webkit-scrollbar, .mi-news-l::-webkit-scrollbar { width: 8px; height: 8px; }
+  .op-tablebox::-webkit-scrollbar-thumb, .mi-news-l::-webkit-scrollbar-thumb { background: var(--color-border-line); border-radius: 8px; }
+  .mi-iag { border-left: 0; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--color-panel)), var(--color-panel) 60%); }
+  .mi-news-l a { font-weight: 500; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  .ag-at a { font-size: 12px; text-decoration: none; padding: 3px 8px; border-radius: 8px; border: 1px solid var(--color-border-line); color: var(--color-fg-muted); }
+  .ag-at a:hover { color: var(--color-fg); border-color: var(--color-fg-muted); }
+  /* agenda ao vivo */
+  .ag-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .ag-live { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-fg-muted); }
+  .ag-live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--color-fg-muted); }
+  .ag-live.on::before { background: var(--color-ok); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok) 60%, transparent); animation: pulso 2s infinite; }
+  @keyframes pulso { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok) 55%, transparent); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .ag-red { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--color-bad); margin-right: 6px; vertical-align: 0; }
+  .mi-ag-t td { vertical-align: middle; } .mi-ag-t tr.ag-passou td { opacity: .78; } .mi-ag-t tr.ag-passou td.ag-at { opacity: 1; }
+  .mi-ag-t td.ag-at { min-width: 7.5rem; }
+  .ag-box { white-space: nowrap; display: inline-block; min-width: 6.5rem; text-align: center; padding: 5px 10px; border-radius: 9px; font-family: var(--font-anthropic-serif); font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; border: 1px solid transparent; }
+  .ag-acima { color: var(--color-ok); background: color-mix(in srgb, var(--color-ok) 14%, transparent); border-color: color-mix(in srgb, var(--color-ok) 35%, transparent); }
+  .ag-abaixo { color: var(--color-bad); background: color-mix(in srgb, var(--color-bad) 14%, transparent); border-color: color-mix(in srgb, var(--color-bad) 35%, transparent); }
+  .ag-igual { color: var(--color-fg); background: color-mix(in srgb, var(--color-fg) 7%, transparent); border-color: var(--color-border-line); }
+  .ag-novo { animation: chegou 1.2s ease 3; }
+  @keyframes chegou { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.12); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); } }
+  .ag-wait { font-size: 12px; color: var(--color-warn); animation: piscar 1.2s ease-in-out infinite; } @keyframes piscar { 50% { opacity: .35; } }
+  .ag-hl { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "k v" "ev v" "s s"; align-items: center; gap: 2px 16px; padding: 14px 16px; border-radius: 12px; border: 1px solid; }
+  .ag-hl[hidden] { display: none; }
+  .ag-hl-k { grid-area: k; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; opacity: .85; }
+  .ag-hl-ev { grid-area: ev; color: var(--color-fg); font-weight: 600; }
+  .ag-hl-v { grid-area: v; font-family: var(--font-anthropic-serif); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ag-hl-s { grid-area: s; color: var(--color-fg-muted); font-size: 13px; margin-top: 4px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  @media (max-width: 640px) {
+    .brand b { display: none; } .brand { margin-right: 4px; padding-right: 8px; }
+    .op-head h1 { font-size: 23px; } .op-tile .v { font-size: 24px; }
+    .ag-box { min-width: 0; font-size: 14px; padding: 4px 7px; } .mi-ag-t td.ag-at { min-width: 0; }
+    .ag-hl-v { font-size: 30px; }
+    .op-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; width: 100%; } .op-tab { white-space: nowrap; padding: 6px 12px; }
+    .ag-box { font-size: 13px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topo">
-    <div class="hj-bar"><span class="hj-k">Hoje</span><span class="hj-d">—</span><span class="hj-s">—</span><span class="hj-up">—</span></div>
+    <div class="hj-bar"><span class="brand"><img src="favicon.svg" alt="" width="22" height="22"><b>Painel de mercado</b></span><span class="hj-k">Hoje</span><span class="hj-d">—</span><span class="hj-s">—</span><span class="hj-up">—</span></div>
     <nav class="op-tabs" role="tablist">
       <button type="button" class="op-tab" data-tab="sec-mi" aria-selected="true">Mercado</button>
       <button type="button" class="op-tab" data-tab="sec-op" aria-selected="false">Paredes de opções</button>
@@ -250,9 +328,11 @@
     </section>
 
     <div class="op-grid">
-      <section class="op-card"><h2>Agenda da semana (alto e médio impacto)</h2><p class="op-note">Horário de Brasília. Vermelho = red folder.</p>
+      <section class="op-card"><div class="ag-top"><h2>Agenda da semana (alto e médio impacto)</h2><span class="ag-live">conectando…</span></div>
+        <p class="op-note">Horário de Brasília. <span class="ag-red"></span> = red folder. O valor <b>Atual</b> aparece sozinho segundos depois da divulgação: <b class="mi-pos">▲ verde</b> = veio acima da previsão, <b class="mi-neg">▼ vermelho</b> = abaixo.</p>
+        <div class="ag-hl" hidden><span class="ag-hl-k">Último dado divulgado</span><span class="ag-hl-ev">—</span><span class="ag-hl-v">—</span><span class="ag-hl-s">—</span></div>
         <div class="op-tablebox"><table class="op-table mi-ag-t"><thead><tr><th>Quando</th><th>Moeda</th><th>Evento</th><th class="num">Previsão</th><th class="num">Anterior</th><th class="num">Atual</th></tr></thead><tbody></tbody></table></div>
-        <p class="op-note">"Atual": as fontes gratuitas não liberam o número divulgado de forma automática; depois do horário aparece o link "ver" que abre o resultado no Forex Factory.</p></section>
+        <p class="op-note">Valor atual: biquote.io (gratuito), consultado direto pelo navegador a cada 15 s perto dos horários de divulgação e a cada 60 s no resto do tempo. Se a fonte não tiver o número, aparece o link "ver", que abre o resultado no Forex Factory.</p></section>
       <section class="op-card"><h2>Notícias</h2><p class="op-note">Reuters, Bloomberg, FT, WSJ e outros (via Google News), MarketWatch, Fed e BCE, horário de Brasília. Cada manchete tem etiquetas do tema (Fed, BCE, Ouro, Nasdaq…). Use os filtros para ver só o que mexe com o ativo selecionado.</p>
         <div class="mi-sel nw-f"></div><ul class="mi-news-l"></ul></section>
     </div>

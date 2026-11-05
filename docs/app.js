@@ -273,16 +273,7 @@
     $('.mi-hist-t').textContent = serie + ' — último ano';
     line($('.mi-hist'), Hh.status === 'ok' ? Hh.data.filter((r) => r.serie === serie).map((r) => ({ x: new Date(r.data + 'T12:00:00'), y: Number(r.valor) })) : [], (val) => nf(val, 2), (x) => x.toLocaleDateString('pt-BR'));
 
-    // agenda
-    const at = $('.mi-ag-t tbody'); at.replaceChildren(); const hj = hojeISO();
-    for (const r of AG.status === 'ok' ? AG.data : []) {
-      const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' : '');
-      const [d, h] = r.quando.split(' ');
-      td(tr, (d === hj ? 'hoje' : d.slice(8, 10) + '/' + d.slice(5, 7)) + ' ' + h); td(tr, r.moeda); td(tr, r.evento); td(tr, r.previsao || '—', 'num'); td(tr, r.anterior || '—', 'num');
-      const c = td(tr, '', 'num'); const passou = new Date(r.quando.replace(' ', 'T') + ':00-03:00') < new Date();
-      if (passou && r.url) { const l = document.createElement('a'); l.href = r.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'ver ↗'; c.appendChild(l); } else c.textContent = passou ? '—' : 'aguarda';
-      at.appendChild(tr);
-    }
+    drawAgenda();
     // notícias
     const REL = { EURUSD: ['BCE', 'Euro', 'Fed', 'Dólar', 'Juros', 'Dados'], GBPUSD: ['BoE', 'Libra', 'Fed', 'Dólar', 'Dados'], USDJPY: ['BoJ', 'Fed', 'Dólar', 'Juros', 'Dados'],
       USDCHF: ['SNB', 'Fed', 'Dólar', 'Euro', 'Dados'], XAUUSD: ['Ouro', 'Fed', 'Juros', 'Dólar', 'Dados'], NAS100: ['Nasdaq', 'Fed', 'Juros', 'Dados'] };
@@ -356,8 +347,92 @@
     }
   }
 
+
+  // ---------------------------------------------------------------- agenda + "Atual" ao vivo (biquote.io: grátis, sem chave, CORS liberado)
+  const LIVE = { ev: [], ok: false, quando: null, vistos: new Set(), timer: null };
+  const LIVE_URL = 'https://biquote.io/api/calendar?countries=US,EU,GB,JP,CH';
+  const tok = (s) => String(s || '').toLowerCase().replace(/[()]/g, ' ').split(/[\s,]+/).filter((w) => w && !['the', 'of', 'and', 's&p', 'global'].includes(w));
+  const MULT = { thousands: [1e3, 'K'], millions: [1e6, 'M'], billions: [1e9, 'B'], trillions: [1e12, 'T'] };
+  const fmtLive = (e, v) => {
+    if (v == null) return '—';
+    const d = e.digits != null ? e.digits : 2; const [, suf] = MULT[e.multiplier] || [1, ''];
+    return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) + suf + (e.unit === 'percent' ? '%' : '');
+  };
+  // valor da previsão em escala comparável ao "actual" do biquote
+  // previsão na mesma escala do "actual": a do próprio biquote; senão a do Forex Factory (só o número, sem K/M/%)
+  const prevNum = (r, e) => {
+    if (e && e.forecast != null) return e.forecast;
+    const m = String(r.previsao || '').replace(',', '.').match(/-?\d+(\.\d+)?/); if (!m) return null;
+    const x = parseFloat(m[0]); const a = Math.abs(e.actual), b = Math.abs(x);
+    return a && b && (a / b > 50 || b / a > 50) ? null : x;   // escalas diferentes: não arrisca a cor
+  };
+  const casar = (r) => {
+    if (!LIVE.ok) return null;
+    const t = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const a = tok(r.evento); let best = null, bs = 0;
+    for (const e of LIVE.ev) {
+      if (e.currency !== r.moeda || Math.abs(new Date(e.time).getTime() - t) > 2 * 60e3) continue;
+      const b = tok(e.name); const sc = a.filter((w) => b.includes(w)).length / Math.max(a.length, 1);
+      if (sc > bs) { bs = sc; best = e; }
+    }
+    return bs >= 0.5 ? best : null;
+  };
+  const surpresa = (r, e) => { if (!e || e.actual == null) return null; const f = prevNum(r, e); if (f == null) return 0; const d = e.actual - f; return Math.abs(d) < 1e-9 ? 0 : d > 0 ? 1 : -1; };
+  function drawAgenda() {
+    const AG = D('mi_agenda'); const at = $('.mi-ag-t tbody'); if (!at) return; at.replaceChildren(); const hj = hojeISO(); const agora = Date.now();
+    let ultimo = null;
+    for (const r of AG.status === 'ok' ? AG.data : []) {
+      const e = casar(r); const quando = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const passou = quando < agora;
+      const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' : '') + (passou ? ' ag-passou' : '');
+      const [d, h] = r.quando.split(' ');
+      td(tr, (d === hj ? 'hoje' : d.slice(8, 10) + '/' + d.slice(5, 7)) + ' ' + h); td(tr, r.moeda);
+      const ev = td(tr, r.evento); if (r.impacto === 'Alto') { const b = document.createElement('span'); b.className = 'ag-red'; b.title = 'Alto impacto'; ev.prepend(b); }
+      td(tr, r.previsao || (e && e.forecast != null ? fmtLive(e, e.forecast) : '—'), 'num'); td(tr, r.anterior || '—', 'num');
+      const c = td(tr, '', 'num ag-at');
+      if (e && e.actual != null) {
+        const s = surpresa(r, e); const box = document.createElement('span');
+        box.className = 'ag-box ' + (s > 0 ? 'ag-acima' : s < 0 ? 'ag-abaixo' : 'ag-igual');
+        box.textContent = (s > 0 ? '▲ ' : s < 0 ? '▼ ' : '') + fmtLive(e, e.actual);
+        box.title = s > 0 ? 'Acima da previsão' : s < 0 ? 'Abaixo da previsão' : 'Igual à previsão / sem previsão';
+        if (!LIVE.vistos.has(e.id)) { if (LIVE.quando) box.classList.add('ag-novo'); LIVE.vistos.add(e.id); }
+        c.appendChild(box);
+        if (!ultimo || quando > ultimo.quando) ultimo = { r, e, s, quando };
+      } else if (passou && agora - quando < 20 * 60e3) {
+        const sp = document.createElement('span'); sp.className = 'ag-wait'; sp.textContent = 'saindo…'; c.appendChild(sp);
+      } else if (passou && r.url) { const l = document.createElement('a'); l.href = r.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'ver ↗'; c.appendChild(l); }
+      else c.textContent = passou ? '—' : 'aguarda';
+      at.appendChild(tr);
+    }
+    // destaque do último dado divulgado (últimas 3 horas)
+    const hl = $('.ag-hl');
+    if (hl) {
+      if (ultimo && agora - ultimo.quando < 3 * 3600e3) {
+        const { r, e, s } = ultimo; hl.hidden = false; hl.className = 'ag-hl ' + (s > 0 ? 'ag-acima' : s < 0 ? 'ag-abaixo' : 'ag-igual');
+        hl.querySelector('.ag-hl-ev').textContent = r.moeda + ' · ' + r.evento + ' · ' + r.hora;
+        hl.querySelector('.ag-hl-v').textContent = fmtLive(e, e.actual);
+        hl.querySelector('.ag-hl-s').textContent = (s > 0 ? '▲ acima' : s < 0 ? '▼ abaixo' : 'em linha com') + ' da previsão (' + (r.previsao || fmtLive(e, e.forecast)) + ') · anterior ' + (r.anterior || fmtLive(e, e.previous));
+      } else hl.hidden = true;
+    }
+    const st = $('.ag-live');
+    if (st) { st.className = 'ag-live' + (LIVE.ok ? ' on' : ''); st.textContent = LIVE.ok ? 'ao vivo · ' + new Date(LIVE.quando).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'ao vivo indisponível: use o link "ver"'; }
+  }
+  // perto de um horário de divulgação, consulta a cada 15 s; fora disso, a cada 60 s
+  function proximoIntervalo() {
+    const AG = D('mi_agenda'); const agora = Date.now();
+    const quente = (AG.status === 'ok' ? AG.data : []).some((r) => { const t = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); return t - agora < 2 * 60e3 && agora - t < 20 * 60e3 && (casar(r) || {}).actual == null; });
+    return quente ? 15e3 : 60e3;
+  }
+  async function liveTick() {
+    try {
+      const r = await fetch(LIVE_URL, { cache: 'no-store' }); if (!r.ok) throw 0;
+      const j = await r.json(); LIVE.ev = Array.isArray(j) ? j : (j.events || []); LIVE.ok = true; LIVE.quando = Date.now();
+    } catch (e) { LIVE.ok = LIVE.ev.length > 0; }
+    if (!$('#sec-mi').hidden) drawAgenda();
+    clearTimeout(LIVE.timer); LIVE.timer = setTimeout(liveTick, document.hidden ? 120e3 : proximoIntervalo());
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { clearTimeout(LIVE.timer); liveTick(); } });
+
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
   function drawAll() { drawGB(); if (!$('#sec-mi').hidden) drawMI(); if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
-  load(); setInterval(load, 5 * 60 * 1000);
+  load(); setInterval(load, 2 * 60 * 1000); liveTick();
 })();
