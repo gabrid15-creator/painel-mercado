@@ -9,6 +9,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  deployments: read
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -49,5 +50,14 @@ jobs:
       name: github-pages
       url: ${{ steps.d.outputs.page_url }}
     steps:
+      # um deploy do Pages preso bloqueia todos os seguintes; cancela os que ficaram pendurados
+      # (o grupo de concorrência "pages" garante que nenhum outro deploy deste workflow está rodando)
+      - name: Cancelar deploy do Pages preso
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for sha in $(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=github-pages&per_page=10" --jq '.[].sha' | sort -u); do
+            gh api -X POST "repos/$GITHUB_REPOSITORY/pages/deployments/$sha/cancel" >/dev/null 2>&1 && echo "cancelado: $sha" || true
+          done
       - id: d
         uses: actions/deploy-pages@v4
