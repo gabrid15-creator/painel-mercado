@@ -233,6 +233,66 @@
     .op-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; width: 100%; } .op-tab { white-space: nowrap; padding: 6px 12px; }
     .ag-box { font-size: 13px; }
   }
+
+  /* ================= refinamento 2 ================= */
+  .op-table th.num, .op-table td.num { text-align: right; }
+  .op-table thead th { position: static; box-shadow: inset 0 -1px 0 var(--color-border-line); }
+  .op-tablebox .op-table thead th { position: sticky; top: 0; box-shadow: inset 0 -1px 0 var(--color-border-line), 0 4px 8px -6px rgba(0,0,0,.35); }
+  .op-table td { line-height: 1.35; }
+  /* cards do topo */
+  .op-tiles { align-items: stretch; }
+  .op-tile { gap: 8px; }
+  .tl-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .tl-k { text-transform: uppercase; letter-spacing: .07em; font-size: 11px; font-weight: 600; color: var(--color-fg-muted); }
+  .tl-chip { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--color-fg) 8%, transparent); color: var(--color-fg-muted); }
+  .tl-chip.ok { background: color-mix(in srgb, var(--color-ok) 16%, transparent); color: var(--color-ok); }
+  .tl-chip.warn { background: color-mix(in srgb, var(--color-warn) 18%, transparent); color: var(--color-warn); }
+  .tl-chip.bad { background: color-mix(in srgb, var(--color-bad) 16%, transparent); color: var(--color-bad); }
+  .tl-v { display: flex; align-items: baseline; gap: 8px; }
+  .tl-v .v { font-size: 40px; line-height: 1; }
+  .tl-u { color: var(--color-fg-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .tl-u.mi-pos { color: var(--color-ok); } .tl-u.mi-neg { color: var(--color-bad); }
+  .tl-gauge { position: relative; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--color-fg) 9%, transparent); margin-top: 2px; }
+  .tl-gauge-fg { background: linear-gradient(90deg, var(--color-bad), var(--color-warn) 50%, var(--color-ok)); opacity: .9; }
+  .tl-gauge i { position: absolute; top: -4px; width: 4px; height: 14px; margin-left: -2px; border-radius: 2px; background: var(--color-fg); box-shadow: 0 0 0 2px var(--color-panel); }
+  .tl-gauge b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
+  .tl-gl { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--color-fg-muted); margin-top: -4px; }
+  .tl-l { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .tl-l li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px dashed var(--color-border-line); font-size: 13px; }
+  .tl-l li:last-child { border-bottom: 0; }
+  .tl-l li > span:first-child { color: var(--color-fg-muted); }
+  .tl-l li > b { font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .tl-ev li { justify-content: flex-start; align-items: flex-start; }
+  .tl-ev li > span:first-child { color: var(--color-fg); }
+  .tl-ev .hr { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 12px; padding: 1px 6px; border-radius: 6px; background: color-mix(in srgb, var(--color-bad) 14%, transparent); color: var(--color-bad); }
+  .tl-ev .cur { flex: none; font-size: 11px; font-weight: 600; color: var(--color-fg-muted); width: 2.4rem; }
+  .tl-ev li.foi { opacity: .55; } .tl-ev li.foi .hr { background: color-mix(in srgb, var(--color-fg) 8%, transparent); color: var(--color-fg-muted); }
+  .tl-ev li.vazio { color: var(--color-fg-muted); }
+  .op-tile .mi-exp { margin-top: auto; padding-top: 8px; }
+  /* leitura da IA */
+  .ia-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .ia-chip { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+  .ia-quando { margin-left: auto; font-size: 12px; color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+  .mi-iag .mi-ia-txt { font-size: 15.5px; line-height: 1.65; max-width: 95ch; }
+  .ia-atv { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 7%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); }
+  .ia-atv .mi-ia-txt { background: none; padding: 0; font-size: 14.5px; line-height: 1.6; }
+  /* score e viés */
+  .sc-side { gap: 6px; }
+  .sc-vies { display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 14px; background: color-mix(in srgb, currentColor 13%, transparent); }
+  .sc-b { grid-template-columns: 10rem 1fr 3.2rem; }
+  .sc-b > span:first-child { color: var(--color-fg-muted); }
+  .sc-b .num { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .mi-sc-t td:nth-child(2) { font-weight: 600; white-space: nowrap; }
+  /* agenda: dia de hoje */
+  .mi-ag-t tr.mi-hoje td { background: color-mix(in srgb, var(--accent) 13%, var(--color-panel)); }
+  .mi-ag-t tr.mi-hoje td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 700; color: var(--accent); }
+  .mi-ag-t tr.mi-hoje:hover td { background: color-mix(in srgb, var(--accent) 19%, var(--color-panel)); }
+  .mi-ag-t tr.mi-hoje.mi-red td:first-child { color: var(--accent); }
+  .mi-ag-t tr.ag-passou td { opacity: 1; } .mi-ag-t tr.ag-passou:not(.mi-red) td:not(.ag-at) { color: color-mix(in srgb, var(--color-fg) 62%, transparent); }
+  .mi-ag-t tr.mi-hoje:not(.mi-red) td:not(.ag-at) { color: var(--color-fg); }
+  .op-table thead th { white-space: nowrap; }
+  .mi-ag-t tr.mi-hoje-1 td { border-top: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
+  @media (max-width: 640px) { .tl-v .v { font-size: 32px; } .sc-b { grid-template-columns: 7.5rem 1fr 2.8rem; } .mi-iag .mi-ia-txt { font-size: 14.5px; } }
 </style>
 </head>
 <body>
@@ -251,15 +311,34 @@
   <div class="op-wrap op-sec" id="sec-mi">
     <header class="op-head"><h1>Inteligência de mercado</h1><p class="mi-take">Carregando…</p></header>
 
-    <section class="op-card mi-iag"><h2>Leitura do dia (IA)</h2><p class="mi-ia-txt mi-ia-geral">—</p></section>
+    <section class="op-card mi-iag"><div class="ia-h"><h2>Leitura do dia</h2><span class="tl-chip ia-chip">✦ IA</span><span class="ia-quando mi-ia-geral-q"></span></div><p class="mi-ia-txt mi-ia-geral">—</p></section>
 
 
 
     <section class="op-tiles">
-      <div class="op-card op-tile"><span class="s">Fear &amp; Greed (CNN)</span><span class="v mi-fg">—</span><span class="s mi-fgs">—</span><span class="mi-exp">Humor da bolsa americana de 0 a 100. Abaixo de 25 = medo extremo, acima de 75 = ganância extrema. Nos extremos funciona ao contrário: medo extremo costuma aparecer perto de fundos e ganância extrema perto de topos.</span></div>
-      <div class="op-card op-tile"><span class="s">Red folder hoje</span><span class="v mi-red-n">—</span><span class="s mi-red-t">—</span><span class="mi-exp">Eventos de alto impacto hoje (horário de Brasília). Nesses horários o spread abre e o preço pode dar spike: evite entrar nos minutos antes e espere o primeiro movimento assentar.</span></div>
-      <div class="op-card op-tile"><span class="s">VIX</span><span class="v mi-vix">—</span><span class="s mi-vixs">—</span><span class="mi-exp">"Índice do medo" da bolsa. Até 15 = calmo, 20 a 30 = nervoso, acima de 30 = pânico. VIX alto: Nasdaq pressionado; iene, franco e ouro tendem a ganhar. O percentil mostra onde ele está no último ano.</span></div>
-      <div class="op-card op-tile"><span class="s">DXY</span><span class="v mi-dxy">—</span><span class="s mi-dxys">—</span><span class="mi-exp">Dólar contra 6 moedas (57% é o euro). DXY subindo = EURUSD, GBPUSD e ouro caindo, USDJPY e USDCHF subindo. Use a variação de 20 dias para a tendência do dólar.</span></div>
+      <div class="op-card op-tile">
+        <div class="tl-h"><span class="tl-k">Fear &amp; Greed · CNN</span><span class="tl-chip mi-fg-chip">—</span></div>
+        <div class="tl-v"><span class="v mi-fg">—</span><span class="tl-u">/ 100</span></div>
+        <div class="tl-gauge tl-gauge-fg" aria-hidden="true"><i class="mi-fg-pt"></i></div><div class="tl-gl"><span>medo</span><span>neutro</span><span>ganância</span></div>
+        <ul class="tl-l mi-fgs"></ul>
+        <span class="mi-exp">Humor da bolsa americana. Nos extremos funciona ao contrário: medo extremo (abaixo de 25) costuma aparecer perto de fundos; ganância extrema (acima de 75), perto de topos.</span></div>
+      <div class="op-card op-tile">
+        <div class="tl-h"><span class="tl-k">Red folder hoje</span><span class="tl-chip mi-red-chip">—</span></div>
+        <div class="tl-v"><span class="v mi-red-n">—</span><span class="tl-u">eventos</span></div>
+        <ul class="tl-l tl-ev mi-red-t"></ul>
+        <span class="mi-exp">Alto impacto, horário de Brasília. Nesses horários o spread abre e o preço pode dar spike: evite entrar nos minutos antes e espere o primeiro movimento assentar.</span></div>
+      <div class="op-card op-tile">
+        <div class="tl-h"><span class="tl-k">VIX · medo da bolsa</span><span class="tl-chip mi-vix-chip">—</span></div>
+        <div class="tl-v"><span class="v mi-vix">—</span><span class="tl-u mi-vix-d">—</span></div>
+        <div class="tl-gauge" aria-hidden="true"><b class="mi-vix-bar"></b></div><div class="tl-gl"><span>mínima do ano</span><span>máxima</span></div>
+        <ul class="tl-l mi-vixs"></ul>
+        <span class="mi-exp">Até 15 = calmo, 20 a 30 = nervoso, acima de 30 = pânico. VIX alto pressiona o Nasdaq; iene, franco e ouro tendem a ganhar.</span></div>
+      <div class="op-card op-tile">
+        <div class="tl-h"><span class="tl-k">DXY · índice do dólar</span><span class="tl-chip mi-dxy-chip">—</span></div>
+        <div class="tl-v"><span class="v mi-dxy">—</span><span class="tl-u mi-dxy-d">—</span></div>
+        <div class="tl-gauge" aria-hidden="true"><b class="mi-dxy-bar"></b></div><div class="tl-gl"><span>mínima do ano</span><span>máxima</span></div>
+        <ul class="tl-l mi-dxys"></ul>
+        <span class="mi-exp">Dólar contra 6 moedas (57% é o euro). Subindo: EURUSD, GBPUSD e ouro caem; USDJPY e USDCHF sobem. A variação de 20 dias dá a tendência.</span></div>
     </section>
 
 
@@ -269,16 +348,16 @@
         <div class="sc-side"><span class="s">Score do ativo (0 a 100)</span><div class="sc-nome">—</div><div class="sc-vies">—</div>
           <div class="sc-bars"></div></div>
       </div>
-      <p class="mi-ia-txt mi-ia-atv">—</p>
+      <div class="ia-atv"><div class="ia-h"><span class="tl-chip ia-chip">✦ Leitura da IA</span><span class="ia-quando mi-ia-atv-q"></span></div><p class="mi-ia-txt mi-ia-atv">—</p></div>
       <table class="op-table mi-sc-t"><thead><tr><th>Fator (peso)</th><th class="num">Pontos</th><th>Leitura</th></tr></thead><tbody></tbody></table>
       <p class="mi-exp">Como funciona: cada fator dá de −1 (puxa para baixo) a +1 (puxa para cima), multiplicado pelo peso. O score parte de 50 e soma os pontos: 60 ou mais = viés altista, 40 ou menos = baixista, entre os dois = neutro. Pesos: tendência 20, juros 20, dólar 15, COT 15, movimento de hoje 10, risco 10, sazonalidade 5 e valor justo 5. A leitura em texto é escrita pela IA (Claude) duas vezes por dia, juntando números, agenda e notícias.</p>
     </section>
 
     <section class="op-tiles">
-      <div class="op-card op-tile"><span class="s">Preço</span><span class="v mi-a" data-f="preco">—</span><span class="s mi-a-var">—</span><span class="mi-exp">Último preço e variação em 1 dia, 5 dias (semana), 20 dias (mês) e no ano.</span></div>
-      <div class="op-card op-tile"><span class="s">Valor justo pelos juros</span><span class="v mi-a" data-f="vj_valor">—</span><span class="s mi-a-vj">—</span><span class="mi-exp">Preço que o ativo "deveria" ter pelo fator de juros que mais o explica no último ano. Abaixo do justo = barato (tende a subir até ele), acima = caro. z além de ±2 = muito esticado. Só confie se o R² for 0,3 ou mais.</span></div>
-      <div class="op-card op-tile"><span class="s">Sazonalidade do mês (20 anos)</span><span class="v mi-a" data-f="saz_mes_media">—</span><span class="s mi-a-saz">—</span><span class="mi-exp">Retorno médio deste mês nos últimos 20 anos e em quantos anos ele subiu. Só tem vantagem se subiu ou caiu em 60% ou mais dos anos.</span></div>
-      <div class="op-card op-tile"><span class="s">Oscilação média diária (ATR 14)</span><span class="v mi-a" data-f="atr14">—</span><span class="s mi-a-52">—</span><span class="mi-exp">Quanto o ativo anda num dia normal. Use para o tamanho do stop e do alvo; um dia que anda 2x isso é fora do comum. Abaixo, a mínima e a máxima das últimas 52 semanas.</span></div>
+      <div class="op-card op-tile"><span class="tl-k">Preço</span><span class="v mi-a" data-f="preco">—</span><ul class="tl-l mi-a-var"></ul><span class="mi-exp">Último preço e variação em 1 dia, 5 dias (semana), 20 dias (mês) e no ano.</span></div>
+      <div class="op-card op-tile"><span class="tl-k">Valor justo pelos juros</span><span class="v mi-a" data-f="vj_valor">—</span><ul class="tl-l mi-a-vj"></ul><span class="mi-exp">Preço que o ativo "deveria" ter pelo fator de juros que mais o explica no último ano. Abaixo do justo = barato (tende a subir até ele), acima = caro. z além de ±2 = muito esticado. Só confie se o R² for 0,3 ou mais.</span></div>
+      <div class="op-card op-tile"><span class="tl-k">Sazonalidade do mês (20 anos)</span><span class="v mi-a" data-f="saz_mes_media">—</span><ul class="tl-l mi-a-saz"></ul><span class="mi-exp">Retorno médio deste mês nos últimos 20 anos e em quantos anos ele subiu. Só tem vantagem se subiu ou caiu em 60% ou mais dos anos.</span></div>
+      <div class="op-card op-tile"><span class="tl-k">Oscilação média diária (ATR 14)</span><span class="v mi-a" data-f="atr14">—</span><ul class="tl-l mi-a-52"></ul><span class="mi-exp">Quanto o ativo anda num dia normal. Use para o tamanho do stop e do alvo; um dia que anda 2x isso é fora do comum. Abaixo, a mínima e a máxima das últimas 52 semanas.</span></div>
     </section>
 
     <div class="op-grid">
@@ -398,7 +477,7 @@
     </section>
   </div>
 </div>
-<script src="app.js?v=20261105c"></script>
-<script src="opcoes.js?v=20261105c"></script>
+<script src="app.js?v=20261105d"></script>
+<script src="opcoes.js?v=20261105d"></script>
 </body>
 </html>

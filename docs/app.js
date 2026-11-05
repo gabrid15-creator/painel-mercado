@@ -120,22 +120,55 @@
     const g = G.status === 'ok' ? G.data[0] : null;
     const mrow = (k) => (M.status === 'ok' ? M.data.find((r) => r.serie === k) : null);
     const FGT = { 'extreme fear': 'medo extremo', fear: 'medo', neutral: 'neutro', greed: 'ganância', 'extreme greed': 'ganância extrema' };
-    $('.mi-fg').textContent = g && g.fg != null ? nf(g.fg, 0) : '—';
-    $('.mi-fgs').textContent = g && g.fg != null ? (FGT[g.fg_txt] || g.fg_txt) + ' · ontem ' + nf(g.fg_ontem, 0) + ' · semana ' + nf(g.fg_semana, 0) + ' · mês ' + nf(g.fg_mes, 0) : '—';
-    $('.mi-red-n').textContent = g ? nf(g.red_hoje, 0) : '—';
-    $('.mi-red-t').textContent = g ? (g.red_hoje_txt || 'nenhum evento de alto impacto') : '—';
+    // ---- cards do topo
+    const li = (ul, k, v, c) => { const e = document.createElement('li'); const a = document.createElement('span'); a.textContent = k; const b = document.createElement('b'); b.textContent = v; if (c) b.className = c; e.append(a, b); ul.appendChild(e); };
+    const chip = (sel, txt, tom) => { const e = $(sel); e.textContent = txt; e.className = 'tl-chip ' + sel.slice(1) + (tom ? ' ' + tom : ''); };
+    const faixa = (k, v) => { const h = Hh.status === 'ok' ? Hh.data.filter((r) => r.serie === k).map((r) => Number(r.valor)) : []; if (!h.length || v == null) return null; const lo = Math.min(...h), hi = Math.max(...h); return hi > lo ? Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100)) : null; };
+    {
+      const ul = $('.mi-fgs'); ul.replaceChildren(); const f = g && g.fg != null ? Number(g.fg) : null;
+      $('.mi-fg').textContent = f != null ? nf(f, 0) : '—';
+      chip('.mi-fg-chip', f != null ? (FGT[g.fg_txt] || g.fg_txt) : '—', f == null ? '' : f < 25 ? 'bad' : f < 45 ? 'warn' : f <= 55 ? '' : 'ok');
+      $('.mi-fg-pt').style.left = (f != null ? f : 50) + '%';
+      if (g) for (const [k, v] of [['Ontem', g.fg_ontem], ['1 semana atrás', g.fg_semana], ['1 mês atrás', g.fg_mes], ['1 ano atrás', g.fg_ano]]) if (v != null) li(ul, k, nf(v, 0));
+    }
+    {
+      const ul = $('.mi-red-t'); ul.replaceChildren(); const hj = hojeISO(); const agora = Date.now();
+      const ev = (AG.status === 'ok' ? AG.data : []).filter((r) => r.data === hj && r.impacto === 'Alto');
+      $('.mi-red-n').textContent = AG.status === 'ok' ? ev.length : (g ? nf(g.red_hoje, 0) : '—');
+      const prox = ev.find((r) => new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime() > agora);
+      chip('.mi-red-chip', !ev.length ? 'dia livre' : prox ? 'próximo ' + prox.hora : 'todos já saíram', !ev.length ? 'ok' : prox ? 'bad' : '');
+      for (const r of ev) {
+        const e = document.createElement('li'); if (new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime() <= agora) e.className = 'foi';
+        const h = document.createElement('span'); h.className = 'hr'; h.textContent = r.hora; const c = document.createElement('span'); c.className = 'cur'; c.textContent = r.moeda;
+        const t = document.createElement('span'); t.textContent = r.evento; e.append(h, c, t); ul.appendChild(e);
+      }
+      if (!ev.length) { const e = document.createElement('li'); e.className = 'vazio'; e.textContent = 'Nenhum evento de alto impacto hoje.'; ul.appendChild(e); }
+    }
     const vx = mrow('VIX'), dx = mrow('DXY');
-    $('.mi-vix').textContent = vx ? nf(vx.valor, 2) : '—';
-    $('.mi-vixs').textContent = vx ? sg(vx.var_1d) + ' no dia · percentil ' + nf(vx.pctil_1a, 0) : '—';
-    $('.mi-dxy').textContent = dx ? nf(dx.valor, 2) : '—';
-    $('.mi-dxys').textContent = dx ? sg(dx.var_1d) + ' no dia · ' + sg(dx.var_20d) + ' em 20 dias' : '—';
+    {
+      const ul = $('.mi-vixs'); ul.replaceChildren(); const v = vx ? Number(vx.valor) : null;
+      $('.mi-vix').textContent = vx ? nf(v, 2) : '—';
+      const d = $('.mi-vix-d'); d.textContent = vx ? sg(vx.var_1d) + ' hoje' : ''; d.className = 'tl-u mi-vix-d ' + (vx ? (vx.var_1d > 0 ? 'mi-neg' : vx.var_1d < 0 ? 'mi-pos' : '') : '');
+      chip('.mi-vix-chip', v == null ? '—' : v < 15 ? 'calmo' : v < 20 ? 'normal' : v < 30 ? 'nervoso' : 'pânico', v == null ? '' : v < 15 ? 'ok' : v < 20 ? '' : v < 30 ? 'warn' : 'bad');
+      const fx = faixa('VIX', v); $('.mi-vix-bar').style.width = (fx != null ? fx : (vx ? vx.pctil_1a : 0)) + '%';
+      if (vx) { li(ul, '5 dias', sg(vx.var_5d), cls(-vx.var_5d)); li(ul, '20 dias', sg(vx.var_20d), cls(-vx.var_20d)); li(ul, 'Percentil no ano', nf(vx.pctil_1a, 0) + '%'); }
+    }
+    {
+      const ul = $('.mi-dxys'); ul.replaceChildren(); const v = dx ? Number(dx.valor) : null;
+      $('.mi-dxy').textContent = dx ? nf(v, 2) : '—';
+      const d = $('.mi-dxy-d'); d.textContent = dx ? sg(dx.var_1d) + ' hoje' : ''; d.className = 'tl-u mi-dxy-d ' + (dx ? cls(dx.var_1d) : '');
+      const t20 = dx ? dx.var_20d : null;
+      chip('.mi-dxy-chip', t20 == null ? '—' : t20 > 0.5 ? '▲ dólar forte' : t20 < -0.5 ? '▼ dólar fraco' : '■ dólar de lado', t20 == null ? '' : t20 > 0.5 ? 'ok' : t20 < -0.5 ? 'bad' : '');
+      const fx = faixa('DXY', v); $('.mi-dxy-bar').style.width = (fx != null ? fx : (dx ? dx.pctil_1a : 0)) + '%';
+      if (dx) { li(ul, '5 dias', sg(dx.var_5d), cls(dx.var_5d)); li(ul, '20 dias (tendência)', sg(dx.var_20d), cls(dx.var_20d)); li(ul, 'Percentil no ano', nf(dx.pctil_1a, 0) + '%'); }
+    }
     $('.mi-take').textContent = g ? 'Dados de ' + br(g.gerado_em) + ' (Brasília)' + (g.red_hoje ? ' · ' + g.red_hoje + ' evento(s) red folder hoje' : '') : 'Carregando…';
     $('.hj-up').textContent = g ? 'atualizado ' + br(g.gerado_em) : '';
 
     // score + IA
     const ia = (k) => (IA.status === 'ok' ? IA.data.find((r) => r.ativo === k) : null);
     const corS = (s) => (s >= 60 ? 'var(--color-ok)' : s <= 40 ? 'var(--color-bad)' : 'var(--color-warn)');
-    const g0 = ia('GERAL'); $('.mi-ia-geral').textContent = g0 ? g0.texto + ' (' + br(g0.gerado_em) + ')' : '—';
+    const g0 = ia('GERAL'); $('.mi-ia-geral').textContent = g0 ? g0.texto : '—'; $('.mi-ia-geral-q').textContent = g0 ? 'escrita em ' + br(g0.gerado_em) : '';
     const sc = SC.status === 'ok' ? SC.data.find((r) => r.ativo === atv) : null;
     {
       const el = $('.sc-ring'); el.replaceChildren(); const R = 80, sw = 16, val = sc ? sc.score : 50, cor = sc ? corS(sc.score) : 'var(--color-border-line)';
@@ -152,7 +185,7 @@
       g.append('text').attr('x', 62).attr('y', 82).attr('text-anchor', 'middle').style('font-size', '10px').style('fill', 'var(--color-fg-muted)').text('altista');
     }
     $('.sc-nome').textContent = atv + ' · ' + NOME[atv];
-    $('.sc-vies').textContent = sc ? (sc.score >= 60 ? 'Viés altista: os fatores somados puxam para cima' : sc.score <= 40 ? 'Viés baixista: os fatores somados puxam para baixo' : 'Neutro: fatores divididos, sem direção clara') : '—';
+    $('.sc-vies').textContent = sc ? (sc.score >= 60 ? '▲ Viés altista · os fatores somados puxam para cima' : sc.score <= 40 ? '▼ Viés baixista · os fatores somados puxam para baixo' : '■ Neutro · fatores divididos, sem direção clara') : '—';
     $('.sc-vies').style.color = sc ? corS(sc.score) : '';
     const sb = $('.sc-bars'); sb.replaceChildren();
     for (const c of sc ? sc.componentes : []) {
@@ -162,7 +195,7 @@
       const p = document.createElement('span'); p.className = 'num ' + cls(c.pontos); p.textContent = sg(c.pontos, 1, '');
       row.append(l, tr, p); sb.appendChild(row);
     }
-    const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? 'IA: ' + ia1.texto + ' (leitura de ' + br(ia1.gerado_em) + '; o score e os números se atualizam a cada 5 minutos)' : '—';
+    const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) + ' · score atualiza a cada 5 min' : '';
     const tb0 = $('.mi-sc-t tbody'); tb0.replaceChildren();
     for (const c of sc ? sc.componentes : []) { const tr = document.createElement('tr'); td(tr, c.fator + ' (' + c.peso + ')'); td(tr, sg(c.pontos, 1, ''), 'num ' + cls(c.pontos)); td(tr, c.leitura); tb0.appendChild(tr); }
 
@@ -173,10 +206,11 @@
       el.textContent = val == null ? '—' : f === 'saz_mes_media' ? sg(val, 2) : (f === 'gb_extremos' || f === 'hp_extremos') ? nf(val, 1) + '%' : nf(val, ['atr14', 'preco', 'vj_valor'].includes(f) ? cs : 2);
     });
     const hm = new Date().getMonth();
-    $('.mi-a-var').textContent = a ? 'dia ' + sg(a.var_1d) + ' · 5d ' + sg(a.var_5d) + ' · 20d ' + sg(a.var_20d) + ' · ano ' + sg(a.var_ano) : '—';
-    $('.mi-a-vj').textContent = a && a.vj_valor != null ? 'preço ' + sg(a.vj_desvio_pct) + ' do justo (z ' + nf(a.vj_z, 1) + ') · fator: ' + a.vj_fator + ' · R² ' + nf(a.vj_r2, 2) : '—';
-    $('.mi-a-saz').textContent = a && a.saz_mes_media != null ? MES[hm] + ': subiu em ' + nf(a.saz_mes_acerto, 0) + '% dos ' + a.saz_mes_n + ' anos → ' + (a.saz_mes_sinal === 'inconclusivo' ? 'sem vantagem' : 'viés de ' + a.saz_mes_sinal) + ' · 10 anos: ' + nf(a.saz_mes10_acerto, 0) + '%' : '—';
-    $('.mi-a-52').textContent = a ? 'mín ' + nf(a.min_52s, cs) + ' · máx ' + nf(a.max_52s, cs) : '—';
+    const L = (sel, rows) => { const ul = $(sel); ul.replaceChildren(); if (!a) return; for (const [k, v, c] of rows) if (v != null) { const e = document.createElement('li'); const x = document.createElement('span'); x.textContent = k; const y = document.createElement('b'); y.textContent = v; if (c) y.className = c; e.append(x, y); ul.appendChild(e); } };
+    L('.mi-a-var', a ? [['Dia', sg(a.var_1d), cls(a.var_1d)], ['5 dias', sg(a.var_5d), cls(a.var_5d)], ['20 dias', sg(a.var_20d), cls(a.var_20d)], ['No ano', sg(a.var_ano), cls(a.var_ano)]] : []);
+    L('.mi-a-vj', a && a.vj_valor != null ? [['Preço vs. justo', sg(a.vj_desvio_pct), cls(-a.vj_desvio_pct)], ['Esticamento (z)', nf(a.vj_z, 1), Math.abs(a.vj_z) >= 2 ? 'mi-neg' : ''], ['Fator', a.vj_fator], ['Confiança (R²)', nf(a.vj_r2, 2), a.vj_r2 >= 0.3 ? '' : 'mi-neg']] : []);
+    L('.mi-a-saz', a && a.saz_mes_media != null ? [['Subiu em (20 anos)', nf(a.saz_mes_acerto, 0) + '% de ' + a.saz_mes_n + ' anos'], ['Subiu em (10 anos)', nf(a.saz_mes10_acerto, 0) + '%'], ['Leitura', a.saz_mes_sinal === 'inconclusivo' ? 'sem vantagem' : 'viés de ' + a.saz_mes_sinal, a.saz_mes_sinal === 'alta' ? 'mi-pos' : a.saz_mes_sinal === 'baixa' ? 'mi-neg' : '']] : []);
+    L('.mi-a-52', a ? [['Mínima 52 semanas', nf(a.min_52s, cs)], ['Máxima 52 semanas', nf(a.max_52s, cs)], ['ATR em % do preço', a.preco ? nf(a.atr14 / a.preco * 100, 2) + '%' : null]] : []);
     $('.mi-gb-b').textContent = a && a.gb_base != null ? 'base ' + nf(a.gb_base, 1) + '% · diferença ' + sg(a.gb_extremos - a.gb_base, 1, ' p.p.') : '—';
     $('.mi-hp-b').textContent = a && a.hp_base != null ? 'base ' + nf(a.hp_base, 1) + '% · diferença ' + sg(a.hp_extremos - a.hp_base, 1, ' p.p.') : '—';
 
@@ -411,10 +445,11 @@
   const surpresa = (r, e) => { if (!e || e.actual == null) return null; const f = prevNum(r, e); if (f == null) return 0; const d = e.actual - f; return Math.abs(d) < 1e-9 ? 0 : d > 0 ? 1 : -1; };
   function drawAgenda() {
     const AG = D('mi_agenda'); const at = $('.mi-ag-t tbody'); if (!at) return; at.replaceChildren(); const hj = hojeISO(); const agora = Date.now();
-    let ultimo = null;
+    let ultimo = null, primHoje = false;
     for (const r of AG.status === 'ok' ? AG.data : []) {
       const e = casar(r); const quando = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const passou = quando < agora;
-      const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' : '') + (passou ? ' ag-passou' : '');
+      const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' + (primHoje ? '' : ' mi-hoje-1') : '') + (passou ? ' ag-passou' : '');
+      if (r.data === hj) primHoje = true;
       const [d, h] = r.quando.split(' ');
       td(tr, (d === hj ? 'hoje' : d.slice(8, 10) + '/' + d.slice(5, 7)) + ' ' + h); td(tr, r.moeda);
       const ev = td(tr, r.evento); if (r.impacto === 'Alto') { const b = document.createElement('span'); b.className = 'ag-red'; b.title = 'Alto impacto'; ev.prepend(b); }
@@ -428,8 +463,8 @@
         box.title = s > 0 ? 'Acima da previsão' : s < 0 ? 'Abaixo da previsão' : 'Igual à previsão / sem previsão';
         if (!LIVE.vistos.has(e.id)) { if (LIVE.quando) box.classList.add('ag-novo'); LIVE.vistos.add(e.id); }
         c.appendChild(box);
-        if (!ultimo || quando > ultimo.quando) ultimo = { quando, itens: [] };
-        if (quando === ultimo.quando) ultimo.itens.push({ r, e, s });
+        if (passou && (!ultimo || quando > ultimo.quando)) ultimo = { quando, itens: [] };
+        if (passou && quando === ultimo.quando) ultimo.itens.push({ r, e, s });
       } else if (passou && agora - quando < 20 * 60e3) {
         const sp = document.createElement('span'); sp.className = 'ag-wait'; sp.textContent = 'saindo…'; c.appendChild(sp);
       } else if (passou && r.url) { const l = document.createElement('a'); l.href = r.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'ver ↗'; c.appendChild(l); }
