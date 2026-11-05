@@ -103,16 +103,61 @@
   .gb-day.sel { outline: 2px solid var(--color-fg); outline-offset: 1px; }
   .gb-hn { font-size: 9px; opacity: .9; }
   [hidden] { display: none !important; }
+
+  /* topo fixo + ativos */
+  .topo { position: sticky; top: 0; z-index: 20; background: var(--color-bg); padding-top: 8px; margin: -16px -16px 16px; padding: 8px 16px 8px; border-bottom: 1px solid var(--color-border-line); }
+  .topo .hj-bar { margin-bottom: 6px; padding: 6px 10px; }
+  .topo .op-tabs { margin-bottom: 8px; }
+  .ativos { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .ativos::-webkit-scrollbar { display: none; }
+  .ativos button { flex: 1 0 auto; min-width: 118px; display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; font: inherit; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); border-radius: 12px; padding: 8px 12px; cursor: pointer; }
+  .ativos button[aria-pressed="true"] { border-color: var(--color-fg); box-shadow: 0 0 0 1px var(--color-fg) inset; }
+  .ativos .an { display: flex; flex-direction: column; } .ativos .an b { font-size: 15px; } .ativos .an small { color: var(--color-fg-muted); font-size: 11px; }
+  .ativos .sv { font-family: var(--font-anthropic-serif); font-size: 24px; line-height: 1; min-width: 2ch; text-align: right; }
+  .ativos .sv small { display: block; font-family: var(--font-anthropic-sans); font-size: 10px; text-align: right; }
+  /* score */
+  .sc-top { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+  .sc-ring { width: 170px; height: 170px; flex: none; }
+  .sc-side { flex: 1; min-width: 14rem; display: flex; flex-direction: column; gap: 4px; }
+  .sc-side .s { color: var(--color-fg-muted); font-size: 12px; }
+  .sc-nome { font-family: var(--font-anthropic-serif); font-size: 22px; } .sc-vies { font-weight: 600; font-size: 15px; }
+  .sc-bars { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .sc-b { display: grid; grid-template-columns: 9.5rem 1fr 3rem; gap: 8px; align-items: center; font-size: 12px; }
+  .sc-b .tr { position: relative; height: 8px; background: var(--color-border-line); border-radius: 4px; }
+  .sc-b .tr i { position: absolute; top: 0; height: 8px; border-radius: 4px; }
+  .sc-b .tr::after { content: ""; position: absolute; left: 50%; top: -2px; width: 1px; height: 12px; background: var(--color-fg-muted); }
+  .mi-ia-txt { background: color-mix(in srgb, var(--color-warn) 8%, transparent); border-radius: 8px; padding: 10px 12px; }
+  .mi-iag .mi-ia-txt { background: none; padding: 0; }
+  /* notícias */
+  .mi-news-l li { padding-bottom: 8px; border-bottom: 1px solid var(--color-border-line); }
+  .nw-tag { display: inline-block; font-size: 10px; padding: 1px 6px; margin-right: 4px; border-radius: 999px; background: color-mix(in srgb, var(--color-fg) 8%, transparent); color: var(--color-fg-muted); }
+  .nw-f .op-btn { font-size: 12px; padding: 2px 8px; }
+  /* opções */
+  .op-code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: 8px; padding: 8px; word-break: break-all; user-select: all; }
+  .op-copy { align-self: flex-start; }
+  /* celular */
+  @media (max-width: 640px) {
+    .wrap { padding: 12px; } .topo { margin: -12px -12px 12px; padding: 6px 12px; }
+    .hj-up { display: none; } .op-head h1 { font-size: 21px; }
+    .op-card { padding: 12px; } .op-tile .v { font-size: 22px; }
+    .sc-ring { width: 130px; height: 130px; } .sc-b { grid-template-columns: 7.5rem 1fr 2.6rem; }
+    .op-table { font-size: 12px; } .op-table td, .op-table th { padding: 4px 5px; }
+    .mi-ag-t th:nth-child(5), .mi-ag-t td:nth-child(5) { display: none; }
+    .mi-exp { font-size: 11.5px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="hj-bar"><span class="hj-k">Hoje</span><span class="hj-d">—</span><span class="hj-s">—</span><span class="hj-up">—</span></div>
-  <nav class="op-tabs" role="tablist">
-    <button type="button" class="op-tab" data-tab="sec-mi" aria-selected="true">Inteligência de mercado</button>
-    <button type="button" class="op-tab" data-tab="sec-gb" aria-selected="false">Dias Goldbach</button>
-    <a class="op-tab" href="https://claude.ai/artifact/XkxEZnD9QJdV4WNQGkUR17" target="_blank" rel="noopener">Paredes de opções (painel Claude) ↗</a>
-  </nav>
+  <div class="topo">
+    <div class="hj-bar"><span class="hj-k">Hoje</span><span class="hj-d">—</span><span class="hj-s">—</span><span class="hj-up">—</span></div>
+    <nav class="op-tabs" role="tablist">
+      <button type="button" class="op-tab" data-tab="sec-mi" aria-selected="true">Mercado</button>
+      <button type="button" class="op-tab" data-tab="sec-op" aria-selected="false">Paredes de opções</button>
+      <button type="button" class="op-tab" data-tab="sec-gb" aria-selected="false">Dias Goldbach</button>
+    </nav>
+    <div class="ativos" role="group" aria-label="Ativo"></div>
+  </div>
 
   <!-- ============================== MERCADO ============================== -->
   <div class="op-wrap op-sec" id="sec-mi">
@@ -120,8 +165,7 @@
 
     <section class="op-card mi-iag"><h2>Leitura do dia (IA)</h2><p class="mi-ia-txt mi-ia-geral">—</p></section>
 
-    <section class="op-card"><h2>Score de todos os ativos</h2><div class="mi-sct"></div>
-      <p class="op-note">0 a 100: 60 ou mais = viés altista, 40 ou menos = baixista. Toque num ativo para abrir os detalhes. Atualiza a cada 5 minutos.</p></section>
+
 
     <section class="op-tiles">
       <div class="op-card op-tile"><span class="s">Fear &amp; Greed (CNN)</span><span class="v mi-fg">—</span><span class="s mi-fgs">—</span><span class="mi-exp">Humor da bolsa americana de 0 a 100. Abaixo de 25 = medo extremo, acima de 75 = ganância extrema. Nos extremos funciona ao contrário: medo extremo costuma aparecer perto de fundos e ganância extrema perto de topos.</span></div>
@@ -130,12 +174,12 @@
       <div class="op-card op-tile"><span class="s">DXY</span><span class="v mi-dxy">—</span><span class="s mi-dxys">—</span><span class="mi-exp">Dólar contra 6 moedas (57% é o euro). DXY subindo = EURUSD, GBPUSD e ouro caindo, USDJPY e USDCHF subindo. Use a variação de 20 dias para a tendência do dólar.</span></div>
     </section>
 
-    <div class="mi-sel mi-atv" role="group" aria-label="Ativo"></div>
 
     <section class="op-card">
-      <div class="mi-sc-top">
-        <div><span class="s">Score do ativo</span><div class="mi-sc-v">—</div><div class="mi-sc-l">—</div></div>
-        <div class="mi-gauge"><div class="mi-gauge-bar"><i class="mi-gauge-pt"></i></div><div class="mi-gauge-lb"><span>0 baixista</span><span>50 neutro</span><span>100 altista</span></div></div>
+      <div class="sc-top">
+        <div class="sc-ring"></div>
+        <div class="sc-side"><span class="s">Score do ativo (0 a 100)</span><div class="sc-nome">—</div><div class="sc-vies">—</div>
+          <div class="sc-bars"></div></div>
       </div>
       <p class="mi-ia-txt mi-ia-atv">—</p>
       <table class="op-table mi-sc-t"><thead><tr><th>Fator (peso)</th><th class="num">Pontos</th><th>Leitura</th></tr></thead><tbody></tbody></table>
@@ -168,6 +212,7 @@
         <h2>COT (CFTC) — posicionamento</h2>
         <p class="op-note mi-cot-n">—</p>
         <table class="op-table mi-cot-t"><thead><tr><th>Grupo</th><th class="num">Líquido</th><th class="num">Semana</th><th class="num">Índice 3a</th></tr></thead><tbody></tbody></table>
+        <div class="op-legend mi-cot-lg"></div>
         <div class="mi-chart mi-cot-c"></div>
       </section>
       <section class="op-card">
@@ -205,10 +250,36 @@
 
     <div class="op-grid">
       <section class="op-card"><h2>Agenda da semana (alto e médio impacto)</h2><p class="op-note">Horário de Brasília. Vermelho = red folder.</p>
-        <div class="op-tablebox"><table class="op-table mi-ag-t"><thead><tr><th>Quando</th><th>Moeda</th><th>Evento</th><th class="num">Previsão</th><th class="num">Anterior</th></tr></thead><tbody></tbody></table></div></section>
-      <section class="op-card"><h2>Notícias</h2><p class="op-note">Reuters, Bloomberg, FT, WSJ e outros (via Google News), MarketWatch, Fed e BCE. Horário de Brasília.</p><ul class="mi-news-l"></ul></section>
+        <div class="op-tablebox"><table class="op-table mi-ag-t"><thead><tr><th>Quando</th><th>Moeda</th><th>Evento</th><th class="num">Previsão</th><th class="num">Anterior</th><th class="num">Atual</th></tr></thead><tbody></tbody></table></div>
+        <p class="op-note">"Atual": as fontes gratuitas não liberam o número divulgado de forma automática; depois do horário aparece o link "ver" que abre o resultado no Forex Factory.</p></section>
+      <section class="op-card"><h2>Notícias</h2><p class="op-note">Reuters, Bloomberg, FT, WSJ e outros (via Google News), MarketWatch, Fed e BCE, horário de Brasília. Cada manchete tem etiquetas do tema (Fed, BCE, Ouro, Nasdaq…). Use os filtros para ver só o que mexe com o ativo selecionado.</p>
+        <div class="mi-sel nw-f"></div><ul class="mi-news-l"></ul></section>
     </div>
     <p class="op-note mi-status">—</p>
+  </div>
+
+  <!-- ============================== OPÇÕES ============================== -->
+  <div class="op-wrap op-sec" id="sec-op" hidden>
+    <header class="op-head"><h1>Paredes de opções</h1><p class="op-take">—</p></header>
+    <div class="mi-sel op-sub"><button type="button" class="op-btn" data-o="eur" aria-pressed="true">Euro (CME)</button><button type="button" class="op-btn" data-o="xau" aria-pressed="false">Ouro (CME + GLD/IAU)</button></div>
+    <p class="op-note"><b>Como ler:</b> parede = strike com muitos contratos em aberto; o preço tende a ser atraído ou travado nelas, principalmente perto do vencimento. Calls grandes acima do preço viram resistência para o par (no USDCHF, visão invertida, suporte); puts grandes abaixo viram suporte. <b>Gamma flip:</b> acima dele o hedge dos bancos segura o preço (mercado lateral, ímã); abaixo, o hedge acelera o movimento. O código vai direto no indicador Jireh Opções do TradingView. <span class="op-dt">—</span></p>
+    <div id="op-eur">
+      <section class="op-tiles op-tiles-eur"></section>
+      <section class="op-card"><h2>Código para o TradingView</h2><p class="op-note">Cole no campo "Código do dia" do Jireh Opções. Leva até 12 paredes de cada lado, o gamma flip (Z) e os gammas máximos (X e Y).</p><div class="op-code op-code-eur">—</div><button type="button" class="op-btn op-copy" data-c=".op-code-eur">Copiar código</button></section>
+      <div class="op-grid">
+        <section class="op-card"><h2>Contratos em aberto por strike</h2><p class="op-note">Calls à direita (verde), puts à esquerda (vermelho), nov e dez somados. Linha tracejada = futuro.</p><div class="mi-chart op-bfly"></div></section>
+        <section class="op-card"><h2>Gamma dos dealers (estimativa)</h2><p class="op-note">Black-76 em todos os strikes, vol de cada strike tirada do delta da CME. Convenção: dealers comprados em calls e vendidos em puts.</p><div class="op-tiles op-gtiles"></div><div class="mi-chart op-gchart"></div></section>
+        <section class="op-card"><h2>Por vencimento</h2><p class="op-note">As 6 maiores de cada lado em cada vencimento, com a variação do dia.</p><div class="op-tablebox"><table class="op-table op-par-t"><thead><tr><th>Venc.</th><th>Tipo</th><th class="num">Strike</th><th class="num">Em aberto</th><th class="num">Variação</th><th>USDCHF</th></tr></thead><tbody></tbody></table></div></section>
+      </div>
+    </div>
+    <div id="op-xau" hidden>
+      <section class="op-tiles op-tiles-xau"></section>
+      <section class="op-card"><h2>Código para o TradingView (ouro)</h2><p class="op-note">Cole no campo "Código do ouro" do Jireh Opções. C/P = paredes da CME, K/Q = paredes do GLD+IAU, Z/X/Y = gamma. Em preço do futuro de dezembro.</p><div class="op-code op-code-xau">—</div><button type="button" class="op-btn op-copy" data-c=".op-code-xau">Copiar código</button></section>
+      <div class="op-grid">
+        <section class="op-card"><h2>Contratos perto do preço</h2><p class="op-note">Faixas de 25 pontos até 10% do futuro. Calls à direita, puts à esquerda; CME e GLD+IAU em contratos equivalentes (100 onças).</p><div class="op-legend"><span><i class="op-sw" style="background:#3b7dd8"></i>CME</span><span><i class="op-sw" style="background:#2a9d8f"></i>GLD+IAU</span></div><div class="mi-chart op-xmap"></div></section>
+        <section class="op-card"><h2>Gamma dos dealers (estimativa)</h2><p class="op-note">Acima do flip o hedge segura o preço; abaixo, acelera.</p><div class="mi-chart op-xg"></div></section>
+      </div>
+    </div>
   </div>
 
   <!-- ============================== GOLDBACH ============================== -->
@@ -238,5 +309,6 @@
   </div>
 </div>
 <script src="app.js"></script>
+<script src="opcoes.js"></script>
 </body>
 </html>

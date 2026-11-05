@@ -313,22 +313,24 @@ def b_cot():
         js = json.loads(get(url))
         if not js: continue
         def n(r, k): return float(r.get(k) or 0)
-        grupos = ([("Fundos alavancados", "lev_money_positions_long", "lev_money_positions_short"),
-                   ("Gestores de ativos", "asset_mgr_positions_long", "asset_mgr_positions_short"),
-                   ("Dealers", "dealer_positions_long_all", "dealer_positions_short_all")] if kind == "tff" else
-                  [("Managed money", "m_money_positions_long_all", "m_money_positions_short_all"),
-                   ("Produtores", "prod_merc_positions_long", "prod_merc_positions_short"),
-                   ("Swap dealers", "swap_positions_long_all", "swap__positions_short_all")])
+        NR = ("nonrept_positions_long_all", "nonrept_positions_short_all")
+        grupos = ([("Fundos alavancados (≈ hedge funds)", "especulativo", [("lev_money_positions_long", "lev_money_positions_short")]),
+                   ("Gestores de ativos (institucional)", "institucional", [("asset_mgr_positions_long", "asset_mgr_positions_short")]),
+                   ("Dealers (≈ commercials)", "commercial", [("dealer_positions_long_all", "dealer_positions_short_all")]),
+                   ("Varejo (não reportáveis)", "varejo", [NR])] if kind == "tff" else
+                  [("Managed money (≈ hedge funds)", "especulativo", [("m_money_positions_long_all", "m_money_positions_short_all")]),
+                   ("Commercials (produtores + swap dealers)", "commercial", [("prod_merc_positions_long", "prod_merc_positions_short"), ("swap_positions_long_all", "swap__positions_short_all")]),
+                   ("Varejo (não reportáveis)", "varejo", [NR])])
         js = list(reversed(js))
-        for g, lk, sk in grupos:
-            if lk not in js[-1]: continue
-            net = [n(r, lk) - n(r, sk) for r in js]
+        for g, papel, pares in grupos:
+            if pares[0][0] not in js[-1]: continue
+            net = [sum(n(r, lk) - n(r, sk) for lk, sk in pares) for r in js]
             w = net[-156:]
             idx = 100 * (net[-1] - min(w)) / (max(w) - min(w)) if max(w) > min(w) else None
-            rows.append({"ativo": a, "grupo": g, "data": js[-1]["report_date_as_yyyy_mm_dd"][:10], "liquido": int(net[-1]),
+            rows.append({"ativo": a, "grupo": g, "papel": papel, "data": js[-1]["report_date_as_yyyy_mm_dd"][:10], "liquido": int(net[-1]),
                          "var_semana": int(net[-1] - net[-2]) if len(net) > 1 else None, "indice_3a": rnd(idx, 0),
                          "oi": int(n(js[-1], "open_interest_all")), "sinal_par": sg,
-                         "hist": [[r["report_date_as_yyyy_mm_dd"][:10], int(v)] for r, v in zip(js[-52:], net[-52:])]})
+                         "hist": [[r["report_date_as_yyyy_mm_dd"][:10], int(v)] for r, v in zip(js[-104:], net[-104:])]})
     if not rows: raise ValueError("CFTC sem linhas")
     save("mi_cot.json", rows)
 b_cot()
@@ -347,13 +349,19 @@ b_fg()
 @bloco("Agenda econômica (Forex Factory)")
 def b_agenda():
     rows = []
+    urls = {}
+    try:
+        for ev in ET.fromstring(get("https://nfs.faireconomy.media/ff_calendar_thisweek.xml")).iter("event"):
+            urls[(ev.findtext("title"), ev.findtext("country"), ev.findtext("date"))] = (ev.findtext("url") or "").strip()
+    except Exception: pass
     for u in ("https://nfs.faireconomy.media/ff_calendar_thisweek.json",):
         for e in json.loads(get(u)):
+            d0 = dt.datetime.fromisoformat(e["date"]); e["url"] = urls.get((e.get("title"), e.get("country"), d0.strftime("%m-%d-%Y")), "")
             if e.get("country") not in ("USD", "EUR", "GBP", "JPY", "CHF") or e.get("impact") not in ("High", "Medium"): continue
             t = dt.datetime.fromisoformat(e["date"]).astimezone(BRT)
             rows.append({"quando": t.strftime("%Y-%m-%d %H:%M"), "data": t.date().isoformat(), "hora": t.strftime("%H:%M"), "moeda": e["country"],
                          "evento": e["title"], "impacto": "Alto" if e["impact"] == "High" else "Médio",
-                         "previsao": e.get("forecast") or "", "anterior": e.get("previous") or ""})
+                         "previsao": e.get("forecast") or "", "anterior": e.get("previous") or "", "url": e.get("url") or ""})
     rows.sort(key=lambda r: r["quando"])
     save("mi_agenda.json", rows)
 b_agenda()
@@ -383,6 +391,13 @@ def b_news():
     for r in rows:
         k = r["titulo"].lower()[:60]
         if k not in seen: seen.add(k); uniq.append(r)
+    TAGS = {"Fed": ["fed ", "federal reserve", "powell", "fomc"], "BCE": ["ecb", "lagarde", "euro zone", "eurozone"], "BoE": ["bank of england", "boe", "bailey"],
+            "BoJ": ["bank of japan", "boj", "ueda", "yen"], "SNB": ["snb", "swiss"], "Ouro": ["gold"], "Nasdaq": ["nasdaq", "tech stock", "chip", "nvidia", "ai stock"],
+            "Juros": ["yield", "treasur", "bond"], "Dólar": ["dollar", "dxy"], "Euro": ["euro "], "Libra": ["pound", "sterling"], "Petróleo": ["oil", "crude", "opec", "brent"],
+            "Dados": ["payroll", "cpi", "inflation", "jobs", "gdp", "pmi", "jobless", "retail sales"]}
+    for r in uniq:
+        t = " " + r["titulo"].lower() + " "
+        r["tags"] = [k for k, ws in TAGS.items() if any(w in t for w in ws)]
     save("mi_noticias.json", uniq[:80])
 b_news()
 
@@ -420,12 +435,12 @@ def b_score():
         sc = 0; txt = "sem dado"
         if cg:
             lev = cg[0]; i = lev.get("indice_3a"); sgn = lev.get("sinal_par", 1)
-            am = next((x for x in cg if x["grupo"] in ("Gestores de ativos",)), None)
-            if i is not None and i >= 80: sc = -(i - 80) / 20; txt = f"{lev['grupo']} muito comprados (índice {i:.0f}): risco de reversão"
-            elif i is not None and i <= 20: sc = (20 - i) / 20; txt = f"{lev['grupo']} muito vendidos (índice {i:.0f}): espaço para alta"
+            am = next((x for x in cg if x.get("papel") == "institucional"), None)
+            if i is not None and i >= 80: sc = -(i - 80) / 20; txt = f"{lev['grupo'].split(' (')[0]} muito comprados (índice {i:.0f}): risco de reversão"
+            elif i is not None and i <= 20: sc = (20 - i) / 20; txt = f"{lev['grupo'].split(' (')[0]} muito vendidos (índice {i:.0f}): espaço para alta"
             else:
                 ref = am or lev; dv = ref.get("var_semana") or 0; sc = 0.3 if dv > 0 else -0.3 if dv < 0 else 0
-                txt = f"posição neutra (índice {i:.0f}); {ref['grupo'].lower()} {'aumentaram' if dv > 0 else 'reduziram'} compra na semana"
+                txt = f"posição neutra (índice {i:.0f}); {ref['grupo'].split(' (')[0].lower()} {'aumentaram' if dv > 0 else 'reduziram'} compra na semana"
             sc *= sgn
             if sgn < 0: txt += " (futuro da moeda: sinal invertido para o par)"
         comp.append(("COT", clamp(sc), txt))

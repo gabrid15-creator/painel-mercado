@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'goldbach_dias'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -37,17 +37,20 @@
   const tabs = (name) => {
     document.querySelectorAll('button.op-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
     document.querySelectorAll('.op-sec').forEach((s) => { s.hidden = s.id !== name; });
+    $('.ativos').hidden = name !== 'sec-mi';
     drawAll();
   };
   document.querySelectorAll('button.op-tab').forEach((b) => b.addEventListener('click', () => { tabs(b.dataset.tab); history.replaceState(null, '', '#' + b.dataset.tab); }));
-  if (location.hash === '#sec-gb') tabs('sec-gb');
+  if (['#sec-gb', '#sec-op'].includes(location.hash)) tabs(location.hash.slice(1));
 
   // ---------------------------------------------------------------- mercado
-  let atv = 'EURUSD', serie = 'Spread 2a EUA−Alemanha', jan = 20; const vis = {};
-  const sel = $('.mi-atv');
+  let atv = 'EURUSD', serie = 'Spread 2a EUA−Alemanha', jan = 20, nwF = 'ativo'; const vis = {};
+  const bar = $('.ativos');
   for (const a of ATV) {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.dataset.a = a; b.textContent = a + ' · ' + NOME[a];
-    b.addEventListener('click', () => { atv = a; drawMI(); }); sel.appendChild(b);
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.a = a;
+    b.innerHTML = '<span class="an"><b></b><small></small></span><span class="sv">—<small></small></span>';
+    b.querySelector('.an b').textContent = a; b.querySelector('.an small').textContent = NOME[a];
+    b.addEventListener('click', () => { atv = a; drawMI(); }); bar.appendChild(b);
   }
   document.querySelectorAll('.mi-jan button').forEach((b) => b.addEventListener('click', () => {
     jan = Number(b.dataset.j); document.querySelectorAll('.mi-jan button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); drawMI();
@@ -91,7 +94,14 @@
   };
 
   function drawMI() {
-    sel.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.a === atv)));
+    if ($('#sec-mi').hidden) return;
+    const corS0 = (s) => (s >= 60 ? 'var(--color-ok)' : s <= 40 ? 'var(--color-bad)' : 'var(--color-warn)');
+    bar.querySelectorAll('button').forEach((x) => {
+      x.setAttribute('aria-pressed', String(x.dataset.a === atv));
+      const s0 = D('mi_score').status === 'ok' ? D('mi_score').data.find((r) => r.ativo === x.dataset.a) : null;
+      const sv = x.querySelector('.sv'); sv.firstChild.textContent = s0 ? s0.score : '—'; sv.style.color = s0 ? corS0(s0.score) : '';
+      sv.querySelector('small').textContent = s0 ? (s0.score >= 60 ? '▲ alta' : s0.score <= 40 ? '▼ baixa' : '■ neutro') : '';
+    });
     const G = D('mi_geral'), A = D('mi_ativos'), S = D('mi_sazon'), C = D('mi_corr'), K = D('mi_cot'), M = D('mi_macro'), Hh = D('mi_hist'),
       AG = D('mi_agenda'), N = D('mi_noticias'), ST = D('mi_status'), SC = D('mi_score'), IA = D('mi_ia');
     const g = G.status === 'ok' ? G.data[0] : null;
@@ -113,19 +123,33 @@
     const ia = (k) => (IA.status === 'ok' ? IA.data.find((r) => r.ativo === k) : null);
     const corS = (s) => (s >= 60 ? 'var(--color-ok)' : s <= 40 ? 'var(--color-bad)' : 'var(--color-warn)');
     const g0 = ia('GERAL'); $('.mi-ia-geral').textContent = g0 ? g0.texto + ' (' + br(g0.gerado_em) + ')' : '—';
-    const grid = $('.mi-sct'); grid.replaceChildren();
-    for (const a of ATV) {
-      const s = SC.status === 'ok' ? SC.data.find((r) => r.ativo === a) : null;
-      const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(a === atv));
-      const sm = document.createElement('small'); sm.textContent = a; const bb = document.createElement('b'); bb.textContent = s ? s.score : '—'; if (s) bb.style.color = corS(s.score);
-      const sm2 = document.createElement('small'); sm2.textContent = s ? s.vies : ''; b.append(sm, bb, sm2);
-      b.addEventListener('click', () => { atv = a; drawMI(); }); grid.appendChild(b);
-    }
     const sc = SC.status === 'ok' ? SC.data.find((r) => r.ativo === atv) : null;
-    const v = $('.mi-sc-v'); v.textContent = sc ? sc.score : '—'; v.style.color = sc ? corS(sc.score) : '';
-    $('.mi-sc-l').textContent = sc ? sc.vies + ' · ' + NOME[atv] : '—';
-    const pt = $('.mi-gauge-pt'); pt.style.left = (sc ? sc.score : 50) + '%'; pt.style.background = sc ? corS(sc.score) : 'var(--color-fg)';
-    const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? ia1.texto + ' (leitura de ' + br(ia1.gerado_em) + '; o score e os números se atualizam a cada 5 minutos)' : '—';
+    {
+      const el = $('.sc-ring'); el.replaceChildren(); const R = 80, sw = 16, val = sc ? sc.score : 50, cor = sc ? corS(sc.score) : 'var(--color-border-line)';
+      const svg = d3.select(el).append('svg').attr('viewBox', '0 0 200 200').attr('width', '100%');
+      const arc = d3.arc().innerRadius(R - sw).outerRadius(R).cornerRadius(8);
+      const g = svg.append('g').attr('transform', 'translate(100,100)');
+      const a0 = -Math.PI * 0.75, a1 = Math.PI * 0.75;
+      g.append('path').attr('d', arc({ startAngle: a0, endAngle: a1 })).style('fill', 'var(--color-border-line)');
+      g.append('path').attr('d', arc({ startAngle: a0, endAngle: a0 + (a1 - a0) * val / 100 })).style('fill', cor);
+      for (const t0 of [40, 60]) { const ang = a0 + (a1 - a0) * t0 / 100; g.append('line').attr('x1', Math.sin(ang) * (R - sw - 2)).attr('y1', -Math.cos(ang) * (R - sw - 2)).attr('x2', Math.sin(ang) * (R + 2)).attr('y2', -Math.cos(ang) * (R + 2)).style('stroke', 'var(--color-panel)').style('stroke-width', 3); }
+      g.append('text').attr('text-anchor', 'middle').attr('dy', '0.1em').style('font-family', 'var(--font-anthropic-serif)').style('font-size', '52px').style('fill', cor).text(sc ? sc.score : '—');
+      g.append('text').attr('text-anchor', 'middle').attr('y', 34).style('font-size', '13px').style('font-weight', 600).style('fill', cor).text(sc ? sc.vies.toUpperCase() : '');
+      g.append('text').attr('x', -62).attr('y', 82).attr('text-anchor', 'middle').style('font-size', '10px').style('fill', 'var(--color-fg-muted)').text('baixista');
+      g.append('text').attr('x', 62).attr('y', 82).attr('text-anchor', 'middle').style('font-size', '10px').style('fill', 'var(--color-fg-muted)').text('altista');
+    }
+    $('.sc-nome').textContent = atv + ' · ' + NOME[atv];
+    $('.sc-vies').textContent = sc ? (sc.score >= 60 ? 'Viés altista: os fatores somados puxam para cima' : sc.score <= 40 ? 'Viés baixista: os fatores somados puxam para baixo' : 'Neutro: fatores divididos, sem direção clara') : '—';
+    $('.sc-vies').style.color = sc ? corS(sc.score) : '';
+    const sb = $('.sc-bars'); sb.replaceChildren();
+    for (const c of sc ? sc.componentes : []) {
+      const row = document.createElement('div'); row.className = 'sc-b';
+      const l = document.createElement('span'); l.textContent = c.fator; const tr = document.createElement('span'); tr.className = 'tr'; const i = document.createElement('i');
+      const w = Math.abs(c.sinal) * 50; i.style.width = w + '%'; i.style.left = (c.sinal >= 0 ? 50 : 50 - w) + '%'; i.style.background = c.sinal >= 0 ? 'var(--color-ok)' : 'var(--color-bad)'; tr.appendChild(i);
+      const p = document.createElement('span'); p.className = 'num ' + cls(c.pontos); p.textContent = sg(c.pontos, 1, '');
+      row.append(l, tr, p); sb.appendChild(row);
+    }
+    const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? 'IA: ' + ia1.texto + ' (leitura de ' + br(ia1.gerado_em) + '; o score e os números se atualizam a cada 5 minutos)' : '—';
     const tb0 = $('.mi-sc-t tbody'); tb0.replaceChildren();
     for (const c of sc ? sc.componentes : []) { const tr = document.createElement('tr'); td(tr, c.fator + ' (' + c.peso + ')'); td(tr, sg(c.pontos, 1, ''), 'num ' + cls(c.pontos)); td(tr, c.leitura); tb0.appendChild(tr); }
 
@@ -189,9 +213,38 @@
       const tr = document.createElement('tr'); td(tr, r.grupo); td(tr, nf(r.liquido, 0), 'num ' + cls(r.liquido)); td(tr, sg(r.var_semana, 0, ''), 'num ' + cls(r.var_semana));
       const c = td(tr, nf(r.indice_3a, 0), 'num'); if (r.indice_3a >= 80 || r.indice_3a <= 20) c.style.fontWeight = 600; kt.appendChild(tr);
     }
-    $('.mi-cot-n').textContent = 'Como ler: líquido = contratos comprados menos vendidos. Fundos alavancados (hedge funds) são o dinheiro especulativo e rápido; gestores de ativos, o institucional de longo prazo; dealers são os bancos, quase sempre do lado oposto. Índice 3a de 0 a 100 = onde a posição está nos últimos 3 anos: acima de 80 ou abaixo de 20 = esticada, risco de reversão quando o preço para de andar a favor. O relatório sai às sextas com dados da terça.' + (kr[0] ? ' Relatório de ' + br(kr[0].data) + '.' : '') + (kr[0] && kr[0].sinal_par < 0 ? ' Atenção: é o futuro da moeda contra o dólar, então comprado na moeda = vendido no ' + atv + '.' : '');
-    const k0 = kr[0];
-    line($('.mi-cot-c'), k0 ? k0.hist.map(([d, val]) => ({ x: new Date(d + 'T12:00:00'), y: val })) : [], (val) => nf(val / 1000, 0) + ' mil', (x) => (k0 ? k0.grupo + ' · ' : '') + x.toLocaleDateString('pt-BR'), 0);
+    $('.mi-cot-n').textContent = 'Como ler: líquido = contratos comprados menos vendidos. Os nomes mudam entre relatórios (moedas e Nasdaq usam o TFF; ouro usa o desagregado), por isso o equivalente vem entre parênteses. "≈ hedge funds" (fundos alavancados ou managed money) = dinheiro especulativo grande, segue tendência: é o que o score usa. "≈ commercials" (dealers; no ouro, produtores + swap dealers) = bancos e quem faz hedge, ficam do lado oposto e costumam acertar nos extremos. Institucional = fundos de longo prazo. Varejo = só informativo, fora do score: quando o varejo está muito de um lado, o big money costuma provocar squeeze contra ele. Índice 3a acima de 80 ou abaixo de 20 = esticado. Toque na legenda para ligar ou desligar cada curva. Sai às sextas com dados da terça.' + (kr[0] ? ' Relatório de ' + br(kr[0].data) + '.' : '') + (kr[0] && kr[0].sinal_par < 0 ? ' Atenção: é o futuro da moeda contra o dólar, então comprado na moeda = vendido no ' + atv + '.' : '');
+    {
+      const el = $('.mi-cot-c'); el.replaceChildren(); const lg = $('.mi-cot-lg'); lg.replaceChildren();
+      const CC = { especulativo: COLORS[0], commercial: COLORS[1], institucional: COLORS[2], varejo: COLORS[7] };
+      const ser = kr.map((r) => ({ nome: r.grupo, cor: CC[r.papel] || COLORS[4], pts: r.hist.map(([d, val]) => ({ x: new Date(d + 'T12:00:00'), y: val })) }));
+      for (const s2 of ser) if (!(('cot:' + s2.nome) in vis)) vis['cot:' + s2.nome] = true;
+      for (const s2 of ser) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'mi-lgb'; b.setAttribute('aria-pressed', String(vis['cot:' + s2.nome]));
+        const i2 = document.createElement('i'); i2.className = 'op-sw'; i2.style.background = s2.cor; b.append(i2, document.createTextNode(s2.nome));
+        b.addEventListener('click', () => { vis['cot:' + s2.nome] = !vis['cot:' + s2.nome]; drawMI(); }); lg.appendChild(b);
+      }
+      const on = ser.filter((s2) => vis['cot:' + s2.nome]);
+      if (on.length) {
+        const all = on.flatMap((s2) => s2.pts);
+        const W = Math.max(260, el.clientWidth), H = 220, m = { t: 10, r: 10, b: 22, l: 52 };
+        const x = d3.scaleTime(d3.extent(all, (p) => p.x), [m.l, W - m.r]);
+        const y = d3.scaleLinear(d3.extent([...all.map((p) => p.y), 0]), [H - m.b, m.t]).nice();
+        const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+        svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).style('stroke', 'var(--cds-chart-axis)');
+        for (const s2 of on) svg.append('path').datum(s2.pts).attr('d', d3.line().x((p) => x(p.x)).y((p) => y(p.y))).style('fill', 'none').style('stroke', s2.cor).style('stroke-width', 2);
+        axisStyle(svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor(W / 90))).tickFormat(d3.timeFormat('%m/%y'))));
+        axisStyle(svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((v2) => nf(v2 / 1000, 0) + ' mil')));
+        const t = tip(el);
+        svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+          .on('mousemove', (ev) => {
+            const xv = x.invert(d3.pointer(ev, svg.node())[0]); const lines = [];
+            for (const s2 of on) { const p = s2.pts.reduce((a2, b2) => (Math.abs(b2.x - xv) < Math.abs(a2.x - xv) ? b2 : a2)); if (!lines.length) lines.push(p.x.toLocaleDateString('pt-BR')); lines.push(s2.nome.split(' (')[0] + ': ' + nf(p.y, 0)); }
+            show(el, t, ev, lines);
+          })
+          .on('mouseleave', () => { t.hidden = true; });
+      }
+    }
 
     // correlações
     const ct = $('.mi-corr-t tbody'); ct.replaceChildren();
@@ -226,14 +279,27 @@
       const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' : '');
       const [d, h] = r.quando.split(' ');
       td(tr, (d === hj ? 'hoje' : d.slice(8, 10) + '/' + d.slice(5, 7)) + ' ' + h); td(tr, r.moeda); td(tr, r.evento); td(tr, r.previsao || '—', 'num'); td(tr, r.anterior || '—', 'num');
+      const c = td(tr, '', 'num'); const passou = new Date(r.quando.replace(' ', 'T') + ':00-03:00') < new Date();
+      if (passou && r.url) { const l = document.createElement('a'); l.href = r.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'ver ↗'; c.appendChild(l); } else c.textContent = passou ? '—' : 'aguarda';
       at.appendChild(tr);
     }
     // notícias
-    const ul = $('.mi-news-l'); ul.replaceChildren();
-    for (const r of N.status === 'ok' ? N.data.slice(0, 50) : []) {
-      const li = document.createElement('li'); const aa = document.createElement('a'); aa.href = r.link; aa.target = '_blank'; aa.rel = 'noopener'; aa.textContent = r.titulo;
-      const sm = document.createElement('small'); sm.textContent = r.fonte + (r.quando ? ' · ' + br(r.quando) : ''); li.append(aa, sm); ul.appendChild(li);
+    const REL = { EURUSD: ['BCE', 'Euro', 'Fed', 'Dólar', 'Juros', 'Dados'], GBPUSD: ['BoE', 'Libra', 'Fed', 'Dólar', 'Dados'], USDJPY: ['BoJ', 'Fed', 'Dólar', 'Juros', 'Dados'],
+      USDCHF: ['SNB', 'Fed', 'Dólar', 'Euro', 'Dados'], XAUUSD: ['Ouro', 'Fed', 'Juros', 'Dólar', 'Dados'], NAS100: ['Nasdaq', 'Fed', 'Juros', 'Dados'] };
+    const nfb = $('.nw-f'); nfb.replaceChildren();
+    for (const [k, lb] of [['ativo', 'Só o que mexe com ' + atv], ['todas', 'Todas']]) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.textContent = lb; b.setAttribute('aria-pressed', String(nwF === k));
+      b.addEventListener('click', () => { nwF = k; drawMI(); }); nfb.appendChild(b);
     }
+    const ul = $('.mi-news-l'); ul.replaceChildren();
+    const lista = (N.status === 'ok' ? N.data : []).filter((r) => nwF === 'todas' || (r.tags || []).some((t) => REL[atv].includes(t)));
+    for (const r of lista.slice(0, 50)) {
+      const li = document.createElement('li'); const aa = document.createElement('a'); aa.href = r.link; aa.target = '_blank'; aa.rel = 'noopener'; aa.textContent = r.titulo;
+      const sm = document.createElement('small');
+      for (const t of r.tags || []) { const sp = document.createElement('span'); sp.className = 'nw-tag'; sp.textContent = t; sm.appendChild(sp); }
+      sm.appendChild(document.createTextNode(r.fonte + (r.quando ? ' · ' + br(r.quando) : ''))); li.append(aa, sm); ul.appendChild(li);
+    }
+    if (!lista.length) { const li = document.createElement('li'); li.textContent = 'Nenhuma manchete recente ligada a ' + atv + '.'; ul.appendChild(li); }
     const bad = ST.status === 'ok' ? ST.data.filter((r) => !r.ok) : [];
     $('.mi-status').textContent = ST.status !== 'ok' ? '—' : bad.length ? 'Fontes que falharam na última coleta: ' + bad.map((r) => r.bloco).join(', ') + ' (os dados anteriores continuam).' : 'Todas as fontes responderam na última coleta.';
   }
@@ -290,7 +356,8 @@
     }
   }
 
-  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) drawMI(); }
+  window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
+  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) drawMI(); if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
   load(); setInterval(load, 5 * 60 * 1000);
 })();
