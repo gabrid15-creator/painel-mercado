@@ -1,4 +1,7 @@
 name: Coleta e site
+# Dados: a cada 5 min a coleta grava os JSON na branch "dados"; o navegador lê de lá (raw.githubusercontent.com).
+# Site: o HTML só é publicado no GitHub Pages quando o código muda (push na main ou execução manual).
+# Assim um deploy travado do Pages não segura a atualização dos dados.
 on:
   schedule:
     - cron: "2-59/5 * * * *"   # de 5 em 5 min, fora do minuto cheio (o GitHub atrasa menos)
@@ -7,51 +10,71 @@ on:
     branches: [main]
 permissions:
   contents: read
-  pages: write
-  id-token: write
-  deployments: read
-concurrency:
-  group: pages
-  cancel-in-progress: false
 jobs:
-  build:
+  coleta:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    concurrency:
+      group: coleta
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Site e dados anteriores
+      - name: Dados anteriores
         run: |
-          mkdir -p site/data
-          cp -r docs/* site/
-          BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data"
-          for f in mi_geral mi_ativos mi_sazon mi_corr mi_cot mi_macro mi_hist mi_agenda mi_noticias mi_status mi_score; do
-            curl -sf -m 20 -o "site/data/$f.json.tmp" "$BASE/$f.json" && mv "site/data/$f.json.tmp" "site/data/$f.json" || true
-          done
-          # leitura da IA vem do repositório (escrita pelo Claude)
-          cp docs/data/mi_ia.json site/data/mi_ia.json
+          mkdir -p out
+          cp docs/data/mi_*.json out/ 2>/dev/null || true
+          if git fetch -q --depth=1 origin dados 2>/dev/null; then git archive FETCH_HEAD | tar -x -C out; fi
       - name: Coletar
         run: |
-          cp site/data/mi_*.json /tmp/ 2>/dev/null || true
-          mkdir -p out && cp site/data/mi_*.json out/ 2>/dev/null || true
           timeout 300 python3 coletor.py out || true
-          cp out/mi_*.json site/data/
-          cp docs/data/mi_ia.json site/data/mi_ia.json
+          # leitura da IA vem do repositório (escrita pelo Claude)
+          cp docs/data/mi_ia.json out/mi_ia.json
           cat out/mi_status.json || true
+      - name: Publicar dados na branch "dados"
+        run: |
+          cd out
+          git init -q -b dados
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "dados $(date -u +%Y-%m-%dT%H:%MZ)"
+          # um commit só (força): o histórico de dados não incha o repositório
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" dados
+  site:
+    if: github.event_name != 'schedule'
+    needs: coleta
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Montar site (com cópia dos dados mais recentes como reserva)
+        run: |
+          mkdir -p site && cp -r docs/* site/
+          if git fetch -q --depth=1 origin dados 2>/dev/null; then git archive FETCH_HEAD | tar -x -C site/data; fi
+          rm -f site/data/digest.txt
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
   deploy:
-    needs: build
+    needs: site
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      deployments: read
+    concurrency:
+      group: pages
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.d.outputs.page_url }}
     steps:
       # um deploy do Pages preso bloqueia todos os seguintes; cancela os que ficaram pendurados
-      # (o grupo de concorrência "pages" garante que nenhum outro deploy deste workflow está rodando)
       - name: Cancelar deploy do Pages preso
         env:
           GH_TOKEN: ${{ github.token }}
@@ -62,3 +85,5 @@ jobs:
           done
       - id: d
         uses: actions/deploy-pages@v4
+        with:
+          timeout: 300000

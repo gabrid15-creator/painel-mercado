@@ -4,10 +4,23 @@
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
+  // dados da coleta (mi_*) vêm da branch "dados", atualizada a cada 5 min sem depender do deploy do Pages;
+  // se falhar, usa a cópia publicada junto com o site (data/)
+  const RAW = (() => {
+    const h = location.hostname, seg = location.pathname.split('/').filter(Boolean)[0];
+    const [dono, repo] = h.endsWith('.github.io') && seg ? [h.split('.')[0], seg] : ['gabrid15-creator', 'painel-mercado'];
+    return `https://raw.githubusercontent.com/${dono}/${repo}/dados/`;
+  })();
+  const pega = async (url) => { const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw 0; return r.json(); };
   async function load() {
+    const t = Math.floor(Date.now() / 60e3);
     await Promise.all(IDS.map(async (id) => {
-      try { const r = await fetch('data/' + id + '.json?t=' + Date.now()); if (!r.ok) throw 0; store[id] = { status: 'ok', data: await r.json() }; }
-      catch (e) { if (!store[id]) store[id] = { status: 'error', data: [] }; }
+      try {
+        let data;
+        if (id.startsWith('mi_')) { try { data = await pega(RAW + id + '.json?t=' + t); } catch (e) { data = await pega('data/' + id + '.json?t=' + t); } }
+        else data = await pega('data/' + id + '.json?t=' + t);
+        store[id] = { status: 'ok', data };
+      } catch (e) { if (!store[id]) store[id] = { status: 'error', data: [] }; }
     }));
     drawAll();
   }
