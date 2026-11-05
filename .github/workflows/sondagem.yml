@@ -1,0 +1,24 @@
+name: Sondagem (temporário)
+on: workflow_dispatch
+permissions: {}
+jobs:
+  sonda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          set +e
+          for q in "countries=US,EU,GB,JP,CH&from=2026-11-02&to=2026-11-08" "countries=US,EU,GB,JP,CH&from=2026-11-02T00:00:00Z&to=2026-11-08T23:59:59Z"; do
+            echo "=== $q"; curl -sS -m 20 -o /tmp/c.json -w "%{http_code}\n" "https://biquote.io/api/calendar?$q"; head -c 200 /tmp/c.json; echo
+          done
+          curl -sS -m 20 -o /tmp/c.json "https://biquote.io/api/calendar?countries=US,EU,GB,JP,CH&from=2026-11-02&to=2026-11-08"
+          python3 - <<'PY'
+          import json
+          ev=json.load(open('/tmp/c.json'))
+          if not isinstance(ev,list): print(ev); raise SystemExit
+          print('total',len(ev), 'min', min(e['time'] for e in ev), 'max', max(e['time'] for e in ev))
+          for e in sorted(ev,key=lambda e:e['time']):
+            if e['importance'] in ('high','medium'):
+              print('EV|'+'|'.join(str(x) for x in (e['id'],e['time'],e['currency'],e['importance'],e['name'],e['actual'],e['forecast'],e['previous'],e['unit'],e['multiplier'],e['digits'],e['timeMode'])))
+          PY
+          echo "=== FF"; curl -sS -m 20 https://nfs.faireconomy.media/ff_calendar_thisweek.json | python3 -c "import sys,json;[print('FF|'+'|'.join(str(e.get(k)) for k in ('date','country','impact','title','forecast','previous','actual'))) for e in json.load(sys.stdin) if e.get('impact') in ('High','Medium') and e.get('country') in ('USD','EUR','GBP','JPY','CHF')]"
