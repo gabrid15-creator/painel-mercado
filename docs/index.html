@@ -200,7 +200,11 @@
   .ag-live.on::before { background: var(--color-ok); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok) 60%, transparent); animation: pulso 2s infinite; }
   @keyframes pulso { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok) 55%, transparent); } 70% { box-shadow: 0 0 0 8px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
   .ag-red { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--color-bad); margin-right: 6px; vertical-align: 0; }
-  .mi-ag-t td { vertical-align: middle; } .mi-ag-t tr.ag-passou td { opacity: .78; } .mi-ag-t tr.ag-passou td.ag-at { opacity: 1; }
+  /* cabeçalho fixo das tabelas: fica por cima das linhas ao rolar, com linha e sombra embaixo */
+  .op-table thead th { z-index: 3; background: var(--color-panel); box-shadow: inset 0 -1px 0 var(--color-border-line), 0 4px 8px -6px rgba(0,0,0,.35); text-transform: uppercase; letter-spacing: .05em; font-size: 11px; padding-top: 8px; padding-bottom: 8px; }
+  .op-table thead th:first-child { border-top-left-radius: 8px; } .op-table thead th:last-child { border-top-right-radius: 8px; }
+  .mi-ag-t thead th { background: color-mix(in srgb, var(--color-fg) 6%, var(--color-panel)); color: var(--color-fg); border-bottom: 0; }
+  .mi-ag-t td { vertical-align: middle; } .ag-cur { display: none; } .mi-ag-t tr.ag-passou td { opacity: .78; } .mi-ag-t tr.ag-passou td.ag-at { opacity: 1; }
   .mi-ag-t td.ag-at { min-width: 7.5rem; }
   .ag-box { white-space: nowrap; display: inline-block; min-width: 6.5rem; text-align: center; padding: 5px 10px; border-radius: 9px; font-family: var(--font-anthropic-serif); font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; border: 1px solid transparent; }
   .ag-acima { color: var(--color-ok); background: color-mix(in srgb, var(--color-ok) 14%, transparent); border-color: color-mix(in srgb, var(--color-ok) 35%, transparent); }
@@ -209,18 +213,23 @@
   .ag-novo { animation: chegou 1.2s ease 3; }
   @keyframes chegou { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.12); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); } }
   .ag-wait { font-size: 12px; color: var(--color-warn); animation: piscar 1.2s ease-in-out infinite; } @keyframes piscar { 50% { opacity: .35; } }
-  .ag-hl { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "k v" "ev v" "s s"; align-items: center; gap: 2px 16px; padding: 14px 16px; border-radius: 12px; border: 1px solid; }
+  .ag-hl { display: flex; flex-direction: column; gap: 8px; }
   .ag-hl[hidden] { display: none; }
-  .ag-hl-k { grid-area: k; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; opacity: .85; }
-  .ag-hl-ev { grid-area: ev; color: var(--color-fg); font-weight: 600; }
-  .ag-hl-v { grid-area: v; font-family: var(--font-anthropic-serif); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
-  .ag-hl-s { grid-area: s; color: var(--color-fg-muted); font-size: 13px; margin-top: 4px; }
+  .ag-hl-k { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; color: var(--color-fg-muted); }
+  .ag-hl-l { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 8px; }
+  .ag-hl-c { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 12px; border: 1px solid; }
+  .ag-hl-ev { color: var(--color-fg); font-weight: 600; font-size: 13px; }
+  .ag-hl-v { font-family: var(--font-anthropic-serif); font-size: 34px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .ag-hl-s { color: var(--color-fg-muted); font-size: 12px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
   @media (max-width: 640px) {
     .brand b { display: none; } .brand { margin-right: 4px; padding-right: 8px; }
     .op-head h1 { font-size: 23px; } .op-tile .v { font-size: 24px; }
     .ag-box { min-width: 0; font-size: 14px; padding: 4px 7px; } .mi-ag-t td.ag-at { min-width: 0; }
-    .ag-hl-v { font-size: 30px; }
+    .ag-hl-v { font-size: 28px; }
+    .mi-ag-t th:nth-child(2), .mi-ag-t td:nth-child(2) { display: none; }
+    .ag-cur { display: inline-block; font-size: 10px; font-weight: 600; padding: 0 5px; margin-right: 5px; border-radius: 4px; background: color-mix(in srgb, var(--color-fg) 10%, transparent); color: var(--color-fg-muted); }
+    .mi-ag-t td, .mi-ag-t th { padding-left: 4px; padding-right: 4px; }
     .op-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; width: 100%; } .op-tab { white-space: nowrap; padding: 6px 12px; }
     .ag-box { font-size: 13px; }
   }
@@ -330,7 +339,7 @@
     <div class="op-grid">
       <section class="op-card"><div class="ag-top"><h2>Agenda da semana (alto e médio impacto)</h2><span class="ag-live">conectando…</span></div>
         <p class="op-note">Horário de Brasília. <span class="ag-red"></span> = red folder. O valor <b>Atual</b> aparece sozinho segundos depois da divulgação: <b class="mi-pos">▲ verde</b> = veio acima da previsão, <b class="mi-neg">▼ vermelho</b> = abaixo.</p>
-        <div class="ag-hl" hidden><span class="ag-hl-k">Último dado divulgado</span><span class="ag-hl-ev">—</span><span class="ag-hl-v">—</span><span class="ag-hl-s">—</span></div>
+        <div class="ag-hl" hidden><span class="ag-hl-k">Acabou de sair</span><div class="ag-hl-l"></div></div>
         <div class="op-tablebox"><table class="op-table mi-ag-t"><thead><tr><th>Quando</th><th>Moeda</th><th>Evento</th><th class="num">Previsão</th><th class="num">Anterior</th><th class="num">Atual</th></tr></thead><tbody></tbody></table></div>
         <p class="op-note">Valor atual: biquote.io (gratuito), consultado direto pelo navegador a cada 15 s perto dos horários de divulgação e a cada 60 s no resto do tempo. Se a fonte não tiver o número, aparece o link "ver", que abre o resultado no Forex Factory.</p></section>
       <section class="op-card"><h2>Notícias</h2><p class="op-note">Reuters, Bloomberg, FT, WSJ e outros (via Google News), MarketWatch, Fed e BCE, horário de Brasília. Cada manchete tem etiquetas do tema (Fed, BCE, Ouro, Nasdaq…). Use os filtros para ver só o que mexe com o ativo selecionado.</p>
@@ -389,7 +398,7 @@
     </section>
   </div>
 </div>
-<script src="app.js?v=3"></script>
-<script src="opcoes.js?v=3"></script>
+<script src="app.js?v=20261105c"></script>
+<script src="opcoes.js?v=20261105c"></script>
 </body>
 </html>

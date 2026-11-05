@@ -363,8 +363,26 @@
 
   // ---------------------------------------------------------------- agenda + "Atual" ao vivo (biquote.io: grátis, sem chave, CORS liberado)
   const LIVE = { ev: [], ok: false, quando: null, vistos: new Set(), timer: null };
-  const LIVE_URL = 'https://biquote.io/api/calendar?countries=US,EU,GB,JP,CH';
-  const tok = (s) => String(s || '').toLowerCase().replace(/[()]/g, ' ').split(/[\s,]+/).filter((w) => w && !['the', 'of', 'and', 's&p', 'global'].includes(w));
+  const LIVE_BASE = 'https://biquote.io/api/calendar?countries=US,EU,GB,JP,CH';
+  // janela = a semana da agenda (sem from/to a API só devolve de ontem em diante)
+  const liveURL = () => {
+    const ds = (D('mi_agenda').data || []).map((r) => r.data).filter(Boolean).sort();
+    if (!ds.length) return LIVE_BASE;
+    const fim = new Date(ds[ds.length - 1] + 'T12:00:00Z'); fim.setUTCDate(fim.getUTCDate() + 1);
+    const ini = new Date(ds[0] + 'T12:00:00Z'); ini.setUTCDate(ini.getUTCDate() - 1);
+    return LIVE_BASE + '&from=' + ini.toISOString().slice(0, 10) + '&to=' + fim.toISOString().slice(0, 10);
+  };
+  // o Forex Factory e o biquote dão nomes diferentes ao mesmo dado: normaliza antes de comparar
+  const APELIDOS = [
+    [/non-?farm employment change/, 'nonfarm payrolls'], [/adp non-?farm employment change/, 'adp nonfarm employment change'],
+    [/unemployment claims/, 'initial jobless claims'], [/official bank rate/, 'interest rate decision'],
+    [/federal funds rate|fomc statement/, 'fed interest rate decision'], [/main refinancing rate/, 'ecb interest rate decision'],
+    [/snb policy rate/, 'snb interest rate decision'], [/boj policy rate/, 'boj interest rate decision'],
+    [/ism services/, 'ism non-manufacturing'], [/(prelim |revised )?uom/, 'michigan'], [/flash estimate |flash |prelim |advance |final /g, ''],
+    [/non-?farm/g, 'nonfarm'], [/cpi y\/y$/, 'cpi y/y'], [/average earnings index 3m\/y/, 'average earnings index'], [/claimant count change/, 'claimant count change'],
+  ];
+  const normal = (s) => APELIDOS.reduce((t, [re, by]) => t.replace(re, by), String(s || '').toLowerCase());
+  const tok = (s) => normal(s).replace(/[()]/g, ' ').split(/[\s,]+/).filter((w) => w && !['the', 'of', 'and', 's&p', 'global', 'boe', 'ecb', 'boj', 'snb', 'fed', 'speaks', 'speech'].includes(w));
   const MULT = { thousands: [1e3, 'K'], millions: [1e6, 'M'], billions: [1e9, 'B'], trillions: [1e12, 'T'] };
   const fmtLive = (e, v) => {
     if (v == null) return '—';
@@ -373,18 +391,19 @@
   };
   // valor da previsão em escala comparável ao "actual" do biquote
   // previsão na mesma escala do "actual": a do próprio biquote; senão a do Forex Factory (só o número, sem K/M/%)
+  // compara com a previsão mostrada na tabela (Forex Factory); se não houver, com a do próprio biquote
   const prevNum = (r, e) => {
-    if (e && e.forecast != null) return e.forecast;
-    const m = String(r.previsao || '').replace(',', '.').match(/-?\d+(\.\d+)?/); if (!m) return null;
-    const x = parseFloat(m[0]); const a = Math.abs(e.actual), b = Math.abs(x);
-    return a && b && (a / b > 50 || b / a > 50) ? null : x;   // escalas diferentes: não arrisca a cor
+    const m = String(r.previsao || '').replace(',', '.').match(/^\s*-?\d+(\.\d+)?/);
+    if (m) { const x = parseFloat(m[0]); const a = Math.abs(e.actual), b = Math.abs(x); if (!(a && b && (a / b > 50 || b / a > 50))) return x; }   // escalas diferentes: ignora
+    return e.forecast != null ? e.forecast : null;
   };
   const casar = (r) => {
-    if (!LIVE.ok) return null;
+    if (!LIVE.ok || /votes?\b/i.test(r.evento)) return null;   // placar de votos (7-0-2) não tem número comparável
     const t = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const a = tok(r.evento); let best = null, bs = 0;
     for (const e of LIVE.ev) {
       if (e.currency !== r.moeda || Math.abs(new Date(e.time).getTime() - t) > 2 * 60e3) continue;
-      const b = tok(e.name); const sc = a.filter((w) => b.includes(w)).length / Math.max(a.length, 1);
+      const b = tok(e.name); const com = a.filter((w) => b.includes(w)).length;
+      const sc = com / Math.max(a.length, 1) + com / Math.max(b.length, 1) / 10;   // prefere o nome mais parecido nos dois sentidos
       if (sc > bs) { bs = sc; best = e; }
     }
     return bs >= 0.5 ? best : null;
@@ -399,6 +418,7 @@
       const [d, h] = r.quando.split(' ');
       td(tr, (d === hj ? 'hoje' : d.slice(8, 10) + '/' + d.slice(5, 7)) + ' ' + h); td(tr, r.moeda);
       const ev = td(tr, r.evento); if (r.impacto === 'Alto') { const b = document.createElement('span'); b.className = 'ag-red'; b.title = 'Alto impacto'; ev.prepend(b); }
+      const cur = document.createElement('small'); cur.className = 'ag-cur'; cur.textContent = r.moeda; ev.prepend(cur);
       td(tr, r.previsao || (e && e.forecast != null ? fmtLive(e, e.forecast) : '—'), 'num'); td(tr, r.anterior || '—', 'num');
       const c = td(tr, '', 'num ag-at');
       if (e && e.actual != null) {
@@ -408,22 +428,30 @@
         box.title = s > 0 ? 'Acima da previsão' : s < 0 ? 'Abaixo da previsão' : 'Igual à previsão / sem previsão';
         if (!LIVE.vistos.has(e.id)) { if (LIVE.quando) box.classList.add('ag-novo'); LIVE.vistos.add(e.id); }
         c.appendChild(box);
-        if (!ultimo || quando > ultimo.quando) ultimo = { r, e, s, quando };
+        if (!ultimo || quando > ultimo.quando) ultimo = { quando, itens: [] };
+        if (quando === ultimo.quando) ultimo.itens.push({ r, e, s });
       } else if (passou && agora - quando < 20 * 60e3) {
         const sp = document.createElement('span'); sp.className = 'ag-wait'; sp.textContent = 'saindo…'; c.appendChild(sp);
       } else if (passou && r.url) { const l = document.createElement('a'); l.href = r.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'ver ↗'; c.appendChild(l); }
       else c.textContent = passou ? '—' : 'aguarda';
       at.appendChild(tr);
     }
-    // destaque do último dado divulgado (últimas 3 horas)
+    // destaque dos últimos dados divulgados (mesmo horário; últimas 3 horas)
     const hl = $('.ag-hl');
     if (hl) {
-      if (ultimo && agora - ultimo.quando < 3 * 3600e3) {
-        const { r, e, s } = ultimo; hl.hidden = false; hl.className = 'ag-hl ' + (s > 0 ? 'ag-acima' : s < 0 ? 'ag-abaixo' : 'ag-igual');
-        hl.querySelector('.ag-hl-ev').textContent = r.moeda + ' · ' + r.evento + ' · ' + r.hora;
-        hl.querySelector('.ag-hl-v').textContent = fmtLive(e, e.actual);
-        hl.querySelector('.ag-hl-s').textContent = (s > 0 ? '▲ acima' : s < 0 ? '▼ abaixo' : 'em linha com') + ' da previsão (' + (r.previsao || fmtLive(e, e.forecast)) + ') · anterior ' + (r.anterior || fmtLive(e, e.previous));
-      } else hl.hidden = true;
+      hl.hidden = !(ultimo && agora - ultimo.quando < 3 * 3600e3);
+      if (!hl.hidden) {
+        const r0 = ultimo.itens[0].r; hl.querySelector('.ag-hl-k').textContent = 'Acabou de sair · ' + r0.moeda + ' · ' + r0.hora;
+        const box = hl.querySelector('.ag-hl-l'); box.replaceChildren();
+        for (const { r, e, s } of ultimo.itens) {
+          const c = document.createElement('div'); c.className = 'ag-hl-c ' + (s > 0 ? 'ag-acima' : s < 0 ? 'ag-abaixo' : 'ag-igual');
+          const ev = document.createElement('span'); ev.className = 'ag-hl-ev'; ev.textContent = r.evento;
+          const v = document.createElement('span'); v.className = 'ag-hl-v'; v.textContent = (s > 0 ? '▲ ' : s < 0 ? '▼ ' : '') + fmtLive(e, e.actual);
+          const sub = document.createElement('span'); sub.className = 'ag-hl-s';
+          sub.textContent = (s > 0 ? 'acima da' : s < 0 ? 'abaixo da' : 'em linha com a') + ' previsão (' + (r.previsao || fmtLive(e, e.forecast)) + ') · anterior ' + (r.anterior || fmtLive(e, e.previous));
+          c.append(ev, v, sub); box.appendChild(c);
+        }
+      }
     }
     const st = $('.ag-live');
     if (st) { st.className = 'ag-live' + (LIVE.ok ? ' on' : ''); st.textContent = LIVE.ok ? 'ao vivo · ' + new Date(LIVE.quando).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'ao vivo indisponível: use o link "ver"'; }
@@ -436,7 +464,7 @@
   }
   async function liveTick() {
     try {
-      const r = await fetch(LIVE_URL, { cache: 'no-store' }); if (!r.ok) throw 0;
+      const r = await fetch(liveURL(), { cache: 'no-store' }); if (!r.ok) throw 0;
       const j = await r.json(); LIVE.ev = Array.isArray(j) ? j : (j.events || []); LIVE.ok = true; LIVE.quando = Date.now();
     } catch (e) { LIVE.ok = LIVE.ev.length > 0; }
     if (!$('#sec-mi').hidden) drawAgenda();
@@ -447,5 +475,5 @@
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
   function drawAll() { drawGB(); if (!$('#sec-mi').hidden) drawMI(); if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
-  load(); setInterval(load, 2 * 60 * 1000); liveTick();
+  load().then(liveTick); setInterval(load, 2 * 60 * 1000);
 })();
