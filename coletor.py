@@ -87,7 +87,9 @@ def yahoo(sym, anos=21):
     return dict(sorted(out.items()))
 
 def fred(ids, start):
-    raw = get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={','.join(ids)}&cosd={start}").decode()
+    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={','.join(ids)}&cosd={start}"
+    try: raw = get(url, timeout=30).decode()          # o FRED costuma ser lento: 30 s e uma nova tentativa
+    except Exception: raw = get(url, timeout=30).decode()
     rd = csv.reader(io.StringIO(raw)); head = next(rd)
     res = {i: {} for i in ids}
     for row in rd:
@@ -193,9 +195,8 @@ def b_bund():
 @bloco("Balanço do Fed e condições financeiras (FRED)")
 def b_fred():
     ini = (NOW.date() - dt.timedelta(days=3 * 366)).isoformat()
-    r = fred(["WALCL", "NFCI"], ini)
-    FR["Balanço Fed"] = {d: v / 1000 for d, v in r["WALCL"].items()}   # milhões -> bilhões
-    FR["Condições financeiras (NFCI)"] = r["NFCI"]
+    FR["Balanço Fed"] = {d: v / 1000 for d, v in fred(["WALCL"], ini)["WALCL"].items()}   # milhões -> bilhões
+    FR["Condições financeiras (NFCI)"] = fred(["NFCI"], ini)["NFCI"]
 
 b_precos(); b_tsy(); b_liq(); b_bund(); b_fred()
 
