@@ -50,7 +50,6 @@
   const tabs = (name) => {
     document.querySelectorAll('button.op-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
     document.querySelectorAll('.op-sec').forEach((s) => { s.hidden = s.id !== name; });
-    $('.ativos').hidden = name !== 'sec-mi';
     drawAll();
   };
   document.querySelectorAll('button.op-tab').forEach((b) => b.addEventListener('click', () => { tabs(b.dataset.tab); history.replaceState(null, '', '#' + b.dataset.tab); }));
@@ -59,6 +58,10 @@
   // ---------------------------------------------------------------- mercado
   let atv = 'EURUSD', serie = 'Spread 2a EUA−Alemanha', jan = 20, nwF = 'ativo'; const vis = {};
   const bar = $('.ativos');
+  // altura do topo fixo -> o seletor de ativo gruda logo abaixo dele
+  { const tp = document.querySelector('.topo'), af = document.querySelector('.ativos-fixo');
+    const upd = () => { document.documentElement.style.setProperty('--topo-h', tp.offsetHeight + 'px'); if (af) af.classList.toggle('preso', af.getBoundingClientRect().top <= tp.offsetHeight + 1); };
+    new ResizeObserver(upd).observe(tp); window.addEventListener('scroll', upd, { passive: true }); upd(); }
   for (const a of ATV) {
     const b = document.createElement('button'); b.type = 'button'; b.dataset.a = a;
     b.innerHTML = '<span class="an"><b></b><small></small></span><span class="sv">—<small></small></span>';

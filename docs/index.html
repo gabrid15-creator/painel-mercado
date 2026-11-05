@@ -305,6 +305,10 @@
   .rd-b .tr { position: relative; height: 8px; background: var(--color-border-line); border-radius: 4px; }
   .rd-b .tr i { position: absolute; top: 0; height: 8px; border-radius: 4px; }
   .rd-b .tr::after { content: ""; position: absolute; left: 50%; top: -2px; width: 1px; height: 12px; background: var(--color-fg-muted); }
+
+  /* seletor de ativo: fica acima do score e gruda abaixo do topo ao rolar */
+  .ativos-fixo { position: sticky; top: var(--topo-h, 96px); z-index: 15; display: flex; flex-direction: column; gap: 6px; padding: 8px 0; margin: -8px 0; background: color-mix(in srgb, var(--color-bg) 85%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+  .ativos-fixo.preso { box-shadow: 0 10px 16px -14px rgba(0,0,0,.6); border-bottom: 1px solid var(--color-border-line); }
 </style>
 </head>
 <body>
@@ -316,7 +320,6 @@
       <button type="button" class="op-tab" data-tab="sec-op" aria-selected="false">Paredes de opções</button>
       <button type="button" class="op-tab" data-tab="sec-gb" aria-selected="false">Dias Goldbach</button>
     </nav>
-    <div class="ativos" role="group" aria-label="Ativo"></div>
   </div>
 
   <!-- ============================== MERCADO ============================== -->
@@ -355,6 +358,7 @@
 
 
     <section class="op-card radar"><div class="ag-top"><h2>Radar institucional</h2><span class="tl-chip ia-chip">o que as mesas olham</span></div>
+      <p class="op-note"><b>Como ler:</b> são os termômetros que mesas de bancos e fundos olham antes do preço. <b>Liquidez</b> diz se há dinheiro entrando no sistema (combustível para Nasdaq e ouro). <b>Estresse</b> mostra se o medo é pontual ou sistêmico: VIX ÷ VIX 3 meses acima de 1 = pânico de curto prazo, costuma marcar fundos de bolsa quando volta abaixo de 1; MOVE alto = juros instáveis, dólar e iene ganham; NFCI acima de 0 = crédito travando, risco para tudo. <b>Surpresa</b> compara a economia de cada país com o que se esperava: moeda com surpresa positiva tende a se valorizar contra a de surpresa negativa (ex.: USD +40 e EUR −20 favorece EURUSD caindo). O <b>regime</b> dos EUA cruza surpresa de crescimento e de inflação: estagflação favorece ouro e franco; cenário ideal favorece Nasdaq.</p>
       <div class="rd-g">
         <div class="rd-c"><span class="tl-k">Liquidez líquida do Fed</span><div class="tl-v"><span class="v rd-liq">—</span><span class="tl-u rd-liq-d">—</span></div><span class="tl-chip rd-liq-chip">—</span><ul class="tl-l rd-liq-l"></ul>
           <span class="mi-exp">Balanço do Fed − TGA − reverse repo: o dinheiro que circula no mercado. Subindo = injeção (ajuda Nasdaq e ouro); caindo = drenagem.</span></div>
@@ -363,6 +367,8 @@
         <div class="rd-c"><span class="tl-k">Surpresa econômica · 90 dias</span><div class="rd-sp"></div><span class="tl-chip rd-reg">—</span>
           <span class="mi-exp">Quanto os dados de cada país vieram acima (+) ou abaixo (−) da previsão, de −100 a +100, com peso maior para os recentes e os de alto impacto (como o índice do Citi). Desemprego e pedidos de seguro têm sinal invertido.</span></div>
       </div></section>
+
+    <div class="ativos-fixo"><span class="tl-k">Escolha o ativo</span><div class="ativos" role="group" aria-label="Ativo"></div></div>
 
     <section class="op-card">
       <div class="sc-top">
@@ -499,7 +505,7 @@
     </section>
   </div>
 </div>
-<script src="app.js?v=20261105e"></script>
-<script src="opcoes.js?v=20261105e"></script>
+<script src="app.js?v=20261105f"></script>
+<script src="opcoes.js?v=20261105f"></script>
 </body>
 </html>
