@@ -1,0 +1,2288 @@
+[
+{
+"data": "2026-11-02",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · Dia 1 (dom) · D+M 41 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2026-11-03",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 3 · Mês 11 · D+M 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 27
+},
+{
+"data": "2026-11-04",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · |D−M| 07 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 28
+},
+{
+"data": "2026-11-05",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2026-11-06",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · D+M 17",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 30
+},
+{
+"data": "2026-11-09",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11 · |D−M| 03 (dom) · Dia 7 (sáb) · A+M+D 44 (sáb)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2026-11-10",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · A+M+D 47",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 2
+},
+{
+"data": "2026-11-11",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 11 · Mês 11 · |D−M| 00",
+"hopiplaka": "dia 3",
+"resumo": "★ Goldbach + Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2026-11-12",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · D+M 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2026-11-13",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2026-11-16",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · A+M+D 53 · Dia 14 (sáb) · |D−M| 03 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2026-11-17",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 17 · Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2026-11-18",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · D+M 29 · |D−M| 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 10
+},
+{
+"data": "2026-11-19",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11 · A+M+D 56",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2026-11-20",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2026-11-23",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · Mês 11 · |D−M| 11 (dom) · A+M+D 59 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2026-11-24",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · D+M 35",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 16
+},
+{
+"data": "2026-11-25",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11 · |D−M| 14",
+"hopiplaka": "dia 17",
+"resumo": "★ Goldbach + Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2026-11-26",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2026-11-27",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 19
+},
+{
+"data": "2026-11-30",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · D+M 41 · Dia 29 (dom) · |D−M| 17 (sáb) · A+M+D 65 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2026-12-01",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 1 · |D−M| 11",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2026-12-02",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "D+M 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+},
+{
+"data": "2026-12-03",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 3 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2026-12-07",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 7 · A+M+D 44 (dom) · D+M 17 (sáb) · |D−M| 07 (sáb)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2026-12-09",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 03 · A+M+D 47",
+"hopiplaka": "dia 3",
+"resumo": "★ Goldbach + Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2026-12-11",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 · D+M 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2026-12-14",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 14 · |D−M| 00 (sáb) · A+M+D 50 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2026-12-15",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 03 · A+M+D 53",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2026-12-17",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 17 · D+M 29",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2026-12-18",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2026-12-21",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 59 · |D−M| 07 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2026-12-23",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 23 · D+M 35 · |D−M| 11",
+"hopiplaka": "dia 17",
+"resumo": "★ Goldbach + Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2026-12-28",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 65 (dom) · |D−M| 14 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2026-12-29",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 29 · D+M 41 · |D−M| 17",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-01-04",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 03 · Dia 3 (dom) · D+M 03 (sáb) · Dia 1 (feriado) · |D−M| 00 (feriado) · A+M+D 29 (feriado)",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-01-06",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "D+M 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 31
+},
+{
+"data": "2027-01-07",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 7 · A+M+D 35",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 32
+},
+{
+"data": "2027-01-08",
+"dia_semana": "sex",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 07",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-01-11",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 · D+M 11 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-01-12",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-01-13",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "D+M 14 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 6
+},
+{
+"data": "2027-01-14",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 14",
+"hopiplaka": "dia 7",
+"resumo": "★ Goldbach + Hopiplaka dia 7",
+"dia_mes_hopiplaka": 7
+},
+{
+"data": "2027-01-15",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-01-18",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 17 · Dia 17 (dom) · D+M 17 (sáb) · A+M+D 44 (sáb)",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-01-19",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 47",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-01-21",
+"dia_semana": "qui",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 14",
+"resumo": "Hopiplaka dia 14",
+"dia_mes_hopiplaka": 14
+},
+{
+"data": "2027-01-22",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "D+M 23 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-01-25",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 53 · |D−M| 23 (dom) · Dia 23 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-01-28",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "D+M 29 · A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 21
+},
+{
+"data": "2027-01-29",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 29",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-02-01",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 1 · D+M 03 · A+M+D 59 (dom) · |D−M| 29 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-02-02",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 00",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-02-03",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 3",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 27
+},
+{
+"data": "2027-02-05",
+"dia_semana": "sex",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "D+M 07 · |D−M| 03",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-02-08",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 7 (dom) · A+M+D 35 (sáb)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-02-09",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "D+M 11 · |D−M| 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 2
+},
+{
+"data": "2027-02-10",
+"dia_semana": "qua",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 3",
+"resumo": "Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2027-02-11",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-02-12",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "D+M 14 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-02-15",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 17 · A+M+D 44 · Dia 14 (dom) · |D−M| 11 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-02-16",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-02-17",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 17",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 10
+},
+{
+"data": "2027-02-18",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "A+M+D 47",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-02-19",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 17",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-02-22",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 23 (dom) · A+M+D 50 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-02-23",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 16
+},
+{
+"data": "2027-02-24",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "A+M+D 53",
+"hopiplaka": "dia 17",
+"resumo": "★ Goldbach + Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2027-02-25",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-03-01",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 1 · Mês 03 · D+M 29 (sáb) · A+M+D 56 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-03-02",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 03",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-03-03",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 3 · Mês 03 · |D−M| 00",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+},
+{
+"data": "2027-03-04",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Mês 03 · D+M 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-03-05",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 03 · A+M+D 35",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-03-08",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 03 · D+M 11 · Dia 7 (dom) · |D−M| 03 (sáb)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-03-09",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 2
+},
+{
+"data": "2027-03-10",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 03 · |D−M| 07",
+"hopiplaka": "dia 3",
+"resumo": "★ Goldbach + Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2027-03-11",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 · Mês 03 · D+M 14 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-03-12",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-03-15",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 03 · Dia 14 (dom) · D+M 17 (dom) · |D−M| 11 (dom) · A+M+D 44 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-03-16",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-03-17",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 17 · Mês 03 · |D−M| 14 · A+M+D 47",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 10
+},
+{
+"data": "2027-03-18",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 03",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-03-19",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-03-22",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 03 · D+M 23 (sáb) · |D−M| 17 (sáb) · A+M+D 50 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-03-23",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · Mês 03 · A+M+D 53",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 16
+},
+{
+"data": "2027-03-24",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 03",
+"hopiplaka": "dia 17",
+"resumo": "★ Goldbach + Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2027-03-25",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Mês 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-03-26",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 03 · D+M 29 · |D−M| 23 · A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 19
+},
+{
+"data": "2027-03-29",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 29 · Mês 03 · A+M+D 59",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-03-30",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 03",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-03-31",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Mês 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+},
+{
+"data": "2027-04-01",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 1 · |D−M| 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-04-05",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 00 (dom) · A+M+D 35 (dom) · Dia 3 (sáb) · D+M 07 (sáb)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-04-07",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 7 · D+M 11 · |D−M| 03",
+"hopiplaka": "dia 3",
+"resumo": "★ Goldbach + Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2027-04-12",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 (dom) · |D−M| 07 (dom) · D+M 14 (sáb) · A+M+D 41 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-04-13",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "D+M 17 · A+M+D 44",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-04-14",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 10
+},
+{
+"data": "2027-04-15",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 11",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-04-16",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 47",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-04-19",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 23 · A+M+D 50 · |D−M| 14 (dom) · Dia 17 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-04-21",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 17",
+"hopiplaka": "dia 17",
+"resumo": "★ Goldbach + Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2027-04-22",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 53",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-04-23",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 19
+},
+{
+"data": "2027-04-26",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 29 (dom) · A+M+D 56 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-04-27",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 23",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-04-28",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 59",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+},
+{
+"data": "2027-04-29",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 29",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-05-03",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 3 · A+M+D 35 · D+M 07 (dom) · |D−M| 03 (dom) · Dia 1 (sáb)",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-05-04",
+"dia_semana": "ter",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-05-05",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 00",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 2
+},
+{
+"data": "2027-05-06",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "D+M 11",
+"hopiplaka": "dia 3",
+"resumo": "★ Goldbach + Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2027-05-07",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 7",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-05-10",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "D+M 14 (dom) · A+M+D 41 (dom) · |D−M| 03 (sáb)",
+"hopiplaka": "dia 7",
+"resumo": "★ Goldbach + Hopiplaka dia 7",
+"dia_mes_hopiplaka": 7
+},
+{
+"data": "2027-05-11",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-05-12",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "D+M 17 · |D−M| 07 · A+M+D 44",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-05-14",
+"dia_semana": "sex",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 14",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-05-17",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 17 · |D−M| 11 (dom) · A+M+D 47 (sáb)",
+"hopiplaka": "dia 14",
+"resumo": "★ Goldbach + Hopiplaka dia 14",
+"dia_mes_hopiplaka": 14
+},
+{
+"data": "2027-05-18",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "D+M 23 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-05-19",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 16
+},
+{
+"data": "2027-05-20",
+"dia_semana": "qui",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 17",
+"resumo": "Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2027-05-21",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 53",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-05-24",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 29 · A+M+D 56 · Dia 23 (dom) · |D−M| 17 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 21
+},
+{
+"data": "2027-05-26",
+"dia_semana": "qua",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 23",
+"resumo": "Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-05-27",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 59",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+},
+{
+"data": "2027-05-28",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-05-31",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 35 (dom) · Dia 29 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 28
+},
+{
+"data": "2027-06-01",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 1 · D+M 07",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-06-02",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 35",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 30
+},
+{
+"data": "2027-06-03",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 3 · |D−M| 03",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-06-07",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 7 · |D−M| 00 (dom) · D+M 11 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-06-08",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "D+M 14 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 6
+},
+{
+"data": "2027-06-09",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 03",
+"hopiplaka": "dia 7",
+"resumo": "★ Goldbach + Hopiplaka dia 7",
+"dia_mes_hopiplaka": 7
+},
+{
+"data": "2027-06-11",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 · D+M 17 · A+M+D 44",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-06-14",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 14 · A+M+D 47 · |D−M| 07 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-06-16",
+"dia_semana": "qua",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 14",
+"resumo": "Hopiplaka dia 14",
+"dia_mes_hopiplaka": 14
+},
+{
+"data": "2027-06-17",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 17 · D+M 23 · |D−M| 11 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-06-21",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 14 (dom) · A+M+D 53 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 19
+},
+{
+"data": "2027-06-23",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · D+M 29 · |D−M| 17 · A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 21
+},
+{
+"data": "2027-06-25",
+"dia_semana": "sex",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 23",
+"resumo": "Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-06-28",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 59 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-06-29",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 29 · D+M 35 · |D−M| 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 27
+},
+{
+"data": "2027-07-01",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 1 · Mês 07 · A+M+D 35",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-07-02",
+"dia_semana": "sex",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 07",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-07-05",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · D+M 11 (dom) · |D−M| 03 (dom) · Dia 3 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-07-06",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-07-07",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 7 · Mês 07 · D+M 14 · |D−M| 00 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 6
+},
+{
+"data": "2027-07-08",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 07",
+"hopiplaka": "dia 7",
+"resumo": "★ Goldbach + Hopiplaka dia 7",
+"dia_mes_hopiplaka": 7
+},
+{
+"data": "2027-07-09",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-07-12",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 07 · Dia 11 (dom) · D+M 17 (sáb) · |D−M| 03 (sáb) · A+M+D 44 (sáb)",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-07-13",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · A+M+D 47",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-07-14",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 14 · Mês 07 · |D−M| 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 13
+},
+{
+"data": "2027-07-15",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 07",
+"hopiplaka": "dia 14",
+"resumo": "★ Goldbach + Hopiplaka dia 14",
+"dia_mes_hopiplaka": 14
+},
+{
+"data": "2027-07-16",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · D+M 23 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-07-19",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · A+M+D 53 · |D−M| 11 (dom) · Dia 17 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-07-20",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 19
+},
+{
+"data": "2027-07-21",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · |D−M| 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 20
+},
+{
+"data": "2027-07-22",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · D+M 29 · A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 21
+},
+{
+"data": "2027-07-23",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · Mês 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-07-26",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · A+M+D 59 (dom) · |D−M| 17 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-07-27",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-07-28",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Mês 07 · D+M 35",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 27
+},
+{
+"data": "2027-07-29",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 29 · Mês 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 28
+},
+{
+"data": "2027-07-30",
+"dia_semana": "sex",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 07 · |D−M| 23",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-08-02",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 1 (dom) · |D−M| 07 (dom) · Mês 07 (sáb) · A+M+D 65 (sáb)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-08-03",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 3 · D+M 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 2
+},
+{
+"data": "2027-08-04",
+"dia_semana": "qua",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 3",
+"resumo": "Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2027-08-05",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-08-06",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "D+M 14 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-08-09",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 17 · A+M+D 44 · |D−M| 00 (dom) · Dia 7 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-08-11",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 · |D−M| 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 10
+},
+{
+"data": "2027-08-12",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "A+M+D 47",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-08-16",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 23 (dom) · |D−M| 07 (dom) · A+M+D 50 (dom) · Dia 14 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-08-17",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 17",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 16
+},
+{
+"data": "2027-08-18",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "A+M+D 53",
+"hopiplaka": "dia 17",
+"resumo": "★ Goldbach + Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2027-08-19",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-08-23",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · |D−M| 14 (dom) · D+M 29 (sáb) · A+M+D 56 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-08-24",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "A+M+D 59",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-08-25",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 17",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+},
+{
+"data": "2027-08-27",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "D+M 35",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-08-30",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "A+M+D 65 · Dia 29 (dom)",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-08-31",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 23",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 30
+},
+{
+"data": "2027-09-01",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 1",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 31
+},
+{
+"data": "2027-09-02",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "D+M 11 · |D−M| 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 32
+},
+{
+"data": "2027-09-03",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 3",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 33
+},
+{
+"data": "2027-09-06",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 03 · D+M 14 (dom) · A+M+D 41 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 36
+},
+{
+"data": "2027-09-07",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 7",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 37
+},
+{
+"data": "2027-09-08",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "D+M 17 · A+M+D 44",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 38
+},
+{
+"data": "2027-09-09",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 00",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-09-13",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 03 (dom) · Dia 11 (sáb) · A+M+D 47 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-09-14",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 14 · D+M 23 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 6
+},
+{
+"data": "2027-09-15",
+"dia_semana": "qua",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 7",
+"resumo": "Hopiplaka dia 7",
+"dia_mes_hopiplaka": 7
+},
+{
+"data": "2027-09-16",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-09-17",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 17 · A+M+D 53",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-09-20",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 29 · |D−M| 11 · A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-09-22",
+"dia_semana": "qua",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 14",
+"resumo": "Hopiplaka dia 14",
+"dia_mes_hopiplaka": 14
+},
+{
+"data": "2027-09-23",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · |D−M| 14 · A+M+D 59",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-09-27",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 35 (dom) · |D−M| 17 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 19
+},
+{
+"data": "2027-09-29",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 29 · A+M+D 65",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 21
+},
+{
+"data": "2027-10-01",
+"dia_semana": "sex",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 1 · D+M 11",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-10-04",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 14 · A+M+D 41 · Dia 3 (dom) · |D−M| 07 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-10-07",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 7 · D+M 17 · |D−M| 03 · A+M+D 44",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-10-08",
+"dia_semana": "sex",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-10-11",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 · |D−M| 00 (dom) · A+M+D 47 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-10-13",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "D+M 23 · |D−M| 03 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 6
+},
+{
+"data": "2027-10-14",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 14",
+"hopiplaka": "dia 7",
+"resumo": "★ Goldbach + Hopiplaka dia 7",
+"dia_mes_hopiplaka": 7
+},
+{
+"data": "2027-10-18",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Dia 17 (dom) · |D−M| 07 (dom) · A+M+D 53 (sáb)",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-10-19",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "D+M 29 · A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-10-21",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "|D−M| 11",
+"hopiplaka": "dia 14",
+"resumo": "★ Goldbach + Hopiplaka dia 14",
+"dia_mes_hopiplaka": 14
+},
+{
+"data": "2027-10-22",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 59",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-10-25",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "D+M 35 · |D−M| 14 (dom) · Dia 23 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-10-27",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 17",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 20
+},
+{
+"data": "2027-10-28",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 65",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 21
+},
+{
+"data": "2027-10-29",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 29",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-11-01",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 1 · Mês 11 · D+M 41 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-11-02",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-11-03",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 3 · Mês 11 · D+M 14 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 27
+},
+{
+"data": "2027-11-04",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · |D−M| 07",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 28
+},
+{
+"data": "2027-11-05",
+"dia_semana": "sex",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11",
+"hopiplaka": "dia 29",
+"resumo": "★ Goldbach + Hopiplaka dia 29",
+"dia_mes_hopiplaka": 29
+},
+{
+"data": "2027-11-08",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11 · |D−M| 03 · Dia 7 (dom) · D+M 17 (sáb) · A+M+D 44 (sáb)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-11-09",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · A+M+D 47",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 2
+},
+{
+"data": "2027-11-10",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11",
+"hopiplaka": "dia 3",
+"resumo": "★ Goldbach + Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2027-11-11",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 11 · Mês 11 · |D−M| 00",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-11-12",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · D+M 23 · A+M+D 50",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 5
+},
+{
+"data": "2027-11-15",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · A+M+D 53 · Dia 14 (dom) · |D−M| 03 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-11-16",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-11-17",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 17 · Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 10
+},
+{
+"data": "2027-11-18",
+"dia_semana": "qui",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11 · D+M 29 · |D−M| 07 · A+M+D 56",
+"hopiplaka": "dia 11",
+"resumo": "★ Goldbach + Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-11-19",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-11-22",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · |D−M| 11 · A+M+D 59 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-11-23",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 16
+},
+{
+"data": "2027-11-24",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11 · D+M 35",
+"hopiplaka": "dia 17",
+"resumo": "★ Goldbach + Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2027-11-25",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Mês 11 · |D−M| 14",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-11-26",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Mês 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 19
+},
+{
+"data": "2027-11-29",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "Dia 29 · Mês 11 · |D−M| 17 (dom) · A+M+D 65 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-11-30",
+"dia_semana": "ter",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "Mês 11 · D+M 41",
+"hopiplaka": "dia 23",
+"resumo": "★ Goldbach + Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-12-01",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 1 · |D−M| 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+},
+{
+"data": "2027-12-02",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "D+M 14 · A+M+D 41",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 25
+},
+{
+"data": "2027-12-03",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 3",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 26
+},
+{
+"data": "2027-12-06",
+"dia_semana": "seg",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "D+M 17 (dom) · |D−M| 07 (dom) · A+M+D 44 (dom)",
+"hopiplaka": "dia 1 (abertura)",
+"resumo": "★ Goldbach + Hopiplaka dia 1 (abertura)",
+"dia_mes_hopiplaka": 1
+},
+{
+"data": "2027-12-07",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 7",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 2
+},
+{
+"data": "2027-12-08",
+"dia_semana": "qua",
+"tipo": "Goldbach + Hopiplaka",
+"goldbach": "A+M+D 47",
+"hopiplaka": "dia 3",
+"resumo": "★ Goldbach + Hopiplaka dia 3",
+"dia_mes_hopiplaka": 3
+},
+{
+"data": "2027-12-09",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 4
+},
+{
+"data": "2027-12-13",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 00 (dom) · Dia 11 (sáb) · D+M 23 (sáb) · A+M+D 50 (sáb)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 8
+},
+{
+"data": "2027-12-14",
+"dia_semana": "ter",
+"tipo": "Goldbach",
+"goldbach": "Dia 14 · A+M+D 53",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 9
+},
+{
+"data": "2027-12-15",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 03",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 10
+},
+{
+"data": "2027-12-16",
+"dia_semana": "qui",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 11",
+"resumo": "Hopiplaka dia 11",
+"dia_mes_hopiplaka": 11
+},
+{
+"data": "2027-12-17",
+"dia_semana": "sex",
+"tipo": "Goldbach",
+"goldbach": "Dia 17 · D+M 29 · A+M+D 56",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 12
+},
+{
+"data": "2027-12-20",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "A+M+D 59 · |D−M| 07 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 15
+},
+{
+"data": "2027-12-22",
+"dia_semana": "qua",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 17",
+"resumo": "Hopiplaka dia 17",
+"dia_mes_hopiplaka": 17
+},
+{
+"data": "2027-12-23",
+"dia_semana": "qui",
+"tipo": "Goldbach",
+"goldbach": "Dia 23 · D+M 35 · |D−M| 11",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 18
+},
+{
+"data": "2027-12-27",
+"dia_semana": "seg",
+"tipo": "Goldbach",
+"goldbach": "|D−M| 14 (dom) · A+M+D 65 (dom)",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 22
+},
+{
+"data": "2027-12-28",
+"dia_semana": "ter",
+"tipo": "Hopiplaka",
+"goldbach": "",
+"hopiplaka": "dia 23",
+"resumo": "Hopiplaka dia 23",
+"dia_mes_hopiplaka": 23
+},
+{
+"data": "2027-12-29",
+"dia_semana": "qua",
+"tipo": "Goldbach",
+"goldbach": "Dia 29 · D+M 41 · |D−M| 17",
+"hopiplaka": "",
+"resumo": "Goldbach",
+"dia_mes_hopiplaka": 24
+}
+]
