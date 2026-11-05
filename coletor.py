@@ -88,8 +88,7 @@ def yahoo(sym, anos=21):
 
 def fred(ids, start):
     url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={','.join(ids)}&cosd={start}"
-    try: raw = get(url, timeout=30).decode()          # o FRED costuma ser lento: 30 s e uma nova tentativa
-    except Exception: raw = get(url, timeout=30).decode()
+    raw = get(url, {"User-Agent": "curl/8.5"}, timeout=30).decode()   # o FRED trava com User-Agent de navegador
     rd = csv.reader(io.StringIO(raw)); head = next(rd)
     res = {i: {} for i in ids}
     for row in rd:
@@ -192,11 +191,17 @@ def b_liq():
 def b_bund():
     DE.update(bund2y((NOW.date() - dt.timedelta(days=5 * 366)).isoformat()))
 
-@bloco("Balanço do Fed e condições financeiras (FRED)")
+@bloco("Balanço do Fed (FRED) e condições financeiras (Fed de Chicago)")
 def b_fred():
     ini = (NOW.date() - dt.timedelta(days=3 * 366)).isoformat()
     FR["Balanço Fed"] = {d: v / 1000 for d, v in fred(["WALCL"], ini)["WALCL"].items()}   # milhões -> bilhões
-    FR["Condições financeiras (NFCI)"] = fred(["NFCI"], ini)["NFCI"]
+    txt = get("https://www.chicagofed.org/-/media/publications/nfci/nfci-data-series-csv.csv").decode("utf-8", "replace")
+    nfci = {}
+    for r in csv.DictReader(io.StringIO(txt)):
+        try: d = dt.datetime.strptime(r["Friday_of_Week"].strip(), "%m/%d/%Y").date()
+        except Exception: continue
+        if d.isoformat() >= ini and r.get("NFCI"): nfci[d] = float(r["NFCI"])
+    FR["Condições financeiras (NFCI)"] = nfci
 
 b_precos(); b_tsy(); b_liq(); b_bund(); b_fred()
 
