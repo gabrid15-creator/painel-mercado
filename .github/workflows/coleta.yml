@@ -1,0 +1,53 @@
+name: Coleta e site
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Site e dados anteriores
+        run: |
+          mkdir -p site/data
+          cp -r docs/* site/
+          BASE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/data"
+          for f in mi_geral mi_ativos mi_sazon mi_corr mi_cot mi_macro mi_hist mi_agenda mi_noticias mi_status mi_score; do
+            curl -sf -m 20 -o "site/data/$f.json.tmp" "$BASE/$f.json" && mv "site/data/$f.json.tmp" "site/data/$f.json" || true
+          done
+          # leitura da IA vem do repositório (escrita pelo Claude)
+          cp docs/data/mi_ia.json site/data/mi_ia.json
+      - name: Coletar
+        run: |
+          cp site/data/mi_*.json /tmp/ 2>/dev/null || true
+          mkdir -p out && cp site/data/mi_*.json out/ 2>/dev/null || true
+          timeout 600 python3 coletor.py out || true
+          cp out/mi_*.json site/data/
+          cp docs/data/mi_ia.json site/data/mi_ia.json
+          cat out/mi_status.json || true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.d.outputs.page_url }}
+    steps:
+      - id: d
+        uses: actions/deploy-pages@v4
