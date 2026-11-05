@@ -35,7 +35,7 @@ jobs:
         run: |
           cp site/data/mi_*.json /tmp/ 2>/dev/null || true
           mkdir -p out && cp site/data/mi_*.json out/ 2>/dev/null || true
-          timeout 600 python3 coletor.py out || true
+          timeout 300 python3 coletor.py out || true
           cp out/mi_*.json site/data/
           cp docs/data/mi_ia.json site/data/mi_ia.json
           cat out/mi_status.json || true

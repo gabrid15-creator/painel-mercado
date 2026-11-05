@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Coletor da aba Inteligência de mercado. Uso: python3 coletor.py <pasta_saida>
 Só biblioteca padrão. Cada bloco é independente: se uma fonte falhar, os outros seguem e o erro vai para mi_status.json."""
-import sys, os, json, csv, io, math, statistics as st, urllib.request, datetime as dt, traceback
+import sys, os, json, csv, io, math, time, statistics as st, urllib.request, datetime as dt, traceback
 import xml.etree.ElementTree as ET
 from zoneinfo import ZoneInfo
 
@@ -12,25 +12,48 @@ NOW = dt.datetime.now(BRT)
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36",
       "Accept": "*/*", "Accept-Language": "en-US,en;q=0.9"}
 STATUS = []
+TIMEOUT_REQ = 15          # segundos por requisição
+LIMITE_TOTAL = 4 * 60     # segundos para a coleta inteira
+FIM = time.monotonic() + LIMITE_TOTAL
 
-def get(url, headers=None, timeout=40):
+class Estourou(TimeoutError): pass
+
+def restante():
+    return FIM - time.monotonic()
+
+def get(url, headers=None, timeout=TIMEOUT_REQ):
+    """Baixa a URL com no máximo `timeout` s por requisição (conexão + leitura) e sem passar do limite total."""
+    if restante() <= 0: raise Estourou("limite total de 4 min atingido")
+    fim = time.monotonic() + min(timeout, restante())
     h = dict(UA); h.update(headers or {})
-    with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=timeout) as r:
-        return r.read()
+    with urllib.request.urlopen(urllib.request.Request(url, headers=h), timeout=max(1, fim - time.monotonic())) as r:
+        partes = []
+        while True:
+            if time.monotonic() > fim: raise TimeoutError(f"sem resposta completa em {timeout}s: {url[:80]}")
+            b = r.read1(65536)
+            if not b: break
+            partes.append(b)
+        return b"".join(partes)
 
 def bloco(nome):
     def deco(fn):
         def run(*a):
+            if restante() <= 0:
+                STATUS.append({"bloco": nome, "ok": False, "msg": "pulado: limite total de 4 min atingido (mantidos os dados anteriores)"})
+                return None
             try:
                 r = fn(*a)
                 STATUS.append({"bloco": nome, "ok": True, "msg": ""})
                 return r
             except Exception as e:
-                STATUS.append({"bloco": nome, "ok": False, "msg": (type(e).__name__ + ": " + str(e))[:300]})
+                STATUS.append({"bloco": nome, "ok": False, "msg": (type(e).__name__ + ": " + str(e))[:270] + " (mantidos os dados anteriores)"})
                 traceback.print_exc()
                 return None
         return run
     return deco
+
+def ler(n):
+    p = os.path.join(OUT, n); return json.load(open(p)) if os.path.exists(p) else []
 
 def save(name, rows):
     if not rows: return
@@ -192,6 +215,10 @@ def b_macro():
                          "var_1d": rnd(chg(s, 1, not isp), 3), "var_5d": rnd(chg(s, 5, not isp), 3), "var_20d": rnd(chg(s, 20, not isp), 3),
                          "unidade_var": "p.p." if isp else "%", "pctil_1a": rnd(pctil(s), 0)})
             hist += [{"serie": k, "data": d.isoformat(), "valor": rnd(v, 4)} for d, v in sorted(s.items()) if d >= lim]
+    # fonte que falhou ou foi pulada: mantém a linha e o histórico anteriores dessa série
+    novas = {r["serie"] for r in rows}
+    rows += [r for r in ler("mi_macro.json") if r.get("serie") not in novas]
+    hist += [r for r in ler("mi_hist.json") if r.get("serie") not in novas]
     save("mi_macro.json", rows); save("mi_hist.json", hist)
 b_macro()
 
@@ -401,8 +428,6 @@ def b_news():
     save("mi_noticias.json", uniq[:80])
 b_news()
 
-def ler(n):
-    p = os.path.join(OUT, n); return json.load(open(p)) if os.path.exists(p) else []
 # ---------------------------------------------------------------- score 0-100 por ativo (regras transparentes)
 PESOS = {"Tendência": 20, "Movimento de hoje": 10, "Juros (macro)": 20, "Dólar (DXY)": 15, "COT": 15, "Risco (VIX/F&G)": 10, "Sazonalidade": 5, "Valor justo": 5}
 DOLAR = {"EURUSD": -1, "GBPUSD": -1, "XAUUSD": -1, "NAS100": -1, "USDJPY": 1, "USDCHF": 1}
