@@ -6,3 +6,5 @@ Site: https://gabrid15-creator.github.io/painel-mercado/
 - `.github/workflows/coleta.yml` roda a cada 5 minutos e publica o site (GitHub Pages).
 - `docs/data/mi_ia.json` é a leitura da IA, escrita pelo Claude duas vezes por dia.
 - `goldbach_gen.py` gera `docs/data/goldbach_dias.json`.
+
+Alterações feitas pelo Claude Code são commitadas e enviadas direto na branch `main`.
