@@ -1,0 +1,14 @@
+name: Sondagem (temporário)
+on: workflow_dispatch
+permissions: {}
+jobs:
+  sonda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: |
+          for u in https://www.financecalendar.com/api/ https://biquote.io/guides/economic-calendar-api.html; do
+            echo "=================== $u"
+            curl -sSL -m 20 -A "Mozilla/5.0" "$u" | python3 -c "import sys,re,html;t=sys.stdin.read();t=re.sub(r'(?s)<(script|style).*?</\1>','',t);print(re.sub(r'\n\s*\n+','\n',html.unescape(re.sub(r'<[^>]+>','\n',t)))[:9000])"
+            echo; echo "--- urls:"; curl -sSL -m 20 -A "Mozilla/5.0" "$u" | grep -oE "https?://[a-zA-Z0-9./?=_&%-]*(api|calendar)[a-zA-Z0-9./?=_&%-]*" | sort -u | head -40
+          done
