@@ -1,0 +1,17 @@
+name: Sondagem (temporário)
+on: workflow_dispatch
+permissions: {}
+jobs:
+  s:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - run: |
+          set +e
+          t(){ echo "=== $1"; curl -sSL -m 40 -A "$2" -o /tmp/o -w "%{http_code} %{time_total}s\n" "$1"; head -c 300 /tmp/o | tr '\n' ' '; echo; }
+          t "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WALCL&cosd=2025-01-01" "curl/8"
+          t "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WALCL&cosd=2025-01-01" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
+          t "https://www.chicagofed.org/-/media/publications/nfci/nfci-data-series-csv.csv" "Mozilla/5.0"
+          t "https://www.federalreserve.gov/releases/h41/current/h41.htm" "Mozilla/5.0"
+          t "https://www.federalreserve.gov/datadownload/Output.aspx?rel=H41&series=c5f1d6ea7a5e0cf7d1d0d0b0f8c2f0d4&lastobs=10&filetype=csv&label=include&layout=seriescolumn" "Mozilla/5.0"
+          t "https://markets.newyorkfed.org/api/soma/summary.json" "Mozilla/5.0"
