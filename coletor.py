@@ -68,7 +68,8 @@ ATIVOS = {  # nome: (yahoo, casas)
     "EURUSD": ("EURUSD=X", 5), "GBPUSD": ("GBPUSD=X", 5), "USDJPY": ("JPY=X", 3), "USDCHF": ("CHF=X", 5),
     "XAUUSD": ("GC=F", 2), "NAS100": ("^NDX", 1),
 }
-FATORES_Y = {"DXY": "DX-Y.NYB", "WTI": "CL=F", "Brent": "BZ=F", "VIX": "^VIX", "Crédito HY (HYG)": "HYG", "Gás natural": "NG=F"}
+FATORES_Y = {"DXY": "DX-Y.NYB", "WTI": "CL=F", "Brent": "BZ=F", "VIX": "^VIX", "Crédito HY (HYG)": "HYG", "Gás natural": "NG=F",
+            "VIX 3 meses": "^VIX3M", "MOVE (vol. de Treasuries)": "^MOVE"}
 FRED = {"US2Y": "DGS2", "US10Y": "DGS10", "Juro real 10a": "DFII10", "Curva 2s10s": "T10Y2Y", "Spread HY": "BAMLH0A0HYM2",
         "Dólar amplo Fed": "DTWEXBGS", "Fed funds": "DFF", "SOFR": "SOFR", "Infl. implícita 10a": "T10YIE",
         "Balanço Fed": "WALCL", "TGA": "WTREGEN", "RRP": "RRPONTSYD"}
@@ -152,7 +153,9 @@ P, F, FR, DE = {}, {}, {}, {}
 @bloco("Preços (Yahoo)")
 def b_precos():
     for k, (y, _) in ATIVOS.items(): P[k] = yahoo(y)
-    for k, y in FATORES_Y.items(): F[k] = closes(yahoo(y, 5))
+    for k, y in FATORES_Y.items():
+        try: F[k] = closes(yahoo(y, 5))
+        except Exception as e: STATUS.append({"bloco": "Yahoo: " + k, "ok": False, "msg": str(e)[:200]})
 
 @bloco("Treasuries (Tesouro dos EUA)")
 def b_tsy():
@@ -187,7 +190,24 @@ def b_liq():
 def b_bund():
     DE.update(bund2y((NOW.date() - dt.timedelta(days=5 * 366)).isoformat()))
 
-b_precos(); b_tsy(); b_liq(); b_bund()
+@bloco("Balanço do Fed e condições financeiras (FRED)")
+def b_fred():
+    ini = (NOW.date() - dt.timedelta(days=3 * 366)).isoformat()
+    r = fred(["WALCL", "NFCI"], ini)
+    FR["Balanço Fed"] = {d: v / 1000 for d, v in r["WALCL"].items()}   # milhões -> bilhões
+    FR["Condições financeiras (NFCI)"] = r["NFCI"]
+
+b_precos(); b_tsy(); b_liq(); b_bund(); b_fred()
+
+# liquidez líquida do Fed = balanço − TGA − RRP (bilhões; balanço semanal, repete o último valor)
+if FR.get("Balanço Fed") and FR.get("TGA"):
+    bal = sorted(FR["Balanço Fed"].items()); liq = {}
+    for d in sorted(FR["TGA"]):
+        v = [x for k, x in bal if k <= d]
+        if v: liq[d] = v[-1] - FR["TGA"][d] - FR.get("RRP", {}).get(d, 0)
+    FR["Liquidez líquida Fed"] = liq
+if F.get("VIX") and F.get("VIX 3 meses"):
+    F["VIX ÷ VIX 3 meses"] = {d: F["VIX"][d] / F["VIX 3 meses"][d] for d in F["VIX"] if F["VIX 3 meses"].get(d)}
 
 # drenagem de liquidez (bilhões de US$): TGA + RRP (subindo = tira liquidez do mercado)
 if FR.get("TGA") and FR.get("RRP"):
@@ -200,9 +220,9 @@ if FR.get("US2Y") and DE:
 @bloco("Macro")
 def b_macro():
     grupos = {"Juros": ["US2Y", "US10Y", "Juro real 10a", "Curva 2s10s", "Bund 2a", "Spread 2a EUA−Alemanha", "Fed funds", "SOFR", "Infl. implícita 10a"],
-              "Dólar": ["DXY"], "Liquidez": ["TGA + RRP", "TGA", "RRP"],
-              "Risco": ["VIX", "Crédito HY (HYG)"], "Energia": ["WTI", "Brent", "Gás natural"]}
-    pts = {"US2Y","US10Y","Juro real 10a","Curva 2s10s","Bund 2a","Spread 2a EUA−Alemanha","Fed funds","SOFR","Infl. implícita 10a"}
+              "Dólar": ["DXY"], "Liquidez": ["Liquidez líquida Fed", "Balanço Fed", "TGA + RRP", "TGA", "RRP"],
+              "Risco": ["VIX", "VIX ÷ VIX 3 meses", "MOVE (vol. de Treasuries)", "Condições financeiras (NFCI)", "Crédito HY (HYG)"], "Energia": ["WTI", "Brent", "Gás natural"]}
+    pts = {"Condições financeiras (NFCI)", "VIX ÷ VIX 3 meses", "US2Y","US10Y","Juro real 10a","Curva 2s10s","Bund 2a","Spread 2a EUA−Alemanha","Fed funds","SOFR","Infl. implícita 10a"}
     rows, hist = [], []
     lim = NOW.date() - dt.timedelta(days=366)
     for g, ks in grupos.items():

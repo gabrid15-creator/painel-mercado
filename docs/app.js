@@ -507,8 +507,57 @@
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { clearTimeout(LIVE.timer); liveTick(); } });
 
+
+  // ---------------------------------------------------------------- radar institucional
+  const SURP = { ev: [], t: 0 };
+  async function surpTick() {
+    try {
+      const fim = new Date(), ini = new Date(Date.now() - 92 * 864e5);
+      const r = await fetch(LIVE_BASE + '&from=' + ini.toISOString().slice(0, 10) + '&to=' + fim.toISOString().slice(0, 10), { cache: 'no-store' });
+      if (r.ok) { const j = await r.json(); SURP.ev = Array.isArray(j) ? j : []; SURP.t = Date.now(); drawRadar(); }
+    } catch (e) { /* mantém o anterior */ }
+  }
+  const INV = /unemployment|jobless|claims|claimant/i, INF = /cpi|ppi|pce|inflation|price|hicp|deflator|earnings/i;
+  const surpresaIdx = (cur, inflacao) => {
+    let s = 0, w = 0; const agora = Date.now();
+    for (const e of SURP.ev) {
+      if (e.currency !== cur || e.actual == null || e.forecast == null || e.type === 'event' || !['high', 'medium'].includes(e.importance)) continue;
+      if (INF.test(e.name) !== inflacao) continue;
+      const d = e.actual - e.forecast; if (!d) continue;
+      const peso = (e.importance === 'high' ? 2 : 1) * Math.pow(0.5, (agora - new Date(e.time).getTime()) / (30 * 864e5));
+      s += Math.sign(d) * (INV.test(e.name) ? -1 : 1) * peso; w += peso;
+    }
+    return w ? 100 * s / w : null;
+  };
+  function drawRadar() {
+    if (!$('.radar')) return;
+    const M = D('mi_macro'); const row = (k) => (M.status === 'ok' ? M.data.find((r) => r.serie === k) : null);
+    const li = (ul, k, v, c, ch) => { const e = document.createElement('li'); const a = document.createElement('span'); a.textContent = k; const b = document.createElement('b'); b.textContent = v; if (c) b.className = c; if (ch) { const x = document.createElement('span'); x.className = 'tl-chip ' + ch[1]; x.textContent = ch[0]; b.appendChild(x); } e.append(a, b); ul.appendChild(e); };
+    const lq = row('Liquidez líquida Fed'); const ul = $('.rd-liq-l'); ul.replaceChildren();
+    $('.rd-liq').textContent = lq ? 'US$ ' + nf(lq.valor / 1000, 2) + ' tri' : '—';
+    const d = $('.rd-liq-d'); d.textContent = lq ? sg(lq.var_1d) + ' no dia' : ''; d.className = 'tl-u rd-liq-d ' + (lq ? cls(lq.var_1d) : '');
+    const c = $('.rd-liq-chip'); const t20 = lq ? lq.var_20d : null;
+    c.textContent = t20 == null ? 'aguardando dados' : t20 > 1 ? '▲ injetando liquidez' : t20 < -1 ? '▼ drenando liquidez' : '■ estável'; c.className = 'tl-chip rd-liq-chip ' + (t20 == null ? '' : t20 > 1 ? 'ok' : t20 < -1 ? 'bad' : '');
+    if (lq) { li(ul, '5 dias', sg(lq.var_5d), cls(lq.var_5d)); li(ul, '20 dias', sg(lq.var_20d), cls(lq.var_20d)); li(ul, 'Percentil no ano', nf(lq.pctil_1a, 0) + '%'); }
+    const st = $('.rd-st'); st.replaceChildren();
+    const vr = row('VIX ÷ VIX 3 meses'), mv = row('MOVE (vol. de Treasuries)'), nc = row('Condições financeiras (NFCI)');
+    li(st, 'VIX ÷ VIX 3 meses', vr ? nf(vr.valor, 2) : '—', '', vr ? (vr.valor >= 1 ? ['pânico agudo', 'bad'] : vr.valor >= 0.92 ? ['atenção', 'warn'] : ['calmo', 'ok']) : null);
+    li(st, 'MOVE', mv ? nf(mv.valor, 0) : '—', '', mv ? (mv.pctil_1a >= 80 ? ['alto no ano', 'bad'] : mv.pctil_1a <= 20 ? ['baixo no ano', 'ok'] : ['normal', '']) : null);
+    li(st, 'Condições financeiras', nc ? nf(nc.valor, 2) : '—', '', nc ? (nc.valor > 0 ? ['apertadas', 'bad'] : ['frouxas', 'ok']) : null);
+    const sp = $('.rd-sp'); sp.replaceChildren();
+    for (const cur of ['USD', 'EUR', 'GBP', 'JPY', 'CHF']) {
+      const v = surpresaIdx(cur, false); const r = document.createElement('div'); r.className = 'rd-b';
+      const a = document.createElement('span'); a.textContent = cur; const tr = document.createElement('span'); tr.className = 'tr'; const i = document.createElement('i');
+      const w = Math.min(Math.abs(v || 0), 100) / 2; i.style.width = w + '%'; i.style.left = ((v || 0) >= 0 ? 50 : 50 - w) + '%'; i.style.background = (v || 0) >= 0 ? 'var(--color-ok)' : 'var(--color-bad)'; tr.appendChild(i);
+      const n = document.createElement('span'); n.className = 'num ' + cls(v); n.textContent = v == null ? '—' : sg(v, 0, ''); r.append(a, tr, n); sp.appendChild(r);
+    }
+    const gU = surpresaIdx('USD', false), iU = surpresaIdx('USD', true); const rg = $('.rd-reg');
+    const Q = gU == null || iU == null ? null : gU >= 0 ? (iU >= 0 ? ['EUA: reaquecendo (crescimento ▲ inflação ▲)', 'warn'] : ['EUA: cenário ideal (crescimento ▲ inflação ▼)', 'ok']) : (iU >= 0 ? ['EUA: estagflação (crescimento ▼ inflação ▲)', 'bad'] : ['EUA: desaceleração (crescimento ▼ inflação ▼)', '']);
+    rg.textContent = Q ? Q[0] : (SURP.t ? 'regime: dados insuficientes' : 'carregando…'); rg.className = 'tl-chip rd-reg ' + (Q ? Q[1] : '');
+  }
+
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
-  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) drawMI(); if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); }
+  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); } if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
-  load().then(liveTick); setInterval(load, 2 * 60 * 1000);
+  load().then(() => { liveTick(); surpTick(); }); setInterval(load, 2 * 60 * 1000); setInterval(surpTick, 10 * 60 * 1000);
 })();

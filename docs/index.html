@@ -293,6 +293,18 @@
   .op-table thead th { white-space: nowrap; }
   .mi-ag-t tr.mi-hoje-1 td { border-top: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
   @media (max-width: 640px) { .tl-v .v { font-size: 32px; } .sc-b { grid-template-columns: 7.5rem 1fr 2.8rem; } .mi-iag .mi-ia-txt { font-size: 14.5px; } }
+
+  /* radar institucional */
+  .rd-g { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 20px; }
+  .rd-c { display: flex; flex-direction: column; gap: 8px; } .rd-c > .tl-chip { align-self: flex-start; }
+  .rd-c .mi-exp { margin-top: auto; } .rd-c .v { font-family: var(--font-anthropic-serif); font-variant-numeric: tabular-nums; }
+  .rd-st li b { display: inline-flex; gap: 8px; align-items: center; }
+  .rd-sp { display: flex; flex-direction: column; gap: 6px; }
+  .rd-b { display: grid; grid-template-columns: 2.6rem 1fr 2.6rem; gap: 8px; align-items: center; font-size: 12px; }
+  .rd-b > span:first-child { font-weight: 600; } .rd-b .num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .rd-b .tr { position: relative; height: 8px; background: var(--color-border-line); border-radius: 4px; }
+  .rd-b .tr i { position: absolute; top: 0; height: 8px; border-radius: 4px; }
+  .rd-b .tr::after { content: ""; position: absolute; left: 50%; top: -2px; width: 1px; height: 12px; background: var(--color-fg-muted); }
 </style>
 </head>
 <body>
@@ -341,6 +353,16 @@
         <span class="mi-exp">Dólar contra 6 moedas (57% é o euro). Subindo: EURUSD, GBPUSD e ouro caem; USDJPY e USDCHF sobem. A variação de 20 dias dá a tendência.</span></div>
     </section>
 
+
+    <section class="op-card radar"><div class="ag-top"><h2>Radar institucional</h2><span class="tl-chip ia-chip">o que as mesas olham</span></div>
+      <div class="rd-g">
+        <div class="rd-c"><span class="tl-k">Liquidez líquida do Fed</span><div class="tl-v"><span class="v rd-liq">—</span><span class="tl-u rd-liq-d">—</span></div><span class="tl-chip rd-liq-chip">—</span><ul class="tl-l rd-liq-l"></ul>
+          <span class="mi-exp">Balanço do Fed − TGA − reverse repo: o dinheiro que circula no mercado. Subindo = injeção (ajuda Nasdaq e ouro); caindo = drenagem.</span></div>
+        <div class="rd-c"><span class="tl-k">Estresse</span><ul class="tl-l rd-st"></ul>
+          <span class="mi-exp">VIX ÷ VIX 3 meses acima de 1 = pânico agudo (curva invertida). MOVE = "VIX dos títulos". NFCI (Fed de Chicago) acima de 0 = crédito apertado.</span></div>
+        <div class="rd-c"><span class="tl-k">Surpresa econômica · 90 dias</span><div class="rd-sp"></div><span class="tl-chip rd-reg">—</span>
+          <span class="mi-exp">Quanto os dados de cada país vieram acima (+) ou abaixo (−) da previsão, de −100 a +100, com peso maior para os recentes e os de alto impacto (como o índice do Citi). Desemprego e pedidos de seguro têm sinal invertido.</span></div>
+      </div></section>
 
     <section class="op-card">
       <div class="sc-top">
@@ -477,7 +499,7 @@
     </section>
   </div>
 </div>
-<script src="app.js?v=20261105d"></script>
-<script src="opcoes.js?v=20261105d"></script>
+<script src="app.js?v=20261105e"></script>
+<script src="opcoes.js?v=20261105e"></script>
 </body>
 </html>
