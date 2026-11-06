@@ -36,6 +36,12 @@
 </div>
 
 <div class="card">
+  <div class="lbl">Janelas institucionais de hoje</div>
+  <table id="jan" style="margin-top:6px"></table>
+  <div class="how">Minutos em que o ouro mais faz topo/fundo no entorno de ±1h (1,0× = minuto comum; minuto Goldbach deu 1,0×). Período todo out/2020–out/2026, repetiu em todos os anos; 13:29 enfraqueceu em 2026 (0,4×). Marca <b>onde</b> tende a virar ou acelerar, não a direção.</div>
+</div>
+
+<div class="card">
   <div class="row"><span class="lbl">Score da véspera (reversão)</span><span id="tag"></span></div>
   <div class="row" style="margin-top:6px"><span class="big" id="score">–</span><span class="how" id="pts"></span></div>
   <div class="how"><b>Como ler:</b> 0 a 100. Quanto maior, mais o dia favorece pegar reversão (operar contra o movimento).
@@ -124,5 +130,30 @@ Promise.all([fetch(URL_+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()),f
   $('sp').setAttribute('viewBox','0 0 '+W+' '+Hh);$('sp').setAttribute('preserveAspectRatio','none');
   $('sp').innerHTML='<line x1="0" x2="'+W+'" y1="'+y(70)+'" y2="'+y(70)+'" stroke="var(--ok)" stroke-dasharray="4 4"/><line x1="0" x2="'+W+'" y1="'+y(40)+'" y2="'+y(40)+'" stroke="var(--bad)" stroke-dasharray="4 4"/><polyline fill="none" stroke="currentColor" stroke-width="2" points="'+pts+'"/>';
 }).catch(e=>{$('upd').textContent='Sem dados ainda (o robô roda 1x por dia). Erro: '+e});
+</script>
+<script>
+(() => {
+  const JAN = [['America/New_York', 8, 20, 'Abertura COMEX', '3,0×', '2,0×'], ['America/New_York', 8, 30, 'Dados EUA', '6,6×', '2,0×'],
+    ['America/New_York', 10, 0, 'Dados EUA', '3,5×', '2,0×'], ['Europe/London', 15, 0, 'Leilão LBMA tarde', '3,5×', '1,9×'],
+    ['America/New_York', 13, 29, 'Fechamento oficial COMEX', '3,0×', '1,0×'], ['Europe/London', 10, 30, 'Leilão LBMA manhã', '2,1×', '0,9×']];
+  function zoned(tz, y, mo, d, h, mi) {
+    const g = Date.UTC(y, mo - 1, d, h, mi), p = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      .formatToParts(new Date(g)).forEach(x => p[x.type] = x.value);
+    return g - (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - g);
+  }
+  function janelas() {
+    const box = document.getElementById('jan'); if (!box) return;
+    const [y, mo, d] = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }).split('-').map(Number);
+    const now = Date.now(), br = ms => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+    const L = JAN.map(j => ({ t: zoned(j[0], y, mo, d, j[1], j[2]), n: j[3], x: j[4], r: j[5] })).sort((a, b) => a.t - b.t);
+    const prox = L.find(j => j.t + 15 * 60e3 > now);
+    box.innerHTML = '<tr><th>Brasília</th><th>Janela</th><th class="num">Topo/fundo</th><th class="num">Range 15 min</th></tr>' + L.map(j => {
+      const on = now >= j.t && now < j.t + 15 * 60e3, nx = prox === j;
+      return '<tr style="' + (on ? 'background:color-mix(in srgb,var(--warn) 22%,transparent);font-weight:600' : nx ? 'font-weight:600' : now > j.t ? 'opacity:.5' : '') + '"><td>' + br(j.t) + (on ? ' ● agora' : nx ? ' ← próxima' : '') + '</td><td>' + j.n + '</td><td class="num">' + j.x + '</td><td class="num">' + j.r + '</td></tr>';
+    }).join('');
+  }
+  janelas(); setInterval(janelas, 60e3);
+})();
 </script>
 </body></html>
