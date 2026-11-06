@@ -33,7 +33,8 @@ else:   # último horário noturno (20h ou 0h) que já passou
     hoje0 = agora.replace(hour=0, minute=0, second=0, microsecond=0)
     marcos = [m for m in (hoje0 - dt.timedelta(hours=4), hoje0, hoje0 + dt.timedelta(hours=20)) if m <= agora]
     vencida = not ultima or ultima < max(marcos)
-if ultima and not red_depois and (not vencida or fim_de_semana):
+formato_velho = bool(ant) and "vies" not in ant[0]   # leitura sem a classificação: refaz uma vez
+if ultima and not red_depois and not formato_velho and (not vencida or fim_de_semana):
     print(f"leitura de {ultima:%d/%m %H:%M} ainda vale"); sys.exit(0)
 
 dig = open(os.path.join(OUT, "digest.txt"), encoding="utf-8").read()
@@ -46,7 +47,8 @@ prompt = (
     "- Cada ativo: o viés e o score, os 2 ou 3 fatores que mais pesam, o principal risco (evento próximo ou notícia) e o que esperar.\n"
     "Use só o que está nos dados; não invente números nem eventos. Trate eventos que já passaram como passados e os futuros como futuros, "
     "comparando com a data e hora acima.\n"
-    'Responda APENAS com um JSON: uma lista de 7 objetos {"ativo": ..., "texto": ...}, na ordem ' + ", ".join(ATIVOS) + ".\n\nDADOS:\n" + dig)
+    'Dê também uma classificação "vies" para cada item: "bullish", "neutro" ou "bearish" (no GERAL: bullish = apetite a risco, bearish = aversão a risco). '
+    'Responda APENAS com um JSON: uma lista de 7 objetos {"ativo": ..., "vies": ..., "texto": ...}, na ordem ' + ", ".join(ATIVOS) + ".\n\nDADOS:\n" + dig)
 
 client = anthropic.Anthropic()
 try:
@@ -61,7 +63,8 @@ if resp.stop_reason == "refusal":
 txt = "".join(b.text for b in resp.content if b.type == "text")
 try:
     itens = json.loads(txt[txt.index("["): txt.rindex("]") + 1])
-    rows = [{"ativo": x["ativo"], "texto": x["texto"].strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
+    rows = [{"ativo": x["ativo"], "vies": str(x.get("vies", "")).lower().strip() if str(x.get("vies", "")).lower().strip() in ("bullish", "neutro", "bearish") else None,
+             "texto": x["texto"].strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
 except Exception as e:
     print("resposta fora do formato; leitura anterior mantida:", e); sys.exit(0)
 if len(rows) < 5:

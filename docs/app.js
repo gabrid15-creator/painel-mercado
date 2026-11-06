@@ -171,7 +171,9 @@
     // score + IA
     const ia = (k) => (IA.status === 'ok' ? IA.data.find((r) => r.ativo === k) : null);
     const corS = (s) => (s >= 60 ? 'var(--color-ok)' : s <= 40 ? 'var(--color-bad)' : 'var(--color-warn)');
-    const g0 = ia('GERAL'); $('.mi-ia-geral').textContent = g0 ? g0.texto : '—'; $('.mi-ia-geral-q').textContent = g0 ? 'escrita em ' + br(g0.gerado_em) : '';
+    const vies = (sel, r) => { const e = $(sel); const v = r && r.vies; e.hidden = !v; if (!v) return;
+      e.textContent = v === 'bullish' ? '▲ Bullish' : v === 'bearish' ? '▼ Bearish' : '■ Neutro'; e.className = 'tl-chip ia-vies ' + sel.slice(1) + ' ' + (v === 'bullish' ? 'ok' : v === 'bearish' ? 'bad' : 'warn'); };
+    const g0 = ia('GERAL'); vies('.mi-ia-geral-v', g0); $('.mi-ia-geral').textContent = g0 ? g0.texto : '—'; $('.mi-ia-geral-q').textContent = g0 ? 'escrita em ' + br(g0.gerado_em) : '';
     const sc = SC.status === 'ok' ? SC.data.find((r) => r.ativo === atv) : null;
     {
       const el = $('.sc-ring'); el.replaceChildren(); const R = 80, sw = 16, val = sc ? sc.score : 50, cor = sc ? corS(sc.score) : 'var(--color-border-line)';
@@ -198,7 +200,7 @@
       const p = document.createElement('span'); p.className = 'num ' + cls(c.pontos); p.textContent = sg(c.pontos, 1, '');
       row.append(l, tr, p); sb.appendChild(row);
     }
-    const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) + ' · score atualiza a cada 5 min' : '';
+    const ia1 = ia(atv); vies('.mi-ia-atv-v', ia1); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) + ' · score atualiza a cada 5 min' : '';
     const tb0 = $('.mi-sc-t tbody'); tb0.replaceChildren();
     for (const c of sc ? sc.componentes : []) { const tr = document.createElement('tr'); td(tr, c.fator + ' (' + c.peso + ')'); td(tr, sg(c.pontos, 1, ''), 'num ' + cls(c.pontos)); td(tr, c.leitura); tb0.appendChild(tr); }
 
