@@ -53,10 +53,10 @@
     drawAll();
   };
   document.querySelectorAll('button.op-tab').forEach((b) => b.addEventListener('click', () => { tabs(b.dataset.tab); history.replaceState(null, '', '#' + b.dataset.tab); }));
-  if (['#sec-gb', '#sec-op'].includes(location.hash)) tabs(location.hash.slice(1));
+  if (['#sec-gb', '#sec-op', '#sec-ai'].includes(location.hash)) tabs(location.hash.slice(1));
 
   // ---------------------------------------------------------------- mercado
-  let atv = 'EURUSD', serie = 'Spread 2a EUA−Alemanha', jan = 20, nwF = 'ativo'; const vis = {};
+  let atv = 'EURUSD', serie = 'Spread 2a EUA−Alemanha', jan = 10, nwF = 'ativo'; const vis = {};
   const bar = $('.ativos');
   // altura do topo fixo -> o seletor de ativo gruda logo abaixo dele
   { const tp = document.querySelector('.topo'), af = document.querySelector('.ativos-fixo');
@@ -208,14 +208,16 @@
     const a = A.status === 'ok' ? A.data.find((r) => r.ativo === atv) : null; const cs = CASAS[atv];
     document.querySelectorAll('.mi-a').forEach((el) => {
       const f = el.dataset.f; const val = a ? a[f] : null;
-      el.textContent = val == null ? '—' : f === 'saz_mes_media' ? sg(val, 2) : (f === 'gb_extremos' || f === 'hp_extremos') ? nf(val, 1) + '%' : nf(val, ['atr14', 'preco', 'vj_valor'].includes(f) ? cs : 2);
+      el.textContent = val == null ? '—' : (f === 'saz_mes_media' || f === 'saz_mes10_media') ? sg(val, 2) : (f === 'gb_extremos' || f === 'hp_extremos' || f === 'gb_sweep' || f === 'hp_sweep') ? nf(val, 1) + '%' : nf(val, ['atr14', 'preco', 'vj_valor'].includes(f) ? cs : 2);
     });
     const hm = new Date().getMonth();
     const L = (sel, rows) => { const ul = $(sel); ul.replaceChildren(); if (!a) return; for (const [k, v, c] of rows) if (v != null) { const e = document.createElement('li'); const x = document.createElement('span'); x.textContent = k; const y = document.createElement('b'); y.textContent = v; if (c) y.className = c; e.append(x, y); ul.appendChild(e); } };
     L('.mi-a-var', a ? [['Dia', sg(a.var_1d), cls(a.var_1d)], ['5 dias', sg(a.var_5d), cls(a.var_5d)], ['20 dias', sg(a.var_20d), cls(a.var_20d)], ['No ano', sg(a.var_ano), cls(a.var_ano)]] : []);
     L('.mi-a-vj', a && a.vj_valor != null ? [['Preço vs. justo', sg(a.vj_desvio_pct), cls(-a.vj_desvio_pct)], ['Esticamento (z)', nf(a.vj_z, 1), Math.abs(a.vj_z) >= 2 ? 'mi-neg' : ''], ['Fator', a.vj_fator], ['Confiança (R²)', nf(a.vj_r2, 2), a.vj_r2 >= 0.3 ? '' : 'mi-neg']] : []);
-    L('.mi-a-saz', a && a.saz_mes_media != null ? [['Subiu em (20 anos)', nf(a.saz_mes_acerto, 0) + '% de ' + a.saz_mes_n + ' anos'], ['Subiu em (10 anos)', nf(a.saz_mes10_acerto, 0) + '%'], ['Leitura', a.saz_mes_sinal === 'inconclusivo' ? 'sem vantagem' : 'viés de ' + a.saz_mes_sinal, a.saz_mes_sinal === 'alta' ? 'mi-pos' : a.saz_mes_sinal === 'baixa' ? 'mi-neg' : '']] : []);
+    L('.mi-a-saz', a && a.saz_mes10_media != null ? [['Subiu em (10 anos)', nf(a.saz_mes10_acerto, 0) + '%'], ['Leitura (10 anos)', a.saz_mes10_sinal === 'inconclusivo' ? 'sem vantagem' : 'viés de ' + a.saz_mes10_sinal, a.saz_mes10_sinal === 'alta' ? 'mi-pos' : a.saz_mes10_sinal === 'baixa' ? 'mi-neg' : ''], ['Comparação: 20 anos', nf(a.saz_mes_acerto, 0) + '% · média ' + sg(a.saz_mes_media, 2)]] : []);
     L('.mi-a-52', a ? [['Mínima 52 semanas', nf(a.min_52s, cs)], ['Máxima 52 semanas', nf(a.max_52s, cs)], ['ATR em % do preço', a.preco ? nf(a.atr14 / a.preco * 100, 2) + '%' : null]] : []);
+    $('.mi-gbs-b').textContent = a && a.gb_sweep != null ? a.sweep_n + ' sweeps · base ' + nf(a.gb_base, 1) + '% · diferença ' + sg(a.gb_sweep - a.gb_base, 1, ' p.p.') : '—';
+    $('.mi-hps-b').textContent = a && a.hp_sweep != null ? 'base ' + nf(a.hp_base, 1) + '% · diferença ' + sg(a.hp_sweep - a.hp_base, 1, ' p.p.') : '—';
     $('.mi-gb-b').textContent = a && a.gb_base != null ? 'base ' + nf(a.gb_base, 1) + '% · diferença ' + sg(a.gb_extremos - a.gb_base, 1, ' p.p.') : '—';
     $('.mi-hp-b').textContent = a && a.hp_base != null ? 'base ' + nf(a.hp_base, 1) + '% · diferença ' + sg(a.hp_extremos - a.hp_base, 1, ' p.p.') : '—';
 
@@ -233,7 +235,7 @@
         .map((b) => ({ ...b, pts: sz.filter((r) => r.tipo === 'perfil_mes' && Number(r.janela) === b.j).map((r) => ({ x: r.chave, y: r.media })) }));
       const anosS = anos.map((a2, i) => ({ nome: a2 === anoAt ? a2 + ' (até hoje)' : String(a2), cor: a2 === anoAt ? COLORS[3] : [COLORS[1], COLORS[2], COLORS[4], COLORS[6], COLORS[7]][i % 5], w: a2 === anoAt ? 2.5 : 1.25, pts: sz.filter((r) => r.tipo === 'perfil_ano' && r.ano === a2).map((r) => ({ x: r.chave, y: r.media })) }));
       const todas = [...base, ...anosS].filter((s2) => s2.pts.length);
-      for (const s2 of todas) if (!(s2.nome in vis)) vis[s2.nome] = s2.nome === 'Média 20 anos' || s2.nome === 'Média 10 anos' || s2.nome.includes('até hoje');
+      for (const s2 of todas) if (!(s2.nome in vis)) vis[s2.nome] = s2.nome === 'Média 10 anos' || s2.nome === 'Média 5 anos' || s2.nome.includes('até hoje');
       const lg = $('.mi-saz-lg'); lg.replaceChildren();
       for (const s2 of todas) {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'mi-lgb'; b.setAttribute('aria-pressed', String(vis[s2.nome]));
@@ -615,8 +617,56 @@
     rg.textContent = Q ? Q[0] : (SURP.t ? 'regime: dados insuficientes' : 'carregando…'); rg.className = 'tl-chip rd-reg ' + (Q ? Q[1] : '');
   }
 
+
+  // ---------------------------------------------------------------- alto impacto EUA (3 meses)
+  var AI = { ev: [], t: 0, dia: null };
+  async function aiTick() {
+    const h = new Date(); const ini = new Date(Date.UTC(h.getFullYear(), h.getMonth() - 1, 1)), fim = new Date(Date.UTC(h.getFullYear(), h.getMonth() + 2, 0));
+    try { const r = await fetch('https://biquote.io/api/calendar?countries=US&importance=high&from=' + ini.toISOString().slice(0, 10) + '&to=' + fim.toISOString().slice(0, 10), { cache: 'no-store' });
+      if (r.ok) { const j = await r.json(); AI.ev = (Array.isArray(j) ? j : []).filter((e) => e.currency === 'USD' && e.importance === 'high'); AI.t = Date.now(); if (!$('#sec-ai').hidden) drawAI(); } } catch (e) { /* mantém */ }
+  }
+  const brt = (iso) => { const d = new Date(new Date(iso).getTime() - 3 * 3600e3); return [d.toISOString().slice(0, 10), d.toISOString().slice(11, 16)]; };
+  function drawAI() {
+    if (!AI || $('#sec-ai').hidden) return;
+    const G = new Map((D('goldbach_dias').data || []).map((r) => [r.data, r])); const hj = hojeISO();
+    const por = new Map(); for (const e of AI.ev) { const [d] = brt(e.time); if (!por.has(d)) por.set(d, []); por.get(d).push(e); }
+    const nMes = [...por.keys()].filter((d) => d.slice(0, 7) === hj.slice(0, 7)).length;
+    $('.ai-take').textContent = AI.t ? nMes + ' dia(s) com dado americano de alto impacto neste mês · próximo: ' + (() => { const p = AI.ev.filter((e) => new Date(e.time) > new Date()).sort((a, b) => a.time < b.time ? -1 : 1)[0]; if (!p) return '—'; const [d, h] = brt(p.time); return br(d) + ' ' + h + ' ' + p.name; })() : 'Carregando…';
+    const box = $('.ai-cal'); box.replaceChildren(); const now = new Date();
+    for (let k = -1; k <= 1; k++) {
+      const y = now.getFullYear() + Math.floor((now.getMonth() + k) / 12), m = (((now.getMonth() + k) % 12) + 12) % 12 + 1;
+      const wrap = document.createElement('div'); wrap.className = 'gb-mes'; const h3 = document.createElement('h3');
+      h3.textContent = new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+      const grid = document.createElement('div'); grid.className = 'gb-grid';
+      for (const w of ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']) { const c = document.createElement('div'); c.className = 'gb-wd'; c.textContent = w; grid.appendChild(c); }
+      for (let i = 0; i < new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); i++) grid.appendChild(document.createElement('div'));
+      for (let d = 1; d <= new Date(Date.UTC(y, m, 0)).getUTCDate(); d++) {
+        const iso = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0'); const ev = por.get(iso); const g = G.get(iso);
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'gb-day' + (ev ? ' ai-day' : '') + (iso === hj ? ' hj' : '') + (iso === AI.dia ? ' sel' : ''); b.textContent = d;
+        const mk = []; if (ev) mk.push(ev.length); if (g) mk.push(g.tipo === 'Goldbach + Hopiplaka' ? '★' : g.tipo === 'Goldbach' ? 'G' : 'H');
+        if (mk.length) { const s2 = document.createElement('small'); s2.className = 'ai-mk'; s2.textContent = mk.join(' '); b.appendChild(s2); }
+        if (ev) b.addEventListener('click', () => { AI.dia = AI.dia === iso ? null : iso; drawAI(); });
+        grid.appendChild(b);
+      }
+      wrap.append(h3, grid); box.appendChild(wrap);
+    }
+    const tb = $('.ai-t tbody'); tb.replaceChildren();
+    const lista = AI.ev.filter((e) => !AI.dia || brt(e.time)[0] === AI.dia).sort((a, b) => (a.time < b.time ? -1 : 1));
+    $('.ai-lt').textContent = AI.dia ? 'Eventos de ' + br(AI.dia) : 'Eventos dos 3 meses'; $('.ai-all').hidden = !AI.dia; $('.ai-all').onclick = () => { AI.dia = null; drawAI(); };
+    for (const e of lista) {
+      const [d, h] = brt(e.time); const tr = document.createElement('tr'); if (d === hj) tr.className = 'ai-hoje';
+      const g = G.get(d); td(tr, (d === hj ? 'hoje' : br(d).slice(0, 5)) + ' ' + h + (g ? (g.tipo === 'Goldbach + Hopiplaka' ? ' ★' : g.tipo === 'Goldbach' ? ' G' : ' H') : ''));
+      td(tr, e.name); td(tr, e.forecast == null ? '—' : fmtLive(e, e.forecast), 'num'); td(tr, e.previous == null ? '—' : fmtLive(e, e.previous), 'num');
+      const c = td(tr, '', 'num ag-at');
+      if (e.actual != null) { const dd = e.forecast == null ? 0 : Math.sign(e.actual - e.forecast); const bx = document.createElement('span'); bx.className = 'ag-box ' + (dd > 0 ? 'ag-acima' : dd < 0 ? 'ag-abaixo' : 'ag-igual'); bx.textContent = (dd > 0 ? '▲ ' : dd < 0 ? '▼ ' : '') + fmtLive(e, e.actual); c.appendChild(bx); }
+      else c.textContent = new Date(e.time) < new Date() ? '—' : 'aguarda';
+      tb.appendChild(tr);
+    }
+    if (!lista.length) { const tr = document.createElement('tr'); td(tr, AI.t ? 'Sem eventos.' : 'Carregando…'); tb.appendChild(tr); }
+  }
+
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
-  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); } if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); }
+  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); } if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); drawAI(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
-  load().then(() => { liveTick(); surpTick(); }); setInterval(load, 2 * 60 * 1000); setInterval(surpTick, 10 * 60 * 1000);
+  load().then(() => { liveTick(); surpTick(); aiTick(); }); setInterval(load, 2 * 60 * 1000); setInterval(surpTick, 10 * 60 * 1000); setInterval(aiTick, 10 * 60 * 1000);
 })();

@@ -317,7 +317,16 @@ def b_ativos():
                 g, h = goldbach(d); tot += 1; gbx += g; hpx += h
             for d, _ in lst:
                 g, h = goldbach(d); nd += 1; base_g += g; base_h += h
-        gbr = {"gb_extremos": rnd(100 * gbx / tot, 1) if tot else None, "gb_base": rnd(100 * base_g / nd, 1) if nd else None,
+        # sweeps: o dia passa da máxima (mínima) dos 10 pregões anteriores e fecha de volta abaixo (acima), na metade oposta do candle
+        ks10 = sorted(s10); sw = swg = swh = 0
+        for i in range(10, len(ks10)):
+            d = ks10[i]; o, h, l, c = s10[d]
+            if None in (h, l, c) or h <= l: continue
+            ph = max(s10[k][1] for k in ks10[i - 10:i]); pl = min(s10[k][2] for k in ks10[i - 10:i]); meio = (h + l) / 2
+            if (h > ph and c < ph and c < meio) or (l < pl and c > pl and c > meio):
+                g, hp = goldbach(d); sw += 1; swg += g; swh += hp
+        gbr_sw = {"gb_sweep": rnd(100 * swg / sw, 1) if sw else None, "hp_sweep": rnd(100 * swh / sw, 1) if sw else None, "sweep_n": sw}
+        gbr = {**gbr_sw, "gb_extremos": rnd(100 * gbx / tot, 1) if tot else None, "gb_base": rnd(100 * base_g / nd, 1) if nd else None,
                "hp_extremos": rnd(100 * hpx / tot, 1) if tot else None, "hp_base": rnd(100 * base_h / nd, 1) if nd else None}
         # correlações (retornos diários)
         ra = R.get(a, {})

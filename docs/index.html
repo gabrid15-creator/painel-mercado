@@ -228,6 +228,7 @@
     .ag-box { min-width: 0; font-size: 14px; padding: 4px 7px; } .mi-ag-t td.ag-at { min-width: 0; }
     .ag-hl-v { font-size: 28px; }
     .mi-ag-t th:nth-child(2), .mi-ag-t td:nth-child(2) { display: none; }
+    .ai-t th:nth-child(4), .ai-t td:nth-child(4) { display: none; } .ai-t td, .ai-t th { padding-left: 4px; padding-right: 4px; }
     .ag-cur { display: inline-block; font-size: 10px; font-weight: 600; padding: 0 5px; margin-right: 5px; border-radius: 4px; background: color-mix(in srgb, var(--color-fg) 10%, transparent); color: var(--color-fg-muted); }
     .mi-ag-t td, .mi-ag-t th { padding-left: 4px; padding-right: 4px; }
     .op-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; width: 100%; } .op-tab { white-space: nowrap; padding: 6px 12px; }
@@ -311,6 +312,9 @@
   .ativos-fixo.preso { box-shadow: 0 10px 16px -14px rgba(0,0,0,.6); border-bottom: 1px solid var(--color-border-line); }
   .ia-vies { font-size: 12px; padding: 3px 12px; letter-spacing: .04em; text-transform: uppercase; }
   .mi-exp b { color: var(--color-fg); font-weight: 600; }
+  .ai-day { background: color-mix(in srgb, var(--color-bad) 82%, #000) !important; color: #fff !important; cursor: pointer; }
+  .gb-day .ai-mk { font-size: 9px; font-weight: 700; opacity: .95; }
+  .ai-t tr.ai-hoje td { background: color-mix(in srgb, var(--accent) 13%, var(--color-panel)); } .ai-t tr.ai-hoje td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 700; color: var(--accent); }
 </style>
 </head>
 <body>
@@ -321,6 +325,7 @@
       <button type="button" class="op-tab" data-tab="sec-mi" aria-selected="true">Mercado</button>
       <button type="button" class="op-tab" data-tab="sec-op" aria-selected="false">Paredes de opções</button>
       <button type="button" class="op-tab" data-tab="sec-gb" aria-selected="false">Dias Goldbach</button>
+      <button type="button" class="op-tab" data-tab="sec-ai" aria-selected="false">Alto impacto EUA</button>
     </nav>
   </div>
 
@@ -386,14 +391,14 @@
     <section class="op-tiles">
       <div class="op-card op-tile"><span class="tl-k">Preço</span><span class="v mi-a" data-f="preco">—</span><ul class="tl-l mi-a-var"></ul><span class="mi-exp">Último preço e variação em 1 dia, 5 dias (semana), 20 dias (mês) e no ano.</span></div>
       <div class="op-card op-tile"><span class="tl-k">Valor justo pelos juros</span><span class="v mi-a" data-f="vj_valor">—</span><ul class="tl-l mi-a-vj"></ul><span class="mi-exp">Preço que o ativo "deveria" ter pelo fator de juros que mais o explica no último ano. Abaixo do justo = barato (tende a subir até ele), acima = caro. z além de ±2 = muito esticado. Só confie se o R² for 0,3 ou mais.</span></div>
-      <div class="op-card op-tile"><span class="tl-k">Sazonalidade do mês (20 anos)</span><span class="v mi-a" data-f="saz_mes_media">—</span><ul class="tl-l mi-a-saz"></ul><span class="mi-exp">Retorno médio deste mês nos últimos 20 anos e em quantos anos ele subiu. Só tem vantagem se subiu ou caiu em 60% ou mais dos anos.</span></div>
+      <div class="op-card op-tile"><span class="tl-k">Sazonalidade do mês (10 anos)</span><span class="v mi-a" data-f="saz_mes10_media">—</span><ul class="tl-l mi-a-saz"></ul><span class="mi-exp">Retorno médio deste mês nos últimos 10 anos (o mercado mudou muito em 20) e em quantos anos ele subiu. Só tem vantagem se subiu ou caiu em 60% ou mais dos anos.</span></div>
       <div class="op-card op-tile"><span class="tl-k">Oscilação média diária (ATR 14)</span><span class="v mi-a" data-f="atr14">—</span><ul class="tl-l mi-a-52"></ul><span class="mi-exp">Quanto o ativo anda num dia normal. Use para o tamanho do stop e do alvo; um dia que anda 2x isso é fora do comum. Abaixo, a mínima e a máxima das últimas 52 semanas.</span></div>
     </section>
 
     <div class="op-grid">
       <section class="op-card">
         <h2>Sazonalidade por mês</h2>
-        <div class="mi-sel mi-jan"><button type="button" class="op-btn" data-j="5" aria-pressed="false">5 anos</button><button type="button" class="op-btn" data-j="10" aria-pressed="false">10 anos</button><button type="button" class="op-btn" data-j="20" aria-pressed="true">20 anos</button></div>
+        <div class="mi-sel mi-jan"><button type="button" class="op-btn" data-j="5" aria-pressed="false">5 anos</button><button type="button" class="op-btn" data-j="10" aria-pressed="true">10 anos</button><button type="button" class="op-btn" data-j="20" aria-pressed="false">20 anos</button></div>
         <p class="op-note"><b>Como ler:</b> cada barra é o retorno médio daquele mês na janela escolhida. Verde = subiu em 60% ou mais dos anos; vermelho = caiu em 60% ou mais; cinza = perto de 50/50, cara ou coroa: ignore. Mês atual com contorno. Viés que aparece nas três janelas é o mais confiável. A janela vale também para dia da semana e semana do mês.</p>
         <div class="op-legend"><span><i class="op-sw" style="background:var(--color-ok)"></i>alta (≥ 60%)</span><span><i class="op-sw" style="background:var(--color-bad)"></i>baixa (≥ 60%)</span><span><i class="op-sw" style="background:var(--color-fg-muted);opacity:.35"></i>inconclusivo</span></div>
         <div class="mi-chart mi-saz-m"></div>
@@ -418,11 +423,13 @@
         <table class="op-table mi-corr-t"><thead><tr><th>Fator</th><th class="num">20d</th><th class="num">60d</th><th class="num">250d</th></tr></thead><tbody></tbody></table>
       </section>
       <section class="op-card">
-        <h2>Goldbach x máximas e mínimas da semana (10 anos)</h2>
-        <p class="op-note">Quantas máximas/mínimas semanais caíram em dia Goldbach ou Hopiplaka, contra a proporção normal desses dias. Diferença perto de zero = sem vantagem estatística.</p>
+        <h2>Goldbach x extremos e sweeps (10 anos)</h2>
+        <p class="op-note"><b>Como ler:</b> quantas <b>máximas/mínimas da semana</b> e quantos <b>sweeps</b> (dia que rompe a máxima ou mínima dos 10 pregões anteriores e fecha de volta para dentro: grande reversão) caíram em dia Goldbach ou Hopiplaka, contra a proporção normal desses dias (<b>base</b>). Acima da base = os dias marcam viradas mais que o acaso; perto de zero = sem vantagem estatística.</p>
         <div class="op-tiles">
           <div class="op-tile"><span class="s">Goldbach: extremos</span><span class="v mi-a" data-f="gb_extremos">—</span><span class="s mi-gb-b">—</span></div>
           <div class="op-tile"><span class="s">Hopiplaka: extremos</span><span class="v mi-a" data-f="hp_extremos">—</span><span class="s mi-hp-b">—</span></div>
+          <div class="op-tile"><span class="s">Goldbach: sweeps</span><span class="v mi-a" data-f="gb_sweep">—</span><span class="s mi-gbs-b">—</span></div>
+          <div class="op-tile"><span class="s">Hopiplaka: sweeps</span><span class="v mi-a" data-f="hp_sweep">—</span><span class="s mi-hps-b">—</span></div>
         </div>
       </section>
     </div>
@@ -482,6 +489,20 @@
   </div>
 
   <!-- ============================== GOLDBACH ============================== -->
+  <div class="op-wrap op-sec" id="sec-ai" hidden>
+    <header class="op-head"><h1>Alto impacto EUA</h1><p class="ai-take">Carregando…</p></header>
+    <section class="op-card">
+      <h2>Calendário (mês anterior, atual e seguinte)</h2>
+      <p class="op-note"><b>Como ler:</b> só dados dos <b>EUA de alto impacto</b> (payroll, CPI, Fed, PIB…), horário de Brasília. Dias em <b>vermelho</b> têm evento; o número pequeno é quantos. <b>★</b> = também é dia Goldbach + Hopiplaka, <b>G</b> = Goldbach. As grandes viradas costumam sair nesses dias: cruze com o calendário Goldbach. Toque num dia para filtrar a lista.</p>
+      <div class="gb-cal ai-cal"></div>
+    </section>
+    <section class="op-card">
+      <div class="ag-top"><h2 class="ai-lt">Eventos</h2><button type="button" class="op-btn ai-all" hidden>Ver todos</button></div>
+      <div class="op-tablebox"><table class="op-table ai-t"><thead><tr><th>Quando</th><th>Evento</th><th class="num">Previsão</th><th class="num">Anterior</th><th class="num">Atual</th></tr></thead><tbody></tbody></table></div>
+      <p class="op-note">Fonte: biquote.io (gratuito), consultado direto pelo navegador a cada 10 min. Atual verde = acima da previsão; vermelho = abaixo.</p>
+    </section>
+  </div>
+
   <div class="op-wrap op-sec" id="sec-gb" hidden>
     <header class="op-head"><h1>Dias Goldbach e Hopiplaka</h1><p class="gb-take">—</p></header>
     <section class="op-tiles">
@@ -508,7 +529,7 @@
     </section>
   </div>
 </div>
-<script src="app.js?v=20261106i"></script>
-<script src="opcoes.js?v=20261106i"></script>
+<script src="app.js?v=20261106j"></script>
+<script src="opcoes.js?v=20261106j"></script>
 </body>
 </html>
