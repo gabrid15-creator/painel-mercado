@@ -1,0 +1,17 @@
+name: lab-duka
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install pandas pyarrow
+      - run: python lab/duka.py
+      - run: |
+          cd duka && git init -q && git checkout -q -b lab-duka && git add . \
+          && git -c user.name=bot -c user.email=bot@x commit -qm dados \
+          && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" lab-duka
