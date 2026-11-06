@@ -57,11 +57,12 @@
   }
   // ouro: tudo calculado dos dados brutos (cadeia da CME + ETFs); sem eles, usa os arquivos antigos
   function calcOuro() {
-    const cad = D('ouro_cadeia').status === 'ok' ? D('ouro_cadeia').data : [], bol = D('ouro_boletim').status === 'ok' ? D('ouro_boletim').data[0] : null;
+    let cad = D('ouro_cadeia').status === 'ok' ? D('ouro_cadeia').data : []; const bol = D('ouro_boletim').status === 'ok' ? D('ouro_boletim').data[0] : null;
     if (!cad.length || !bol) return null;
+    const perto = faixa('XAUUSD', Number(bol.futuro), 300); cad = cad.filter((r) => perto(r.strike));
     const m = new Map(); const add = (k, c, v) => { k = Number(k); if (!m.has(k)) m.set(k, { strike: k, cme_call: 0, cme_put: 0, etf_call: 0, etf_put: 0 }); m.get(k)[c] += Number(v) || 0; };
     for (const r of cad) add(r.strike, r.tipo === 'Call' ? 'cme_call' : 'cme_put', r.oi);
-    for (const r of D('ouro_etf').status === 'ok' ? D('ouro_etf').data : []) { add(Math.round(Number(r.strike) / 5) * 5, 'etf_call', r.call); add(Math.round(Number(r.strike) / 5) * 5, 'etf_put', r.put); }
+    for (const r of (D('ouro_etf').status === 'ok' ? D('ouro_etf').data : []).filter((x) => perto(x.strike))) { add(Math.round(Number(r.strike) / 5) * 5, 'etf_call', r.call); add(Math.round(Number(r.strike) / 5) * 5, 'etf_put', r.put); }
     const ps = [...m.values()].sort((a, b) => b.strike - a.strike);
     const top = (k) => ps.reduce((a, b) => (b[k] > (a ? a[k] : -1) ? b : a), null);
     const gam = calcGamma(cad, { venc: venOuro, vol: 0.2, mult: 100, passo: 5, casas: 1 });
@@ -71,8 +72,11 @@
       codigo: [...pick('cme_call', 'C', 12), ...pick('cme_put', 'P', 12), ...pick('etf_call', 'K', 8), ...pick('etf_put', 'Q', 8), ...extra].join(' | ') };
   }
 
+  // só strikes perto do preço: futuro ± 6 × ATR14 (mínimo 300 pips no euro, US$ 300 no ouro)
+  const faixa = (ativo, F, minimo) => { const a = (D('mi_ativos').data || []).find((r) => r.ativo === ativo); const w = Math.max(minimo, 6 * ((a && a.atr14) || 0)); return (k) => Math.abs(Number(k) - F) <= w; };
   function calcEur() {
-    const par = D('op_paredes').data, cad = D('op_cadeia').data;
+    const bol0 = (D('op_boletim').data || [])[0]; const F0 = bol0 ? Number(bol0.futuro) : null; const perto = F0 ? faixa('EURUSD', F0, 0.03) : () => true;
+    const par = D('op_paredes').data.filter((r) => perto(r.strike)), cad = D('op_cadeia').data.filter((r) => perto(r.strike));
     const m = new Map();
     for (const r of par) { const k = Number(r.strike); if (!m.has(k)) m.set(k, { strike: k, call: 0, put: 0 }); const o = m.get(k); if (r.tipo === 'Call') o.call += Number(r.open_interest); else o.put += Number(r.open_interest); }
     const ps = [...m.values()].sort((a, b) => b.strike - a.strike);
