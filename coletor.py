@@ -320,10 +320,10 @@ def b_ativos():
         # sweeps: o dia passa da máxima (mínima) dos 10 pregões anteriores e fecha de volta abaixo (acima), na metade oposta do candle
         ks10 = sorted(s10); sw = swg = swh = 0
         for i in range(10, len(ks10)):
-            d = ks10[i]; o, h, l, c = s10[d]
-            if None in (h, l, c) or h <= l: continue
-            ph = max(s10[k][1] for k in ks10[i - 10:i]); pl = min(s10[k][2] for k in ks10[i - 10:i]); meio = (h + l) / 2
-            if (h > ph and c < ph and c < meio) or (l < pl and c > pl and c > meio):
+            d = ks10[i]; _o, hi, lo, fe = s10[d]   # nomes próprios: c e h já são usados neste bloco
+            if None in (hi, lo, fe) or hi <= lo: continue
+            ph = max(s10[k][1] for k in ks10[i - 10:i]); pl = min(s10[k][2] for k in ks10[i - 10:i]); meio = (hi + lo) / 2
+            if (hi > ph and fe < ph and fe < meio) or (lo < pl and fe > pl and fe > meio):
                 g, hp = goldbach(d); sw += 1; swg += g; swh += hp
         gbr_sw = {"gb_sweep": rnd(100 * swg / sw, 1) if sw else None, "hp_sweep": rnd(100 * swh / sw, 1) if sw else None, "sweep_n": sw}
         gbr = {**gbr_sw, "gb_extremos": rnd(100 * gbx / tot, 1) if tot else None, "gb_base": rnd(100 * base_g / nd, 1) if nd else None,
