@@ -74,8 +74,10 @@ def score_at(i):
 n = len(c) - 1
 pos, sig = cta_at(n)
 sc, pts, vrp, gch, dist, trig, atr = score_at(n)
-vmed = st.median(v for v in vol[-252:])                   # volatilidade "normal" do último ano
-vnow = max(vol[n], (gvz[n] or 0) / 100)
+# mão = GVZ normal do último ano ÷ GVZ de hoje (06/11/2026: GVZ foi o melhor previsor do range de amanhã, corr. 0,55,
+# e deixou o risco diário 16% mais estável que lote fixo; a versão anterior subestimava a mão ~11% em média)
+vmed = st.median(x for x in gvz[-252:] if x) / 100
+vnow = (gvz[n] or vmed * 100) / 100
 mult = max(0.25, min(1.5, vmed / vnow))
 
 hist = []

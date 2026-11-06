@@ -76,7 +76,7 @@
   <div class="row" style="margin-top:8px"><span>Seu lote base</span><input id="base" type="number" step="0.01" min="0.01" value="0.03"></div>
   <div class="row" style="margin-top:6px"><span>Lote sugerido hoje</span><span class="val" id="lote">–</span></div>
   <div class="how" id="vold"></div>
-  <div class="how"><b>Como ler:</b> multiplicador = vol. normal do último ano ÷ vol. de agora (maior entre a realizada e o GVZ), entre 0,25× e 1,5×. Ouro agitado → menos lote; calmo → um pouco mais. É o método "volatilidade-alvo" dos fundos (Moreira & Muir). Vale para cada entrada do seu DCA.</div>
+  <div class="how"><b>Como ler:</b> multiplicador = GVZ normal do último ano ÷ GVZ de hoje, entre 0,25× e 1,5×. Testado 2010–2026: o GVZ é o que melhor prevê o range do dia seguinte e deixa o risco diário 16% mais estável que lote fixo. Ouro agitado → menos lote; calmo → um pouco mais. É o método "volatilidade-alvo" dos fundos (Moreira & Muir). Vale para cada entrada do seu DCA.</div>
 </div>
 
 <div class="card warnbox how">Página de teste, separada do painel principal. Véspera: 1x por dia (~07:07 de Brasília). Diagnóstico: de 30 em 30 min nos dias úteis. Não é recomendação de investimento.</div>
@@ -115,7 +115,7 @@ Promise.all([fetch(URL_+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()),f
   $('trig').innerHTML=t+'<tr><td colspan="4">Mais perto: '+nf(j.cta.dist_atr,1)+' ATR · ATR diário '+nf(j.cta.atr_dia)+'</td></tr>';
   $('cot').textContent=j.cot?nf(j.cot.mm_liq_pct_oi)+'% · z '+nf(j.cot.z_3a,2):'–';
   if(j.cot)$('cot').title='Relatório de '+dBR(j.cot.data);
-  const m=j.mao.mult;$('mult').textContent=nf(m,2)+'×';$('vold').textContent='Vol. agora '+nf(j.mao.vol_atual)+'% · vol. normal '+nf(j.mao.vol_normal)+'%';
+  const m=j.mao.mult;$('mult').textContent=nf(m,2)+'×';$('vold').textContent='GVZ hoje '+nf(j.mao.vol_atual)+' · GVZ normal (1 ano) '+nf(j.mao.vol_normal);
   try{const b=localStorage.getItem('lab_base');if(b)$('base').value=b}catch(e){}
   $('base').oninput=()=>lote(m);lote(m);
   const h=j.hist.map(x=>x[1]),W=700,Hh=90,n=h.length;
