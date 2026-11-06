@@ -1,0 +1,27 @@
+name: Sondagem (temporário)
+on: workflow_dispatch
+permissions: {}
+jobs:
+  s:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - run: pip install -q pypdf
+      - run: |
+          set +e
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
+          for u in 'https://www.cmegroup.com/daily_bulletin/current/Section39_Euro_FX_And_Cme$Index_Options.pdf' 'https://www.cmegroup.com/daily_bulletin/current/Section64_Metals_Option_Products.pdf' 'https://www.cmegroup.com/daily_bulletin/current/Section62_Metals_Futures_Products.pdf'; do
+            f=/tmp/$(basename "$u"); echo "=== $u"; curl -sSL -m 40 -A "$UA" -o "$f" -w "%{http_code} %{size_download}\n" "$u"
+          done
+          curl -sSL -m 30 -A "$UA" -o /tmp/idx.html -w "idx %{http_code}\n" 'https://www.cmegroup.com/market-data/daily-bulletin.html'; grep -oE 'Section[0-9]+_[A-Za-z0-9_$&-]+\.pdf' /tmp/idx.html | sort -u | head -80
+          echo "=== CBOE"; curl -sS -m 30 -o /tmp/gld.json -w "%{http_code} %{size_download}\n" https://cdn.cboe.com/api/global/delayed_quotes/options/GLD.json; head -c 600 /tmp/gld.json; echo
+          python3 - <<'PY'
+          import pypdf, os, re
+          for f in ['/tmp/Section39_Euro_FX_And_Cme$Index_Options.pdf','/tmp/Section64_Metals_Option_Products.pdf']:
+              if not os.path.exists(f) or os.path.getsize(f) < 5000: print('SEM', f); continue
+              r = pypdf.PdfReader(f); print('#####', f, len(r.pages), 'paginas')
+              t = r.pages[0].extract_text(); print(t[:2500])
+              for i, p in enumerate(r.pages):
+                  x = p.extract_text() or ''
+                  if re.search(r'GOLD|OG |EUU|EURO FX C', x): print('--- pag', i, x[:1800]); break
+          PY
