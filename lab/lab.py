@@ -1,4 +1,5 @@
 # Laboratório do ouro (separado do painel): VRP, posição CTA estimada, gatilhos, mão pela volatilidade e score.
+# Score da véspera = VRP (até 60) + salto do GVZ (até 40). Gatilho CTA fica só informativo (não passou na validação 06/11/2026).
 # Roda 1x por dia. Só biblioteca padrão. Saída: <pasta>/lab.json
 import json, math, sys, time, urllib.request, urllib.parse, statistics as st, datetime as dt, csv, io
 
@@ -62,13 +63,12 @@ def cta_at(i):
 def score_at(i):
     v = gvz[i] - rv21[i] if gvz[i] and rv21[i] else None
     pts = {}
-    pts['vrp'] = 0 if v is None else (50 if v < 0 else 35 if v < 3 else 15 if v < 6 else 0)
+    pts['vrp'] = 0 if v is None else (60 if v < 0 else 45 if v < 3 else 20 if v < 6 else 0)
     ch = (gvz[i] / gvz[i - 5] - 1) * 100 if gvz[i] and gvz[i - 5] else 0
-    pts['gvz'] = 25 if ch < 10 else 10 if ch < 20 else 0
+    pts['gvz'] = 40 if ch < 10 else 15 if ch < 20 else 0
     atr = st.mean(abs(c[j] - c[j - 1]) for j in range(i - 19, i + 1))
     trig = [c[i + 1 - lb] for lb in LB]                    # preço que zera o sinal de cada prazo amanhã
     dist = min(abs(c[i] - t) for t in trig) / atr
-    pts['gatilho'] = 25 if dist > 2 else 10 if dist > 1 else 0
     return sum(pts.values()), pts, v, ch, dist, trig, atr
 
 n = len(c) - 1

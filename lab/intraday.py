@@ -48,14 +48,5 @@ if hj:
         else: estado = 'normal'
     J.update({'abertura': round(o, 1), 'preco': round(c, 1), 'max': round(h, 1), 'min': round(l, 1),
               'mov_atr': round(mv, 2), 'ponta': round(ponta, 2), 'estado': estado, 'direcao': 'alta' if mv > 0 else 'baixa'})
-    # contexto (não entra no score): dólar e liquidação
-    ctx = {}
-    for nome, sym in (('DXY', 'DX-Y.NYB'), ('USDJPY', 'JPY=X'), ('S&P fut', 'ES=F'), ('VIX', '^VIX')):
-        b = [x for x in bars(sym, '1d', '5m') if x[0].date() == hoje]
-        if b: ctx[nome] = round((b[-1][4] / b[0][1] - 1) * 100, 2)
-    J['ctx'] = ctx
-    if 'DXY' in ctx and abs(mv) >= 0.2:
-        J['dolar'] = 'confirma' if (ctx['DXY'] < -0.05 and mv > 0) or (ctx['DXY'] > 0.05 and mv < 0) else 'descolado'
-    J['liquidacao'] = bool(ctx.get('S&P fut', 0) <= -1 and ctx.get('VIX', 0) >= 8 and mv < 0)
 open(f'{OUT}/intraday.json', 'w').write(json.dumps(J, ensure_ascii=False, separators=(',', ':')))
 print(J)
