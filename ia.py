@@ -25,8 +25,8 @@ red_depois = ultima and any(
     x.get("impacto") == "Alto" and ultima < dt.datetime.strptime(x["quando"], "%Y-%m-%d %H:%M").replace(tzinfo=BRT) <= agora - dt.timedelta(minutes=10)
     for x in ler("mi_agenda.json"))
 # frequência (horário de Brasília): pregão 6h–18h = de hora em hora; fora dele = a cada 3 horas;
-# red folder = sempre; fim de semana parado até domingo 18h (mercado fechado)
-fim_de_semana = agora.weekday() == 5 or (agora.weekday() == 6 and agora.hour < 18)
+# red folder = sempre; fim de semana parado de sexta 18h a domingo 18h (mercado fechado)
+fim_de_semana = (agora.weekday() == 4 and agora.hour >= 18) or agora.weekday() == 5 or (agora.weekday() == 6 and agora.hour < 18)
 intervalo = dt.timedelta(minutes=55) if 6 <= agora.hour < 18 else dt.timedelta(hours=3, minutes=-5)
 if ultima and not red_depois and (agora - ultima < intervalo or fim_de_semana):
     print(f"leitura de {ultima:%d/%m %H:%M} ainda vale"); sys.exit(0)
