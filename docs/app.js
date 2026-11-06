@@ -371,7 +371,7 @@
     $('.gb-next2').textContent = a ? br(a.data) + ' (' + a.dia_semana + ')' : '—'; $('.gb-next2-s').textContent = a ? 'Hopiplaka ' + a.hopiplaka : '—';
     const o = fut.find((r) => Number(r.dia_mes_hopiplaka) === 1); $('.gb-open').textContent = o ? br(o.data) + ' (' + o.dia_semana + ')' : '—';
     // calendário
-    const box = $('.gb-cal'); box.replaceChildren(); const map = new Map(g.data.map((r) => [r.data, r]));
+    const box = $('#sec-gb .gb-cal'); box.replaceChildren(); const map = new Map(g.data.map((r) => [r.data, r]));
     for (let k = 0; k < 2; k++) {
       const y = ty + Math.floor((tm - 1 + k) / 12), m = ((tm - 1 + k) % 12) + 1;
       const wrap = document.createElement('div'); wrap.className = 'gb-mes';
