@@ -112,7 +112,7 @@
       $('.op-dt').textContent = bol ? 'Euro: pregão de ' + br(bol.data_pregao) + ' (' + String(bol.situacao).toLowerCase() + ').' : '';
       $('.op-take').textContent = bol ? 'Euro: maior call wall em ' + fmtK(E.c && E.c.strike) + ' e maior put wall em ' + fmtK(E.p && E.p.strike) + '; gamma flip em ' + fmtK(E.gam.flip) + ' com o futuro em ' + fmtK(bol.futuro) + ' (' + (bol.futuro < E.gam.flip ? 'abaixo do flip: o hedge acelera' : 'acima do flip: o hedge segura') + ').' : '—';
       const tb = $('.op-tiles-eur'); tb.replaceChildren();
-      tile(tb, 'Pregão lido', bol ? br(bol.data_pregao) : '—', bol ? bol.situacao : '');
+      tile(tb, 'Pregão lido', bol ? br(bol.data_pregao) : '—', bol ? bol.situacao + ' · os dados abaixo são deste pregão' : '');
       tile(tb, 'Futuro de euro (' + (bol ? bol.futuro_vencimento : '') + ')', bol ? fmtK(bol.futuro) : '—', 'referência do EURUSD');
       tile(tb, 'Maior call wall', fmtK(E.c && E.c.strike), (E.c ? fmtN(E.c.call) : '—') + ' contratos · resistência (USDCHF: suporte)', 'var(--color-ok)');
       tile(tb, 'Maior put wall', fmtK(E.p && E.p.strike), (E.p ? fmtN(E.p.put) : '—') + ' contratos · suporte (USDCHF: resistência)', 'var(--color-bad)');
@@ -134,6 +134,7 @@
       $('.op-dt').textContent = 'Ouro: pregão de ' + br(R.data_pregao) + ' (' + R.situacao + ').';
       $('.op-take').textContent = 'Ouro: futuro de dezembro em ' + n0(R.futuro_dec) + ', gamma flip em ' + n0(R.flip) + ' (' + (Number(R.futuro_dec) < Number(R.flip) ? 'abaixo do flip: o hedge acelera' : 'acima do flip: o hedge segura') + ').';
       const tb = $('.op-tiles-xau'); tb.replaceChildren();
+      tile(tb, 'Pregão lido', br(R.data_pregao), R.situacao + ' · os dados abaixo são deste pregão');
       tile(tb, 'Futuro dez · gamma flip', n0(R.futuro_dec), 'flip ' + n0(R.flip));
       tile(tb, 'Maior call CME', n0(R.maior_call_cme), 'resistência', 'var(--color-ok)'); tile(tb, 'Maior put CME', n0(R.maior_put_cme), 'suporte', 'var(--color-bad)');
       tile(tb, 'Maior call · put GLD+IAU', n0(R.maior_call_etf), 'put ' + n0(R.maior_put_etf));
