@@ -1,28 +1,62 @@
 #!/usr/bin/env python3
-"""Leitura da IA: lê out/digest.txt e grava out/mi_ia.json usando a API da Anthropic.
-Roda só se a chave ANTHROPIC_API_KEY existir. Uso: python3 ia.py out"""
-import os, sys, json, urllib.request, datetime as dt
+"""Leitura da IA: lê out/digest.txt e grava out/mi_ia.json (texto geral + um por ativo) com a API da Anthropic.
+Roda a cada coleta, mas só chama a API se a leitura tiver 1 hora ou mais, ou se saiu um red folder depois dela.
+Sem a chave ANTHROPIC_API_KEY, não faz nada. Uso: python3 ia.py out"""
+import os, sys, json, datetime as dt
 from zoneinfo import ZoneInfo
+import anthropic
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else "out"
-KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-MODEL = os.environ.get("IA_MODELO", "").strip() or "claude-sonnet-4-5"
-if not KEY:
+MODEL = os.environ.get("IA_MODELO", "").strip() or "claude-haiku-5-5"
+ATIVOS = ["GERAL", "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "XAUUSD", "NAS100"]
+BRT = ZoneInfo("America/Sao_Paulo"); agora = dt.datetime.now(BRT)
+if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
     print("sem ANTHROPIC_API_KEY: leitura da IA não gerada"); sys.exit(0)
+
+def ler(n):
+    p = os.path.join(OUT, n)
+    try: return json.load(open(p, encoding="utf-8"))
+    except Exception: return []
+
+# ---- precisa reescrever?
+ant = ler("mi_ia.json")
+ultima = max((dt.datetime.strptime(x["gerado_em"], "%Y-%m-%d %H:%M").replace(tzinfo=BRT) for x in ant if x.get("gerado_em")), default=None)
+red_depois = ultima and any(
+    x.get("impacto") == "Alto" and ultima < dt.datetime.strptime(x["quando"], "%Y-%m-%d %H:%M").replace(tzinfo=BRT) <= agora - dt.timedelta(minutes=10)
+    for x in ler("mi_agenda.json"))
+fim_de_semana = agora.weekday() == 5 or (agora.weekday() == 6 and agora.hour < 18)   # mercado fechado
+if ultima and not red_depois and (agora - ultima < dt.timedelta(minutes=55) or fim_de_semana):
+    print(f"leitura de {ultima:%d/%m %H:%M} ainda vale"); sys.exit(0)
+
 dig = open(os.path.join(OUT, "digest.txt"), encoding="utf-8").read()
-agora = dt.datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M")
 prompt = (
-    "Você é analista de uma mesa institucional de câmbio, ouro e índices. Abaixo estão os dados do painel (score 0-100 por ativo com os fatores, "
-    "agenda red folder e manchetes). Escreva em português do Brasil, direto ao ponto, 2 a 3 frases por item: o viés e o score, os 2 ou 3 fatores que "
-    "mais pesam, o principal risco (evento red folder próximo ou notícia relevante) e o que esperar. Use só o que está nos dados; não invente números. "
-    "Responda APENAS com um JSON: lista de 7 objetos {\"ativo\": ..., \"texto\": ...} com os ativos GERAL, EURUSD, GBPUSD, USDJPY, USDCHF, XAUUSD, NAS100 "
-    "(GERAL = clima do mercado no dia e eventos-chave).\n\nDADOS:\n" + dig)
-req = urllib.request.Request("https://api.anthropic.com/v1/messages", method="POST",
-    headers={"x-api-key": KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"},
-    data=json.dumps({"model": MODEL, "max_tokens": 2000, "messages": [{"role": "user", "content": prompt}]}).encode())
-with urllib.request.urlopen(req, timeout=120) as r:
-    txt = "".join(c.get("text", "") for c in json.loads(r.read())["content"])
-txt = txt[txt.index("["): txt.rindex("]") + 1]
-rows = [{"ativo": x["ativo"], "texto": x["texto"].strip(), "gerado_em": agora} for x in json.loads(txt)]
-json.dump(rows, open(os.path.join(OUT, "mi_ia.json"), "w"), ensure_ascii=False)
-print("leitura da IA gerada:", len(rows))
+    "Você é o estrategista-chefe de uma mesa institucional de câmbio, ouro e índices. Abaixo estão os dados do painel agora "
+    f"({agora:%d/%m/%Y %H:%M}, horário de Brasília): score 0-100 por ativo com a leitura de cada fator, radar institucional "
+    "(liquidez do Fed, curva do VIX, MOVE, NFCI, juros), últimos dados oficiais dos EUA, red folder da semana e manchetes.\n"
+    "Escreva em português do Brasil, direto ao ponto, 2 a 3 frases por item:\n"
+    "- GERAL: o clima do mercado agora (risco ligado ou desligado e por quê), o que o radar institucional sinaliza e o próximo evento que pode mudar o jogo.\n"
+    "- Cada ativo: o viés e o score, os 2 ou 3 fatores que mais pesam, o principal risco (evento próximo ou notícia) e o que esperar.\n"
+    "Use só o que está nos dados; não invente números nem eventos. Trate eventos que já passaram como passados e os futuros como futuros, "
+    "comparando com a data e hora acima.\n"
+    'Responda APENAS com um JSON: uma lista de 7 objetos {"ativo": ..., "texto": ...}, na ordem ' + ", ".join(ATIVOS) + ".\n\nDADOS:\n" + dig)
+
+client = anthropic.Anthropic()
+try:
+    resp = client.messages.create(model=MODEL, max_tokens=8000, output_config={"effort": "medium"},
+                                  messages=[{"role": "user", "content": prompt}])
+except anthropic.APIStatusError as e:
+    print(f"API recusou ({e.status_code}): {e.message}"); sys.exit(0)
+except anthropic.APIConnectionError:
+    print("sem conexão com a API"); sys.exit(0)
+if resp.stop_reason == "refusal":
+    print("a IA recusou; leitura anterior mantida"); sys.exit(0)
+txt = "".join(b.text for b in resp.content if b.type == "text")
+try:
+    itens = json.loads(txt[txt.index("["): txt.rindex("]") + 1])
+    rows = [{"ativo": x["ativo"], "texto": x["texto"].strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
+except Exception as e:
+    print("resposta fora do formato; leitura anterior mantida:", e); sys.exit(0)
+if len(rows) < 5:
+    print("resposta incompleta; leitura anterior mantida"); sys.exit(0)
+json.dump(rows, open(os.path.join(OUT, "mi_ia.json"), "w", encoding="utf-8"), ensure_ascii=False)
+print(f"leitura da IA gerada: {len(rows)} textos · tokens {resp.usage.input_tokens} entrada / {resp.usage.output_tokens} saída")

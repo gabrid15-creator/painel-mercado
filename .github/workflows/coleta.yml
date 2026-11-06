@@ -32,9 +32,14 @@ jobs:
       - name: Coletar
         run: |
           timeout 300 python3 coletor.py out || true
-          # leitura da IA vem do repositório (escrita pelo Claude)
-          cp docs/data/mi_ia.json out/mi_ia.json
+          [ -f out/mi_ia.json ] || cp docs/data/mi_ia.json out/mi_ia.json
           cat out/mi_status.json || true
+      - name: Leitura da IA (de hora em hora ou depois de red folder)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          [ -n "$ANTHROPIC_API_KEY" ] || { echo "sem chave: pulando"; exit 0; }
+          pip install -q anthropic && timeout 180 python3 ia.py out || true
       - name: Publicar dados na branch "dados"
         run: |
           cd out

@@ -568,6 +568,10 @@ def b_score():
             r = at[x["ativo"]]
             f.write(f"\n{x['ativo']}: preço {r['preco']} (1d {r['var_1d']}%, 5d {r['var_5d']}%, 20d {r['var_20d']}%), score {x['score']} {x['vies']}\n")
             for cpt in x["componentes"]: f.write(f"  - {cpt['fator']} ({cpt['pontos']:+}): {cpt['leitura']}\n")
+        rd = {k: mac.get(k) for k in ("Liquidez líquida Fed", "VIX ÷ VIX 3 meses", "MOVE (vol. de Treasuries)", "Condições financeiras (NFCI)", "US2Y", "US10Y", "Juro real 10a", "Spread 2a EUA−Alemanha")}
+        f.write("\nRadar institucional e juros: " + "; ".join(f"{k} {v['valor']} (20d {v['var_20d']}{v['unidade_var']}, pctil 1a {v['pctil_1a']})" for k, v in rd.items() if v) + "\n")
+        eu = ler("mi_eua.json")
+        if eu: f.write("Últimos dados oficiais dos EUA (período de referência): " + "; ".join(f"{x['evento']} {x['periodo']} = {x['valor']}{x['unidade']}" for x in eu) + "\n")
         f.write("\nRed folder da semana (BRT):\n" + "\n".join(f"  {x['quando']} {x['moeda']} {x['evento']} prev {x['previsao']} ant {x['anterior']}" for x in ag))
         f.write("\nManchetes:\n" + "\n".join(f"  [{x['fonte']}] {x['titulo']}" for x in nw) + "\n")
 b_score()
