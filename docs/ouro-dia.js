@@ -29,6 +29,29 @@
     el.querySelector('.od-txt').innerHTML = t;
     el.querySelector('.od-det').textContent = (hoje ? 'Hoje ' + I.hora_ny + ' NY · ' : '') + 'Mão sugerida ' + nf(j.mao.mult, 2) + '× o lote base · VRP ' + nf(j.vrp, 2) + ' · GVZ 5 dias ' + (j.gvz_var5 > 0 ? '+' : '') + nf(j.gvz_var5) + '% · CTA (info) ' + (j.cta.posicao > 0 ? '+' : '') + j.cta.posicao + '%';
   }
+
+  // Janelas institucionais (out/2020–out/2026, XAUUSD M1): chance do minuto ser topo/fundo de ±60 min x média; range dos 15 min seguintes x média
+  const JAN = [['America/New_York', 8, 20, 'Abertura COMEX', '3,0×', '2,0×'], ['America/New_York', 8, 30, 'Dados EUA', '6,6×', '2,0×'],
+    ['America/New_York', 10, 0, 'Dados EUA', '3,5×', '2,0×'], ['Europe/London', 15, 0, 'Leilão LBMA tarde', '3,5×', '1,9×'],
+    ['America/New_York', 13, 29, 'Fechamento oficial COMEX', '3,0×', '1,0×'], ['Europe/London', 10, 30, 'Leilão LBMA manhã', '2,1×', '0,9×']];
+  function zoned(tz, y, mo, d, h, mi) {
+    const g = Date.UTC(y, mo - 1, d, h, mi), p = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      .formatToParts(new Date(g)).forEach(x => p[x.type] = x.value);
+    return g - (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - g);
+  }
+  function janelas() {
+    const box = el.querySelector('.od-jan'); if (!box) return;
+    const [y, mo, d] = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }).split('-').map(Number);
+    const now = Date.now(), br = ms => new Date(ms).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
+    const L = JAN.map(j => ({ t: zoned(j[0], y, mo, d, j[1], j[2]), n: j[3], x: j[4], r: j[5] })).sort((a, b) => a.t - b.t);
+    const prox = L.find(j => j.t + 15 * 60e3 > now);
+    box.innerHTML = '<tr><th>Brasília</th><th>Janela</th><th class="num">Topo/fundo</th><th class="num">Range 15 min</th></tr>' + L.map(j => {
+      const on = now >= j.t && now < j.t + 15 * 60e3, nx = prox === j;
+      return '<tr style="' + (on ? 'background:color-mix(in srgb,var(--color-warn) 22%,transparent);font-weight:600' : nx ? 'font-weight:600' : now > j.t ? 'opacity:.5' : '') + '"><td>' + br(j.t) + (on ? ' ● agora' : nx ? ' ← próxima' : '') + '</td><td>' + j.n + '</td><td class="num">' + j.x + '</td><td class="num">' + j.r + '</td></tr>';
+    }).join('');
+  }
+  janelas(); setInterval(janelas, 60e3);
   const load = () => Promise.all([get('lab.json'), get('intraday.json')]).then(([j, I]) => draw(j, I));
   load(); setInterval(load, 10 * 60e3);
 })();

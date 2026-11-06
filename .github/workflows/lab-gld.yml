@@ -1,0 +1,37 @@
+name: Laboratório — opções do GLD a cada 10 min (teste)
+# Grava a cadeia do GLD (CBOE, atraso 15 min) no pregão americano, só na branch "lab-gld". Não toca no painel.
+# Para apagar: remover lab/gld_intra.py, este arquivo e a branch lab-gld.
+on:
+  schedule:
+    - cron: "*/10 13-21 * * 1-5"   # 13h–21h59 UTC = pregão dos EUA (com folga)
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gld:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: write
+    concurrency:
+      group: lab-gld
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: lab
+      - name: Dados anteriores
+        run: |
+          mkdir -p out
+          if git fetch -q --depth=1 origin lab-gld 2>/dev/null; then git archive FETCH_HEAD | tar -x -C out; fi
+      - name: Gravar
+        run: timeout 90 python3 lab/gld_intra.py out
+      - name: Publicar na branch "lab-gld"
+        run: |
+          cd out
+          git init -q -b lab-gld
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "gld $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" lab-gld
