@@ -17,7 +17,7 @@
     await Promise.all(IDS.map(async (id) => {
       try {
         let data;
-        if (id.startsWith('mi_')) { try { data = await pega(RAW + id + '.json?t=' + t); } catch (e) { data = await pega('data/' + id + '.json?t=' + t); } }
+        if (/^(mi|op|ouro)_/.test(id)) { try { data = await pega(RAW + id + '.json?t=' + t); } catch (e) { data = await pega('data/' + id + '.json?t=' + t); } }
         else data = await pega('data/' + id + '.json?t=' + t);
         store[id] = { status: 'ok', data };
       } catch (e) { if (!store[id]) store[id] = { status: 'error', data: [] }; }
