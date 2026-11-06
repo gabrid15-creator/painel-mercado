@@ -6,6 +6,11 @@ on:
   schedule:
     - cron: "2-59/5 * * * *"   # de 5 em 5 min, fora do minuto cheio (o GitHub atrasa menos)
   workflow_dispatch:
+    inputs:
+      site:
+        description: "Publicar também o site (HTML)?"
+        type: boolean
+        default: false
   push:
     branches: [main]
 permissions:
@@ -53,7 +58,8 @@ jobs:
           # um commit só (força): o histórico de dados não incha o repositório
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" dados
   site:
-    if: github.event_name != 'schedule'
+    # site só quando o código muda (push) ou em execução manual marcando "site"; o cron-job.org só coleta
+    if: github.event_name == 'push' || inputs.site == true
     needs: coleta
     runs-on: ubuntu-latest
     timeout-minutes: 5
