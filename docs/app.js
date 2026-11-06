@@ -457,12 +457,50 @@
     return { id: 'eua:' + x.evento + x.periodo, actual: x.valor, forecast: null, previous: null, digits: x.casas, fonte: x.fonte,
       multiplier: x.unidade === 'K' ? 'thousands' : x.unidade === 'M' ? 'millions' : 'none', unit: x.unidade === '%' ? 'percent' : 'none' };
   };
+  // ---- tempo real direto da fonte oficial (BLS libera o navegador): busca no segundo da divulgação
+  const BLS_RT = { 'Non-Farm Employment Change': ['CES0000000001', 'diff', 'K', 0], 'Unemployment Rate': ['LNS14000000', 'lvl', '%', 1],
+    'Average Hourly Earnings m/m': ['CES0500000003', 'pct', '%', 1], 'CPI m/m': ['CUSR0000SA0', 'pct', '%', 1], 'Core CPI m/m': ['CUSR0000SA0L1E', 'pct', '%', 1],
+    'CPI y/y': ['CUUR0000SA0', 'yoy', '%', 1], 'PPI m/m': ['WPSFD4', 'pct', '%', 1], 'Core PPI m/m': ['WPSFD49104', 'pct', '%', 1] };
+  const BLS = { res: {}, prox: {}, busy: false };
+  const blsCota = () => { const k = 'blsq-' + hojeISO(); const n = +(localStorage.getItem(k) || 0); return [k, n]; };
+  async function blsSerie(sid) {
+    const [k, n] = blsCota(); if (n >= 23) throw new Error('cota diária do BLS'); localStorage.setItem(k, n + 1);
+    const r = await fetch('https://api.bls.gov/publicAPI/v2/timeseries/data/' + sid, { cache: 'no-store' }); const j = await r.json();
+    const d = (((j.Results || {}).series || [])[0] || {}).data || [];
+    return d.filter((x) => /^M(0[1-9]|1[0-2])$/.test(x.period) && x.value !== '-').map((x) => [x.year + '-' + x.period.slice(1), +x.value]).sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  }
+  const blsCalc = (pts, modo) => { const n = pts.length; if (n < 14) return null; const v = pts[n - 1][1];
+    return [pts[n - 1][0], modo === 'lvl' ? v : modo === 'diff' ? v - pts[n - 2][1] : modo === 'pct' ? (v / pts[n - 2][1] - 1) * 100 : (v / pts[n - 13][1] - 1) * 100]; };
+  const mesAnt = (t) => new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - 1, 1)).toISOString().slice(0, 7);
+  async function blsTick() {
+    if (BLS.busy) return; const agora = Date.now(); const ag = D('mi_agenda').data || [];
+    // agrupa os eventos do BLS por horário; consulta só a série principal de cada horário até virar o mês esperado
+    const slots = {};
+    for (const r of ag) { if (r.moeda !== 'USD' || !BLS_RT[r.evento]) continue; const t = new Date(r.quando.replace(' ', 'T') + ':00-03:00');
+      const dt0 = agora - t.getTime(); if (dt0 < 0 || dt0 > 150e3) continue; (slots[r.quando] = slots[r.quando] || { t, evs: [] }).evs.push(r.evento); }
+    for (const [q, { t, evs }] of Object.entries(slots)) {
+      const esperado = mesAnt(t); if (evs.every((ev) => BLS.res[q + ev])) continue;
+      if ((BLS.prox[q] || 0) > agora) continue; BLS.prox[q] = agora + (agora - t.getTime() < 30e3 ? 3e3 : 10e3);
+      BLS.busy = true;
+      try {
+        const [sid, modo] = BLS_RT[evs[0]]; const pts = await blsSerie(sid); const c = blsCalc(pts, modo);
+        if (c && c[0] === esperado) {
+          BLS.res[q + evs[0]] = c;
+          for (const ev of evs.slice(1)) { const [s2, m2] = BLS_RT[ev]; const c2 = blsCalc(await blsSerie(s2), m2); if (c2 && c2[0] === esperado) BLS.res[q + ev] = c2; }
+          if (!$('#sec-mi').hidden) drawAgenda();
+        }
+      } catch (e) { /* sem cota ou fora do ar: fica a coleta oficial */ } finally { BLS.busy = false; }
+    }
+  }
+  setInterval(blsTick, 1000);
+  const blsDe = (r) => { const c = BLS.res[r.quando + r.evento]; if (!c) return null; const [, , un, cs] = BLS_RT[r.evento];
+    return { id: 'bls:' + r.quando + r.evento, actual: Math.round(c[1] * 1000) / 1000, forecast: null, previous: null, digits: cs, multiplier: un === 'K' ? 'thousands' : 'none', unit: un === '%' ? 'percent' : 'none' }; };
   const surpresa = (r, e) => { if (!e || e.actual == null) return null; const f = prevNum(r, e); if (f == null) return 0; const d = e.actual - f; return Math.abs(d) < 1e-9 ? 0 : d > 0 ? 1 : -1; };
   function drawAgenda() {
     const AG = D('mi_agenda'); const at = $('.mi-ag-t tbody'); if (!at) return; at.replaceChildren(); const hj = hojeISO(); const agora = Date.now();
     let ultimo = null, primHoje = false;
     for (const r of AG.status === 'ok' ? AG.data : []) {
-      let e = casar(r); if (!e || e.actual == null) e = euaDe(r) || e; const quando = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const passou = quando < agora;
+      let e = casar(r); if (!e || e.actual == null) e = blsDe(r) || euaDe(r) || e; const quando = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const passou = quando < agora;
       const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' + (primHoje ? '' : ' mi-hoje-1') : '') + (passou ? ' ag-passou' : '');
       if (r.data === hj) primHoje = true;
       const [d, h] = r.quando.split(' ');
