@@ -20,39 +20,60 @@
   };
 
   // ---------------- cálculos do euro (mesma lógica do painel do Claude)
+  // ---------------- cálculo genérico (euro e ouro): paredes, gamma (Black-76) e código do TradingView
+  const MES3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const venEur = (v) => { const mm = MES3.indexOf(String(v).slice(0, 3)); const y = 2000 + Number(String(v).slice(3)); const wd = new Date(Date.UTC(y, mm, 1)).getUTCDay(); return new Date(Date.UTC(y, mm, 1 + ((3 - wd + 7) % 7) + 2)); };
+  // ouro (OG): 4 dias úteis antes do fim do mês anterior ao do contrato
+  const venOuro = (v) => { const mm = MES3.indexOf(String(v).slice(0, 3)); const y = 2000 + Number(String(v).slice(3)); let d = new Date(Date.UTC(y, mm, 0)); let n = 0;
+    while (true) { if (d.getUTCDay() % 6 !== 0) { if (n === 4) return d; n++; } d = new Date(d.getTime() - 864e5); } };
+  function calcGamma(cad, cfg) {
+    const ninv = (p) => { let lo = -8, hi = 8; for (let i = 0; i < 80; i++) { const mid = (lo + hi) / 2; const z = Math.abs(mid) / Math.SQRT2; const k = 1 / (1 + 0.3275911 * z); const e = 1 - (((((1.061405429 * k - 1.453152027) * k) + 1.421413741) * k - 0.284496736) * k + 0.254829592) * k * Math.exp(-z * z); const c = 0.5 * (1 + (mid < 0 ? -e : e)); if (c < p) lo = mid; else hi = mid; } return (lo + hi) / 2; };
+    const phi = (x) => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
+    const rows0 = cad.map((r) => ({ ...r, strike: Number(r.strike), oi: Number(r.oi), futuro: Number(r.futuro), delta: r.delta == null || r.delta === '' ? null : Number(r.delta) }));
+    const gam = { rows: [], flip: null, kx: null, ky: null }; if (!rows0.length) return gam;
+    const today = new Date(String(rows0[0].data_pregao).slice(0, 10) + 'T00:00:00Z'); const vencs = {};
+    for (const r of rows0) if (!vencs[r.venc]) vencs[r.venc] = { F: r.futuro, T: Math.max(1 / 365, (cfg.venc(r.venc) - today) / (365 * 864e5)), iv: [] };
+    for (const r of rows0) {
+      const g = vencs[r.venc]; const otm = (r.tipo === 'Call' && r.strike >= g.F) || (r.tipo === 'Put' && r.strike <= g.F);
+      if (!otm || r.delta == null || r.delta < 0.05 || r.delta > 0.40) continue;
+      const x = ninv(r.tipo === 'Call' ? r.delta : 1 - r.delta); const L = Math.log(g.F / r.strike); const disc = x * x - 2 * L; if (disc < 0) continue;
+      const s = L < 0 ? x + Math.sqrt(disc) : x - Math.sqrt(disc); if (s > 0) g.iv.push([r.strike, s / Math.sqrt(g.T)]);
+    }
+    const sig = (g, K) => { const a = g.iv.sort((p, q) => p[0] - q[0]); if (!a.length) return cfg.vol; if (K <= a[0][0]) return a[0][1]; if (K >= a[a.length - 1][0]) return a[a.length - 1][1]; for (let i = 1; i < a.length; i++) if (K <= a[i][0]) return a[i - 1][1] + (a[i][1] - a[i - 1][1]) * (K - a[i - 1][0]) / (a[i][0] - a[i - 1][0]); return cfg.vol; };
+    const legs = rows0.filter((r) => r.oi > 0).map((r) => { const g = vencs[r.venc]; return { K: r.strike, oi: r.oi, sgn: r.tipo === 'Call' ? 1 : -1, T: g.T, s: sig(g, r.strike) }; });
+    const gamL = (S, l) => { const v = l.s * Math.sqrt(l.T); const d1 = (Math.log(S / l.K) + 0.5 * v * v) / v; return l.sgn * l.oi * phi(d1) / (S * v) * cfg.mult * S * S * 0.01; };
+    const gex = (S) => legs.reduce((a, l) => a + gamL(S, l), 0);
+    const F = Math.max(...Object.values(vencs).map((g) => g.F)); const rd = (x) => Number(x.toFixed(cfg.casas));
+    for (let i = -60; i <= 60; i++) { const S = rd(F + i * cfg.passo); gam.rows.push({ preco: S, gex: gex(S) }); }
+    let best = Infinity;
+    for (let i = 1; i < gam.rows.length; i++) { const a = gam.rows[i - 1], b = gam.rows[i]; if ((a.gex <= 0) !== (b.gex <= 0)) { const x = a.preco + (b.preco - a.preco) * (0 - a.gex) / (b.gex - a.gex); if (Math.abs(x - F) < best) { best = Math.abs(x - F); gam.flip = rd(x); } } }
+    const byK = new Map(); for (const l of legs) byK.set(l.K, (byK.get(l.K) || 0) + gamL(F, l));
+    let vx = -Infinity, vy = Infinity; for (const [k, v] of byK) { if (v > vx) { vx = v; gam.kx = k; } if (v < vy) { vy = v; gam.ky = k; } }
+    return gam;
+  }
+  // ouro: tudo calculado dos dados brutos (cadeia da CME + ETFs); sem eles, usa os arquivos antigos
+  function calcOuro() {
+    const cad = D('ouro_cadeia').status === 'ok' ? D('ouro_cadeia').data : [], bol = D('ouro_boletim').status === 'ok' ? D('ouro_boletim').data[0] : null;
+    if (!cad.length || !bol) return null;
+    const m = new Map(); const add = (k, c, v) => { k = Number(k); if (!m.has(k)) m.set(k, { strike: k, cme_call: 0, cme_put: 0, etf_call: 0, etf_put: 0 }); m.get(k)[c] += Number(v) || 0; };
+    for (const r of cad) add(r.strike, r.tipo === 'Call' ? 'cme_call' : 'cme_put', r.oi);
+    for (const r of D('ouro_etf').status === 'ok' ? D('ouro_etf').data : []) { add(Math.round(Number(r.strike) / 5) * 5, 'etf_call', r.call); add(Math.round(Number(r.strike) / 5) * 5, 'etf_put', r.put); }
+    const ps = [...m.values()].sort((a, b) => b.strike - a.strike);
+    const top = (k) => ps.reduce((a, b) => (b[k] > (a ? a[k] : -1) ? b : a), null);
+    const gam = calcGamma(cad, { venc: venOuro, vol: 0.2, mult: 100, passo: 5, casas: 1 });
+    const pick = (key, tag, n) => ps.filter((r) => r[key] > 0).sort((a, b) => b[key] - a[key]).slice(0, n).map((r) => tag + ' ' + r.strike + ' ' + r[key]);
+    const extra = []; if (gam.flip != null) extra.push('Z ' + gam.flip.toFixed(1)); if (gam.kx != null) extra.push('X ' + gam.kx); if (gam.ky != null) extra.push('Y ' + gam.ky);
+    return { bol, ps, gam, cC: top('cme_call'), cP: top('cme_put'), eC: top('etf_call'), eP: top('etf_put'),
+      codigo: [...pick('cme_call', 'C', 12), ...pick('cme_put', 'P', 12), ...pick('etf_call', 'K', 8), ...pick('etf_put', 'Q', 8), ...extra].join(' | ') };
+  }
+
   function calcEur() {
     const par = D('op_paredes').data, cad = D('op_cadeia').data;
     const m = new Map();
     for (const r of par) { const k = Number(r.strike); if (!m.has(k)) m.set(k, { strike: k, call: 0, put: 0 }); const o = m.get(k); if (r.tipo === 'Call') o.call += Number(r.open_interest); else o.put += Number(r.open_interest); }
     const ps = [...m.values()].sort((a, b) => b.strike - a.strike);
     const top = (k) => ps.reduce((a, b) => (b[k] > (a ? a[k] : -1) ? b : a), null);
-    // gamma
-    const MES = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    const expiry = (v) => { const mm = MES.indexOf(String(v).slice(0, 3)); const y = 2000 + Number(String(v).slice(3)); const wd = new Date(Date.UTC(y, mm, 1)).getUTCDay(); return new Date(Date.UTC(y, mm, 1 + ((3 - wd + 7) % 7) + 2)); };
-    const ninv = (p) => { let lo = -8, hi = 8; for (let i = 0; i < 80; i++) { const mid = (lo + hi) / 2; const z = Math.abs(mid) / Math.SQRT2; const k = 1 / (1 + 0.3275911 * z); const e = 1 - (((((1.061405429 * k - 1.453152027) * k) + 1.421413741) * k - 0.284496736) * k + 0.254829592) * k * Math.exp(-z * z); const c = 0.5 * (1 + (mid < 0 ? -e : e)); if (c < p) lo = mid; else hi = mid; } return (lo + hi) / 2; };
-    const phi = (x) => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI);
-    const rows0 = cad.map((r) => ({ ...r, strike: Number(r.strike), oi: Number(r.oi), futuro: Number(r.futuro), delta: r.delta == null || r.delta === '' ? null : Number(r.delta) }));
-    let gam = { rows: [], flip: null, kx: null, ky: null };
-    if (rows0.length) {
-      const today = new Date(String(rows0[0].data_pregao).slice(0, 10) + 'T00:00:00Z'); const vencs = {};
-      for (const r of rows0) if (!vencs[r.venc]) vencs[r.venc] = { F: r.futuro, T: Math.max(1 / 365, (expiry(r.venc) - today) / (365 * 864e5)), iv: [] };
-      for (const r of rows0) {
-        const g = vencs[r.venc]; const otm = (r.tipo === 'Call' && r.strike >= g.F) || (r.tipo === 'Put' && r.strike <= g.F);
-        if (!otm || r.delta == null || r.delta < 0.05 || r.delta > 0.40) continue;
-        const x = ninv(r.tipo === 'Call' ? r.delta : 1 - r.delta); const L = Math.log(g.F / r.strike); const disc = x * x - 2 * L; if (disc < 0) continue;
-        const s = L < 0 ? x + Math.sqrt(disc) : x - Math.sqrt(disc); if (s > 0) g.iv.push([r.strike, s / Math.sqrt(g.T)]);
-      }
-      const sig = (g, K) => { const a = g.iv.sort((p, q) => p[0] - q[0]); if (!a.length) return 0.07; if (K <= a[0][0]) return a[0][1]; if (K >= a[a.length - 1][0]) return a[a.length - 1][1]; for (let i = 1; i < a.length; i++) if (K <= a[i][0]) return a[i - 1][1] + (a[i][1] - a[i - 1][1]) * (K - a[i - 1][0]) / (a[i][0] - a[i - 1][0]); return 0.07; };
-      const legs = rows0.filter((r) => r.oi > 0).map((r) => { const g = vencs[r.venc]; return { K: r.strike, oi: r.oi, sgn: r.tipo === 'Call' ? 1 : -1, T: g.T, s: sig(g, r.strike) }; });
-      const gamL = (S, l) => { const v = l.s * Math.sqrt(l.T); const d1 = (Math.log(S / l.K) + 0.5 * v * v) / v; return l.sgn * l.oi * phi(d1) / (S * v) * 125000 * S * S * 0.01; };
-      const gex = (S) => legs.reduce((a, l) => a + gamL(S, l), 0);
-      const F = Math.max(...Object.values(vencs).map((g) => g.F));
-      for (let i = -60; i <= 60; i++) { const S = Math.round((F + i * 0.0005) * 10000) / 10000; gam.rows.push({ preco: S, gex: gex(S) }); }
-      let best = Infinity;
-      for (let i = 1; i < gam.rows.length; i++) { const a = gam.rows[i - 1], b = gam.rows[i]; if ((a.gex <= 0) !== (b.gex <= 0)) { const x = a.preco + (b.preco - a.preco) * (0 - a.gex) / (b.gex - a.gex); if (Math.abs(x - F) < best) { best = Math.abs(x - F); gam.flip = Math.round(x * 10000) / 10000; } } }
-      const byK = new Map(); for (const l of legs) byK.set(l.K, (byK.get(l.K) || 0) + gamL(F, l));
-      let vx = -Infinity, vy = Infinity; for (const [k, v] of byK) { if (v > vx) { vx = v; gam.kx = k; } if (v < vy) { vy = v; gam.ky = k; } }
-    }
+    const gam = calcGamma(cad, { venc: venEur, vol: 0.07, mult: 125000, passo: 0.0005, casas: 4 });
     const pick = (key, tag) => ps.filter((r) => r[key] > 0).sort((a, b) => b[key] - a[key]).slice(0, 12).map((r) => tag + ' ' + r.strike.toFixed(4) + ' ' + r[key]);
     const extra = []; if (gam.flip != null) extra.push('Z ' + gam.flip.toFixed(4)); if (gam.kx != null) extra.push('X ' + gam.kx.toFixed(4)); if (gam.ky != null) extra.push('Y ' + gam.ky.toFixed(4));
     return { ps, c: top('call'), p: top('put'), gam, codigo: [...pick('call', 'C'), ...pick('put', 'P'), ...extra].join(' | ') };
@@ -129,32 +150,39 @@
         td(tr, r.vencimento); td(tr, r.tipo, c); td(tr, fmtK(r.strike), 'num'); td(tr, fmtN(r.open_interest), 'num'); td(tr, Number(r.variacao) === 0 ? 'sem mudança' : sg(r.variacao, 0, ''), 'num'); td(tr, r.leitura_usdchf, c); pt.appendChild(tr);
       }
     } else {
-      if (D('ouro_resumo').status !== 'ok') return;
-      const R = D('ouro_resumo').data[0]; const n0 = (v) => nf(v, 1);
-      $('.op-dt').textContent = 'Ouro: pregão de ' + br(R.data_pregao) + ' (' + R.situacao + ').';
-      $('.op-take').textContent = 'Ouro: futuro de dezembro em ' + n0(R.futuro_dec) + ', gamma flip em ' + n0(R.flip) + ' (' + (Number(R.futuro_dec) < Number(R.flip) ? 'abaixo do flip: o hedge acelera' : 'acima do flip: o hedge segura') + ').';
+      // dados novos (cadeia bruta) -> tudo calculado aqui; sem eles, arquivos antigos de resumo
+      const O = calcOuro(); let X;
+      if (O) {
+        X = { dp: O.bol.data_pregao, sit: O.bol.situacao, F: Number(O.bol.futuro), venc: O.bol.futuro_vencimento, cC: O.cC && O.cC.strike, cP: O.cP && O.cP.strike, eC: O.eC && O.eC.strike, eP: O.eP && O.eP.strike,
+          flip: O.gam.flip, gx: O.gam.kx, gn: O.gam.ky, codigo: O.codigo, par: O.ps, gamma: O.gam.rows };
+      } else {
+        if (D('ouro_resumo').status !== 'ok') return;
+        const R = D('ouro_resumo').data[0]; const GX = (D('ouro_gamma').status === 'ok' ? D('ouro_gamma').data : []).map((r) => ({ preco: Number(r.preco), gex: Number(r.gex) }));
+        const gmax = GX.length ? GX.reduce((a, b) => (b.gex > a.gex ? b : a)) : null, gmin = GX.length ? GX.reduce((a, b) => (b.gex < a.gex ? b : a)) : null;
+        const base = String(R.codigo || '').split(' | ').filter((x) => x && !/^[ZXY] /.test(x));
+        if (R.flip != null) base.push('Z ' + Number(R.flip).toFixed(1)); if (gmax) base.push('X ' + gmax.preco.toFixed(1)); if (gmin) base.push('Y ' + gmin.preco.toFixed(1));
+        X = { dp: R.data_pregao, sit: R.situacao, F: Number(R.futuro_dec), venc: 'DEC26', cC: R.maior_call_cme, cP: R.maior_put_cme, eC: R.maior_call_etf, eP: R.maior_put_etf,
+          flip: Number(R.flip), gx: gmax && gmax.preco, gn: gmin && gmin.preco, codigo: base.join(' | '), par: D('ouro_paredes').status === 'ok' ? D('ouro_paredes').data : [], gamma: GX };
+      }
+      const n0 = (v) => nf(v, 1);
+      $('.op-dt').textContent = 'Ouro: pregão de ' + br(X.dp) + ' (' + X.sit + ').';
+      $('.op-take').textContent = 'Ouro: futuro (' + X.venc + ') em ' + n0(X.F) + ', gamma flip em ' + n0(X.flip) + ' (' + (X.F < X.flip ? 'abaixo do flip: o hedge acelera' : 'acima do flip: o hedge segura') + ').';
       const tb = $('.op-tiles-xau'); tb.replaceChildren();
-      tile(tb, 'Pregão lido', br(R.data_pregao), R.situacao + ' · os dados abaixo são deste pregão');
-      tile(tb, 'Futuro de ouro (DEC26)', n0(R.futuro_dec), 'referência do XAUUSD');
-      tile(tb, 'Maior call wall (CME)', n0(R.maior_call_cme), 'resistência', 'var(--color-ok)'); tile(tb, 'Maior put wall (CME)', n0(R.maior_put_cme), 'suporte', 'var(--color-bad)');
-      tile(tb, 'Maior call · put GLD+IAU', n0(R.maior_call_etf), 'put ' + n0(R.maior_put_etf) + ' · ETFs convertidos para o preço do ouro');
+      tile(tb, 'Pregão lido', br(X.dp), X.sit + ' · os dados abaixo são deste pregão');
+      tile(tb, 'Futuro de ouro (' + X.venc + ')', n0(X.F), 'referência do XAUUSD');
+      tile(tb, 'Maior call wall (CME)', n0(X.cC), 'resistência', 'var(--color-ok)'); tile(tb, 'Maior put wall (CME)', n0(X.cP), 'suporte', 'var(--color-bad)');
+      tile(tb, 'Maior call · put GLD+IAU', n0(X.eC), 'put ' + n0(X.eP) + ' · ETFs convertidos para o preço do ouro');
       const xg = $('.op-xgtiles'); xg.replaceChildren();
-      const GX = (D('ouro_gamma').status === 'ok' ? D('ouro_gamma').data : []).map((r) => ({ p: Number(r.preco), g: Number(r.gex) }));
-      const gmax = GX.length ? GX.reduce((a, b) => (b.g > a.g ? b : a)) : null, gmin = GX.length ? GX.reduce((a, b) => (b.g < a.g ? b : a)) : null;
-      // código do TradingView: paredes do arquivo + gamma (Z flip, X +máx, Y −máx) igual aos cards
-      const base = String(R.codigo || '').split(' | ').filter((x) => x && !/^[ZXY] /.test(x));
-      if (R.flip != null) base.push('Z ' + Number(R.flip).toFixed(1)); if (gmax) base.push('X ' + gmax.p.toFixed(1)); if (gmin) base.push('Y ' + gmin.p.toFixed(1));
-      $('.op-code-xau').textContent = base.join(' | ') || '—';
-      tile(xg, 'Gamma flip', n0(R.flip), 'acima segura, abaixo acelera'); tile(xg, 'Gamma + máximo', gmax ? n0(gmax.p) : '—', 'preço onde o hedge mais segura', 'var(--color-ok)'); tile(xg, 'Gamma − máximo', gmin ? n0(gmin.p) : '—', 'preço onde o hedge mais acelera', 'var(--color-bad)');
-
-      const F = Number(R.futuro_dec); const m = new Map();
-      for (const r of D('ouro_paredes').status === 'ok' ? D('ouro_paredes').data : []) {
+      tile(xg, 'Gamma flip', n0(X.flip), 'acima segura, abaixo acelera'); tile(xg, 'Gamma + máximo', n0(X.gx), 'onde o hedge mais segura', 'var(--color-ok)'); tile(xg, 'Gamma − máximo', n0(X.gn), 'onde o hedge mais acelera', 'var(--color-bad)');
+      $('.op-code-xau').textContent = X.codigo || '—';
+      const F = X.F; const m = new Map();
+      for (const r of X.par) {
         const k = Number(r.strike); if (Math.abs(k / F - 1) > 0.10) continue; const b = Math.round(k / 25) * 25;
-        if (!m.has(b)) m.set(b, { k: b, cme_call: 0, cme_put: 0, etf_call: 0, etf_put: 0 }); const o = m.get(b); for (const c of ['cme_call', 'cme_put', 'etf_call', 'etf_put']) o[c] += Number(r[c]);
+        if (!m.has(b)) m.set(b, { k: b, cme_call: 0, cme_put: 0, etf_call: 0, etf_put: 0 }); const o = m.get(b); for (const c of ['cme_call', 'cme_put', 'etf_call', 'etf_put']) o[c] += Number(r[c]) || 0;
       }
       borboleta($('.op-xmap'), [...m.values()].sort((a, b) => b.k - a.k), F, (v) => nf(v, 0),
         [{ call: (d) => d.cme_call, put: (d) => d.cme_put, corC: COLORS[0], corP: COLORS[0] }, { call: (d) => d.etf_call, put: (d) => d.etf_put, corC: COLORS[2], corP: COLORS[2] }]);
-      linha($('.op-xg'), (D('ouro_gamma').status === 'ok' ? D('ouro_gamma').data : []).map((r) => ({ preco: Number(r.preco), gex: Number(r.gex) })), Number(R.flip), F, (v) => nf(v, 0));
+      linha($('.op-xg'), X.gamma, X.flip, F, (v) => nf(v, 0));
     }
   };
 })();
