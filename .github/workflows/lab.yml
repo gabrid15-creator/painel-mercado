@@ -14,8 +14,8 @@ jobs:
     permissions:
       contents: write
     concurrency:
-      group: lab
-      cancel-in-progress: true
+      group: lab-pub
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,8 +23,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Dados anteriores (mantém o outro arquivo da branch)
+        run: |
+          mkdir -p out
+          if git fetch -q --depth=1 origin lab-dados 2>/dev/null; then git archive FETCH_HEAD | tar -x -C out; fi
       - name: Calcular
-        run: mkdir -p out && timeout 180 python3 lab/lab.py out
+        run: timeout 180 python3 lab/lab.py out
       - name: Publicar na branch "lab-dados"
         run: |
           cd out

@@ -27,8 +27,18 @@
 <h1>Laboratório do ouro <span class="tag warn">teste</span></h1>
 <div class="sub" id="upd">Carregando…</div>
 
+<div class="card" id="diag" style="border-width:2px">
+  <div class="row"><span class="lbl">Diagnóstico agora</span><span id="dtag"></span></div>
+  <div class="row" style="margin-top:6px"><span class="big" id="final">–</span><span class="how" id="dhora"></span></div>
+  <div id="dtxt" style="margin-top:8px;font-size:16px"></div>
+  <div class="how" id="dctx"></div>
+  <div class="how"><b>Como funciona:</b> começa no score da véspera (abaixo) e, a partir das 8h de NY (10h de Brasília), o movimento do dia pode derrubar o score.
+  Regra testada 2021–2026: às 10h NY, se o ouro já andou ≥ 0,6 do range médio desde a meia-noite e está na ponta, vira 🔴 (pega metade dos dias de tendência; às 12h NY pega 78%; somando a véspera vermelha, 73% dos dias de ≥ 2,5%).
+  Dólar e liquidação são só contexto (não comprovados como previsão). Atualiza de 30 em 30 min.</div>
+</div>
+
 <div class="card">
-  <div class="row"><span class="lbl">Score do dia (reversão)</span><span id="tag"></span></div>
+  <div class="row"><span class="lbl">Score da véspera (reversão)</span><span id="tag"></span></div>
   <div class="row" style="margin-top:6px"><span class="big" id="score">–</span><span class="how" id="pts"></span></div>
   <div class="how"><b>Como ler:</b> 0 a 100. Quanto maior, mais o dia favorece pegar reversão (operar contra o movimento).
   <b>≥ 70</b> verde: dia normal/bom para reversão · <b>40–69</b> amarelo: reduzir mão e exigir mais confluência · <b>&lt; 40</b> vermelho: dia com cara de tendência, não operar contra.
@@ -71,15 +81,32 @@
   <div class="how"><b>Como ler:</b> multiplicador = vol. normal do último ano ÷ vol. de agora (maior entre a realizada e o GVZ), entre 0,25× e 1,5×. Ouro agitado → menos lote; calmo → um pouco mais. É o método "volatilidade-alvo" dos fundos (Moreira & Muir). Vale para cada entrada do seu DCA.</div>
 </div>
 
-<div class="card warnbox how">Página de teste, separada do painel principal. Atualiza 1x por dia (~07:07 de Brasília). Não é recomendação de investimento.</div>
+<div class="card warnbox how">Página de teste, separada do painel principal. Véspera: 1x por dia (~07:07 de Brasília). Diagnóstico: de 30 em 30 min nos dias úteis. Não é recomendação de investimento.</div>
 </main>
 <script>
 const URL_='https://raw.githubusercontent.com/gabrid15-creator/painel-mercado/lab-dados/lab.json';
 const nf=(v,d=1)=>v==null?'–':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const dBR=s=>s?s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(0,4):'–';
 const $=id=>document.getElementById(id);
+function diag(j,I){
+  let s=j.score,txt,tag,cor;
+  const hoje=I&&I.atualizado&&I.estado&&I.estado!=='cedo'&&(Date.now()-new Date(I.atualizado+'-05:00'))<6*3600e3;
+  if(hoje&&I.estado==='tendencia')s=Math.min(s,20);else if(hoje&&I.estado==='atencao')s=Math.min(s,50);
+  if(s<40){cor='bad';tag='🔴 NÃO operar contra'}else if(s<70){cor='warn';tag='🟡 cautela'}else{cor='ok';tag='🟢 dia bom p/ reversão'}
+  if(hoje&&I.estado==='tendencia')txt='<b>Dia de tendência de '+I.direcao+'.</b> O ouro já andou '+nf(Math.abs(I.mov_atr),2)+'× o range médio desde a meia-noite e está na ponta. Não tente pegar topo/fundo; só a favor ou fora.';
+  else if(hoje&&I.estado==='atencao')txt='<b>Atenção: começando a andar para '+I.direcao+'.</b> Já são '+nf(Math.abs(I.mov_atr),2)+'× o range médio e na ponta. Mão menor; se passar de 0,6× depois das 10h NY, vira tendência.';
+  else if(s<40)txt='<b>Véspera com cara de tendência</b> (VRP alto ou gatilho CTA perto). Evite operar contra até o mercado mostrar o contrário.';
+  else if(s<70)txt='<b>Dia neutro.</b> Reversão só com confluência forte e mão reduzida.';
+  else txt='<b>Dia favorável a reversão.</b> Opções esperando pouco movimento e nada acelerando o ouro até agora.';
+  $('final').textContent=s;$('dtag').innerHTML='<span class="tag '+cor+'">'+tag+'</span>';$('diag').style.borderColor='var(--'+cor+')';$('dtxt').innerHTML=txt;
+  $('dhora').textContent=hoje?('Hoje às '+I.hora_ny+' NY · ouro '+nf(I.preco)+' ('+(I.mov_atr>0?'+':'')+nf(I.mov_atr,2)+'× range médio)'):'Só véspera (antes das 8h NY ou sem dados de hoje)';
+  let c=[];if(I&&I.ctx){if(I.dolar)c.push(I.dolar==='confirma'?'Dólar confirmando o movimento do ouro':'Ouro descolado do dólar (mais comum em dia de virada)');if(I.liquidacao)c.push('⚠️ Liquidação geral: bolsa caindo forte, VIX subindo e ouro caindo junto');c.push('DXY '+nf(I.ctx.DXY,2)+'% · USDJPY '+nf(I.ctx.USDJPY,2)+'% · S&P fut '+nf(I.ctx['S&P fut'],2)+'% · VIX '+nf(I.ctx.VIX,1)+'%')}
+  $('dctx').innerHTML=c.join('<br>');
+}
 function lote(m){const b=parseFloat($('base').value)||0;$('lote').textContent=nf(Math.max(0.01,Math.round(b*m*100)/100),2);try{localStorage.setItem('lab_base',$('base').value)}catch(e){}}
-fetch(URL_+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{
+const URLI=URL_.replace('lab.json','intraday.json');
+Promise.all([fetch(URL_+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()),fetch(URLI+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)]).then(([j,I])=>{
+  diag(j,I);
   const u=new Date(j.atualizado);$('upd').textContent='Dados de '+dBR(j.data)+' · ouro futuro (GC) '+nf(j.preco)+' · atualizado '+u.toLocaleString('pt-BR');
   const s=j.score;$('score').textContent=s;
   $('tag').innerHTML=s>=70?'<span class="tag ok">bom p/ reversão</span>':s>=40?'<span class="tag warn">cautela</span>':'<span class="tag bad">não operar contra</span>';

@@ -1,0 +1,37 @@
+name: Laboratório do ouro — intradiário (teste)
+# Teste: de 30 em 30 min grava intraday.json só na branch "lab-dados". Não toca no painel nem na branch "dados".
+# Para apagar o teste: remover lab/, docs/lab/, este arquivo e a branch lab-dados.
+on:
+  schedule:
+    - cron: "4,34 7-19 * * 1-5"   # de 30 em 30 min, ~02h–15h de NY, dias úteis
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    concurrency:
+      group: lab-pub
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: lab
+      - name: Dados anteriores (mantém o outro arquivo da branch)
+        run: |
+          mkdir -p out
+          if git fetch -q --depth=1 origin lab-dados 2>/dev/null; then git archive FETCH_HEAD | tar -x -C out; fi
+      - name: Calcular
+        run: timeout 120 python3 lab/intraday.py out
+      - name: Publicar na branch "lab-dados"
+        run: |
+          cd out
+          git init -q -b lab-dados
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "lab $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" lab-dados
