@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -445,12 +445,24 @@
     }
     return bs >= 0.5 ? best : null;
   };
+  // reserva oficial dos EUA (BLS/FRED, coletada a cada 5 min): só vale se o período for o desta divulgação
+  const euaDe = (r) => {
+    if (r.moeda !== 'USD') return null;
+    const EU = D('mi_eua').status === 'ok' ? D('mi_eua').data : [];
+    const x = EU.find((z) => z.evento === r.evento) || (/gdp q\/q/i.test(r.evento) ? EU.find((z) => /gdp/i.test(z.evento)) : null); if (!x) return null;
+    const t = new Date(r.quando.replace(' ', 'T') + ':00-03:00');
+    if (/claims/i.test(r.evento)) { const dias = (t - new Date(x.periodo + 'T12:00:00Z')) / 864e5; if (dias < 3 || dias > 10) return null; }
+    else if (/gdp/i.test(r.evento)) { const dias = (t - new Date(x.periodo + '-01T12:00:00Z')) / 864e5; if (dias < 60 || dias > 150) return null; }
+    else { const m = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() - (/jolts/i.test(r.evento) ? 2 : 1), 1)); if (x.periodo !== m.toISOString().slice(0, 7)) return null; }
+    return { id: 'eua:' + x.evento + x.periodo, actual: x.valor, forecast: null, previous: null, digits: x.casas, fonte: x.fonte,
+      multiplier: x.unidade === 'K' ? 'thousands' : x.unidade === 'M' ? 'millions' : 'none', unit: x.unidade === '%' ? 'percent' : 'none' };
+  };
   const surpresa = (r, e) => { if (!e || e.actual == null) return null; const f = prevNum(r, e); if (f == null) return 0; const d = e.actual - f; return Math.abs(d) < 1e-9 ? 0 : d > 0 ? 1 : -1; };
   function drawAgenda() {
     const AG = D('mi_agenda'); const at = $('.mi-ag-t tbody'); if (!at) return; at.replaceChildren(); const hj = hojeISO(); const agora = Date.now();
     let ultimo = null, primHoje = false;
     for (const r of AG.status === 'ok' ? AG.data : []) {
-      const e = casar(r); const quando = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const passou = quando < agora;
+      let e = casar(r); if (!e || e.actual == null) e = euaDe(r) || e; const quando = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const passou = quando < agora;
       const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' + (primHoje ? '' : ' mi-hoje-1') : '') + (passou ? ' ag-passou' : '');
       if (r.data === hj) primHoje = true;
       const [d, h] = r.quando.split(' ');
@@ -500,7 +512,11 @@
     const quente = (AG.status === 'ok' ? AG.data : []).some((r) => { const t = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); return t - agora < 2 * 60e3 && agora - t < 20 * 60e3 && (casar(r) || {}).actual == null; });
     return quente ? 15e3 : 60e3;
   }
+  async function euaTick() {   // sem cache (API do GitHub), só perto de divulgações americanas
+    try { const r = await fetch('https://api.github.com/repos/' + RAW.split('/').slice(3, 5).join('/') + '/contents/mi_eua.json?ref=dados', { headers: { Accept: 'application/vnd.github.raw' }, cache: 'no-store' }); if (r.ok) store.mi_eua = { status: 'ok', data: await r.json() }; } catch (e) { /* segue */ }
+  }
   async function liveTick() {
+    if (proximoIntervalo() < 60e3 && (D('mi_agenda').data || []).some((r) => r.moeda === 'USD' && Math.abs(Date.now() - new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime()) < 30 * 60e3)) await euaTick();
     try {
       const r = await fetch(liveURL(), { cache: 'no-store' }); if (!r.ok) throw 0;
       const j = await r.json(); LIVE.ev = Array.isArray(j) ? j : (j.events || []); LIVE.ok = true; LIVE.quando = Date.now();

@@ -421,6 +421,58 @@ def b_agenda():
     save("mi_agenda.json", rows)
 b_agenda()
 
+# ---------------------------------------------------------------- "Atual" oficial dos EUA (reserva do biquote)
+# BLS (payroll, desemprego, salário-hora, CPI, PPI) e FRED (seguro-desemprego, varejo, PCE, JOLTS, PIB).
+# A API do BLS sem chave aceita 25 consultas/dia: só consulta perto de divulgações americanas.
+EUA_BLS = {  # evento do Forex Factory: (série, cálculo, unidade, casas)
+    "Non-Farm Employment Change": ("CES0000000001", "diff", "K", 0), "Unemployment Rate": ("LNS14000000", "lvl", "%", 1),
+    "Average Hourly Earnings m/m": ("CES0500000003", "pct", "%", 1), "CPI m/m": ("CUSR0000SA0", "pct", "%", 1),
+    "Core CPI m/m": ("CUSR0000SA0L1E", "pct", "%", 1), "CPI y/y": ("CUUR0000SA0", "yoy", "%", 1),
+    "PPI m/m": ("WPSFD4", "pct", "%", 1), "Core PPI m/m": ("WPSFD49104", "pct", "%", 1)}
+EUA_FRED = {
+    "Unemployment Claims": ("ICSA", "lvl", "K", 0, 1e-3), "Retail Sales m/m": ("RSAFS", "pct", "%", 1, 1),
+    "Core Retail Sales m/m": ("RSFSXMV", "pct", "%", 1, 1), "Core PCE Price Index m/m": ("PCEPILFE", "pct", "%", 1, 1),
+    "JOLTS Job Openings": ("JTSJOL", "lvl", "M", 2, 1e-3), "Advance GDP q/q": ("A191RL1Q225SBEA", "lvl", "%", 1, 1)}
+def _calc(serie, modo):   # serie: [(periodo, valor)] em ordem
+    (p1, v1) = serie[-1]
+    if modo == "lvl": return p1, v1
+    if modo == "diff": return p1, v1 - serie[-2][1]
+    if modo == "pct": return p1, (v1 / serie[-2][1] - 1) * 100
+    if modo == "yoy": return p1, (v1 / serie[-13][1] - 1) * 100
+
+@bloco("Atual oficial EUA (BLS/FRED)")
+def b_eua():
+    ant = ler("mi_eua.json")
+    perto = any(r["moeda"] == "USD" and -15 <= (NOW - dt.datetime.fromisoformat(r["quando"] + ":00-03:00")).total_seconds() / 60 <= 240
+                for r in ler("mi_agenda.json"))
+    if ant and not perto: return   # fora da janela: mantém o arquivo anterior
+    rows = {r["evento"]: r for r in ant}
+    try:
+        req = urllib.request.Request("https://api.bls.gov/publicAPI/v1/timeseries/data/", data=json.dumps({"seriesid": sorted({v[0] for v in EUA_BLS.values()})}).encode(),
+                                     headers={"Content-Type": "application/json", "User-Agent": "painel-mercado"})
+        with urllib.request.urlopen(req, timeout=TIMEOUT_REQ) as r: js = json.loads(r.read())
+        if js.get("status") != "REQUEST_SUCCEEDED": raise ValueError("; ".join(js.get("message", []))[:200])
+        por = {}
+        for sr in js.get("Results", {}).get("series", []):
+            pts = sorted((f"{d['year']}-{d['period'][1:]}", float(d["value"])) for d in sr["data"] if d["period"].startswith("M") and d["period"] != "M13" and d["value"] not in ("-", ""))
+            por[sr["seriesID"]] = pts
+        for ev, (sid, modo, un, cs) in EUA_BLS.items():
+            if len(por.get(sid, [])) >= 14:
+                p1, v = _calc(por[sid], modo); rows[ev] = {"evento": ev, "periodo": p1, "valor": round(v, 3), "unidade": un, "casas": cs, "fonte": "BLS"}
+    except Exception as e:
+        STATUS.append({"bloco": "BLS", "ok": False, "msg": str(e)[:200]})
+    ini = (NOW.date() - dt.timedelta(days=500)).isoformat()
+    for ev, (sid, modo, un, cs, esc) in EUA_FRED.items():
+        try:
+            pts = sorted(fred([sid], ini)[sid].items())
+            p1, v = _calc([(d.isoformat()[:7] if modo != "lvl" or un != "K" else d.isoformat(), x) for d, x in pts], modo)
+            if modo == "lvl": v = v * esc
+            rows[ev] = {"evento": ev, "periodo": p1, "valor": round(v, 3), "unidade": un, "casas": cs, "fonte": "FRED"}
+        except Exception as e:
+            STATUS.append({"bloco": "FRED: " + sid, "ok": False, "msg": str(e)[:120]})
+    save("mi_eua.json", list(rows.values()))
+b_eua()
+
 # ---------------------------------------------------------------- notícias
 @bloco("Notícias (RSS)")
 def b_news():
