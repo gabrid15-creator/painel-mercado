@@ -10,11 +10,16 @@
     let s = j.score;
     const hoje = I && I.estado && I.estado !== 'cedo' && (Date.now() - new Date(I.atualizado + '-05:00')) < 6 * 3600e3;
     if (hoje && I.estado === 'tendencia') s = Math.min(s, 20); else if (hoje && I.estado === 'atencao') s = Math.min(s, 50);
+    const dNY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    const ev = j.evento && j.evento_data === dNY ? j.evento : null;
+    if (ev === 'NFP') s = Math.min(s, 35); else if (ev === 'FOMC') s = Math.min(s, 50);
     const cls = s < 40 ? 'bad' : s < 70 ? 'warn' : 'ok';
     const tag = s < 40 ? '🔴 NÃO operar contra' : s < 70 ? '🟡 cautela' : '🟢 bom p/ reversão';
     let t;
     if (hoje && I.estado === 'tendencia') t = '<b>Dia de tendência de ' + I.direcao + '.</b> Já andou ' + nf(Math.abs(I.mov_atr), 2) + '× o range médio desde a meia-noite e está na ponta. Não tente pegar topo/fundo; só a favor ou fora.';
     else if (hoje && I.estado === 'atencao') t = '<b>Começando a andar para ' + I.direcao + '</b> (' + nf(Math.abs(I.mov_atr), 2) + '× o range médio, na ponta). Mão menor; depois das 10h NY, acima de 0,6× vira tendência.';
+    else if (ev === 'NFP') t = '<b>Dia de payroll (NFP, 8h30 NY).</b> Historicamente 2× mais dias de tendência. Não opere contra o movimento que sair do dado.';
+    else if (ev === 'FOMC') t = '<b>Dia de FOMC (14h NY).</b> Range costuma ser ~1,5× o normal e com chicote para os dois lados. Mão menor e stop mais largo.';
     else if (s < 40) t = '<b>Véspera com cara de tendência:</b> opções esperando mais movimento do que o ouro vem fazendo. Evite operar contra.';
     else if (s < 70) t = '<b>Dia neutro.</b> Reversão só com confluência forte e mão reduzida.';
     else t = '<b>Dia favorável a reversão.</b> Opções calmas e o ouro sem disparar até agora.';

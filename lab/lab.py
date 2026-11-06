@@ -83,6 +83,15 @@ for i in range(max(260, n - 120), n + 1):
     s_, _, v_, *_ = score_at(i); p_, _ = cta_at(i)
     hist.append([dates[i], s_, round(v_, 2) if v_ is not None else None, round(p_ * 100)])
 
+# Eventos agendados (testado out/2020–out/2026): NFP (1ª sexta) = 18% de dias de tendência x 9% normal;
+# FOMC = range 1,45× o médio e 42% dos dias com range > 1,5× (normal 12%), mas sem direção (chicote).
+FOMC = {'2026-01-28','2026-03-18','2026-04-29','2026-06-17','2026-07-29','2026-09-16','2026-10-28','2026-12-09',
+        '2027-03-17','2027-04-28','2027-06-09','2027-07-28','2027-09-15','2027-10-27','2027-12-08'}
+def evento(d):
+    if d.isoformat() in FOMC: return 'FOMC'
+    if d.weekday() == 4 and d.day <= 7: return 'NFP'
+    return None
+hoje_ny = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=5)).date()
 try: ct = cot()
 except Exception: ct = []
 J = {
@@ -93,7 +102,7 @@ J = {
   'cot': {'data': ct[-1][0], 'mm_liq_pct_oi': round(ct[-1][1] * 100, 1),
           'z_3a': round((ct[-1][1] - st.mean(x for _, x in ct[-156:])) / st.stdev(x for _, x in ct[-156:]), 2)} if len(ct) > 20 else None,
   'mao': {'mult': round(mult, 2), 'vol_atual': round(vnow * 100, 1), 'vol_normal': round(vmed * 100, 1)},
-  'score': sc, 'pontos': pts, 'hist': hist,
+  'score': sc, 'pontos': pts, 'hist': hist, 'evento': evento(hoje_ny), 'evento_data': hoje_ny.isoformat(),
 }
 open(f'{OUT}/lab.json', 'w').write(json.dumps(J, ensure_ascii=False, separators=(',', ':')))
 print(json.dumps({k: J[k] for k in ('data', 'preco', 'vrp', 'score', 'pontos', 'cta', 'mao')}, ensure_ascii=False))
