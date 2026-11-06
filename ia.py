@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Leitura da IA: lê out/digest.txt e grava out/mi_ia.json (texto geral + um por ativo) com a API da Anthropic.
-Roda a cada coleta, mas só chama a API se a leitura tiver 1 hora ou mais, ou se saiu um red folder depois dela.
+Roda a cada coleta; chama a API de hora em hora das 6h às 18h (Brasília), a cada 3 horas fora disso, e sempre depois de um red folder.
 Sem a chave ANTHROPIC_API_KEY, não faz nada. Uso: python3 ia.py out"""
 import os, sys, json, datetime as dt
 from zoneinfo import ZoneInfo
@@ -24,8 +24,11 @@ ultima = max((dt.datetime.strptime(x["gerado_em"], "%Y-%m-%d %H:%M").replace(tzi
 red_depois = ultima and any(
     x.get("impacto") == "Alto" and ultima < dt.datetime.strptime(x["quando"], "%Y-%m-%d %H:%M").replace(tzinfo=BRT) <= agora - dt.timedelta(minutes=10)
     for x in ler("mi_agenda.json"))
-fim_de_semana = agora.weekday() == 5 or (agora.weekday() == 6 and agora.hour < 18)   # mercado fechado
-if ultima and not red_depois and (agora - ultima < dt.timedelta(minutes=55) or fim_de_semana):
+# frequência (horário de Brasília): pregão 6h–18h = de hora em hora; fora dele = a cada 3 horas;
+# red folder = sempre; fim de semana parado até domingo 18h (mercado fechado)
+fim_de_semana = agora.weekday() == 5 or (agora.weekday() == 6 and agora.hour < 18)
+intervalo = dt.timedelta(minutes=55) if 6 <= agora.hour < 18 else dt.timedelta(hours=3, minutes=-5)
+if ultima and not red_depois and (agora - ultima < intervalo or fim_de_semana):
     print(f"leitura de {ultima:%d/%m %H:%M} ainda vale"); sys.exit(0)
 
 dig = open(os.path.join(OUT, "digest.txt"), encoding="utf-8").read()
