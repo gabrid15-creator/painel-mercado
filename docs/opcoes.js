@@ -141,8 +141,12 @@
       const xg = $('.op-xgtiles'); xg.replaceChildren();
       const GX = (D('ouro_gamma').status === 'ok' ? D('ouro_gamma').data : []).map((r) => ({ p: Number(r.preco), g: Number(r.gex) }));
       const gmax = GX.length ? GX.reduce((a, b) => (b.g > a.g ? b : a)) : null, gmin = GX.length ? GX.reduce((a, b) => (b.g < a.g ? b : a)) : null;
+      // código do TradingView: paredes do arquivo + gamma (Z flip, X +máx, Y −máx) igual aos cards
+      const base = String(R.codigo || '').split(' | ').filter((x) => x && !/^[ZXY] /.test(x));
+      if (R.flip != null) base.push('Z ' + Number(R.flip).toFixed(1)); if (gmax) base.push('X ' + gmax.p.toFixed(1)); if (gmin) base.push('Y ' + gmin.p.toFixed(1));
+      $('.op-code-xau').textContent = base.join(' | ') || '—';
       tile(xg, 'Gamma flip', n0(R.flip), 'acima segura, abaixo acelera'); tile(xg, 'Gamma + máximo', gmax ? n0(gmax.p) : '—', 'preço onde o hedge mais segura', 'var(--color-ok)'); tile(xg, 'Gamma − máximo', gmin ? n0(gmin.p) : '—', 'preço onde o hedge mais acelera', 'var(--color-bad)');
-      $('.op-code-xau').textContent = R.codigo || '—';
+
       const F = Number(R.futuro_dec); const m = new Map();
       for (const r of D('ouro_paredes').status === 'ok' ? D('ouro_paredes').data : []) {
         const k = Number(r.strike); if (Math.abs(k / F - 1) > 0.10) continue; const b = Math.round(k / 25) * 25;
