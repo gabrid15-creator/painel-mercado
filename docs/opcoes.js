@@ -135,9 +135,13 @@
       $('.op-take').textContent = 'Ouro: futuro de dezembro em ' + n0(R.futuro_dec) + ', gamma flip em ' + n0(R.flip) + ' (' + (Number(R.futuro_dec) < Number(R.flip) ? 'abaixo do flip: o hedge acelera' : 'acima do flip: o hedge segura') + ').';
       const tb = $('.op-tiles-xau'); tb.replaceChildren();
       tile(tb, 'Pregão lido', br(R.data_pregao), R.situacao + ' · os dados abaixo são deste pregão');
-      tile(tb, 'Futuro dez · gamma flip', n0(R.futuro_dec), 'flip ' + n0(R.flip));
-      tile(tb, 'Maior call CME', n0(R.maior_call_cme), 'resistência', 'var(--color-ok)'); tile(tb, 'Maior put CME', n0(R.maior_put_cme), 'suporte', 'var(--color-bad)');
-      tile(tb, 'Maior call · put GLD+IAU', n0(R.maior_call_etf), 'put ' + n0(R.maior_put_etf));
+      tile(tb, 'Futuro de ouro (DEC26)', n0(R.futuro_dec), 'referência do XAUUSD');
+      tile(tb, 'Maior call wall (CME)', n0(R.maior_call_cme), 'resistência', 'var(--color-ok)'); tile(tb, 'Maior put wall (CME)', n0(R.maior_put_cme), 'suporte', 'var(--color-bad)');
+      tile(tb, 'Maior call · put GLD+IAU', n0(R.maior_call_etf), 'put ' + n0(R.maior_put_etf) + ' · ETFs convertidos para o preço do ouro');
+      const xg = $('.op-xgtiles'); xg.replaceChildren();
+      const GX = (D('ouro_gamma').status === 'ok' ? D('ouro_gamma').data : []).map((r) => ({ p: Number(r.preco), g: Number(r.gex) }));
+      const gmax = GX.length ? GX.reduce((a, b) => (b.g > a.g ? b : a)) : null, gmin = GX.length ? GX.reduce((a, b) => (b.g < a.g ? b : a)) : null;
+      tile(xg, 'Gamma flip', n0(R.flip), 'acima segura, abaixo acelera'); tile(xg, 'Gamma + máximo', gmax ? n0(gmax.p) : '—', 'preço onde o hedge mais segura', 'var(--color-ok)'); tile(xg, 'Gamma − máximo', gmin ? n0(gmin.p) : '—', 'preço onde o hedge mais acelera', 'var(--color-bad)');
       $('.op-code-xau').textContent = R.codigo || '—';
       const F = Number(R.futuro_dec); const m = new Map();
       for (const r of D('ouro_paredes').status === 'ok' ? D('ouro_paredes').data : []) {
