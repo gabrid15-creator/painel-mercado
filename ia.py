@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Leitura da IA: lê out/digest.txt e grava out/mi_ia.json (texto geral + um por ativo) com a API da Anthropic.
-Roda a cada coleta; chama a API de hora em hora das 6h às 18h (Brasília), a cada 3 horas fora disso, e sempre depois de um red folder.
+Roda a cada coleta; chama a API de hora em hora das 6h às 18h (Brasília), à noite só às 20h e à 0h, e sempre depois de um red folder.
 Sem a chave ANTHROPIC_API_KEY, não faz nada. Uso: python3 ia.py out"""
 import os, sys, json, datetime as dt
 from zoneinfo import ZoneInfo
@@ -24,11 +24,16 @@ ultima = max((dt.datetime.strptime(x["gerado_em"], "%Y-%m-%d %H:%M").replace(tzi
 red_depois = ultima and any(
     x.get("impacto") == "Alto" and ultima < dt.datetime.strptime(x["quando"], "%Y-%m-%d %H:%M").replace(tzinfo=BRT) <= agora - dt.timedelta(minutes=10)
     for x in ler("mi_agenda.json"))
-# frequência (horário de Brasília): pregão 6h–18h = de hora em hora; fora dele = a cada 3 horas;
-# red folder = sempre; fim de semana parado de sexta 18h a domingo 18h (mercado fechado)
+# frequência (horário de Brasília): 6h–18h = de hora em hora; à noite só às 20h e à 0h; red folder = sempre;
+# fim de semana parado de sexta 18h a domingo 18h (mercado fechado)
 fim_de_semana = (agora.weekday() == 4 and agora.hour >= 18) or agora.weekday() == 5 or (agora.weekday() == 6 and agora.hour < 18)
-intervalo = dt.timedelta(minutes=55) if 6 <= agora.hour < 18 else dt.timedelta(hours=3, minutes=-5)
-if ultima and not red_depois and (agora - ultima < intervalo or fim_de_semana):
+if 6 <= agora.hour < 18:
+    vencida = not ultima or agora - ultima >= dt.timedelta(minutes=55)
+else:   # último horário noturno (20h ou 0h) que já passou
+    hoje0 = agora.replace(hour=0, minute=0, second=0, microsecond=0)
+    marcos = [m for m in (hoje0 - dt.timedelta(hours=4), hoje0, hoje0 + dt.timedelta(hours=20)) if m <= agora]
+    vencida = not ultima or ultima < max(marcos)
+if ultima and not red_depois and (not vencida or fim_de_semana):
     print(f"leitura de {ultima:%d/%m %H:%M} ainda vale"); sys.exit(0)
 
 dig = open(os.path.join(OUT, "digest.txt"), encoding="utf-8").read()
