@@ -310,6 +310,7 @@
   .ativos-fixo { position: sticky; top: var(--topo-h, 96px); z-index: 15; display: flex; flex-direction: column; gap: 6px; padding: 8px 0; margin: -8px 0; background: color-mix(in srgb, var(--color-bg) 85%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
   .ativos-fixo.preso { box-shadow: 0 10px 16px -14px rgba(0,0,0,.6); border-bottom: 1px solid var(--color-border-line); }
   .ia-vies { font-size: 12px; padding: 3px 12px; letter-spacing: .04em; text-transform: uppercase; }
+  .mi-exp b { color: var(--color-fg); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -359,14 +360,14 @@
 
 
     <section class="op-card radar"><div class="ag-top"><h2>Radar institucional</h2><span class="tl-chip ia-chip">o que as mesas olham</span></div>
-      <p class="op-note"><b>Como ler:</b> são os termômetros que mesas de bancos e fundos olham antes do preço. <b>Liquidez</b> diz se há dinheiro entrando no sistema (combustível para Nasdaq e ouro). <b>Estresse</b> mostra se o medo é pontual ou sistêmico: VIX ÷ VIX 3 meses acima de 1 = pânico de curto prazo, costuma marcar fundos de bolsa quando volta abaixo de 1; MOVE alto = juros instáveis, dólar e iene ganham; NFCI acima de 0 = crédito travando, risco para tudo. <b>Surpresa</b> compara a economia de cada país com o que se esperava: moeda com surpresa positiva tende a se valorizar contra a de surpresa negativa (ex.: USD +40 e EUR −20 favorece EURUSD caindo). O <b>regime</b> dos EUA cruza surpresa de crescimento e de inflação: estagflação favorece ouro e franco; cenário ideal favorece Nasdaq.</p>
+      <p class="op-note"><b>Como ler:</b> são os termômetros que mesas de bancos e fundos olham antes do preço. <b>Liquidez</b> diz se há dinheiro entrando no sistema (combustível para Nasdaq e ouro). <b>Estresse</b> mostra se o medo é pontual ou sistêmico: <b>VIX ÷ VIX 3 meses</b> acima de 1 = pânico de curto prazo, costuma marcar fundos de bolsa quando volta abaixo de 1; <b>MOVE</b> alto = juros instáveis, dólar e iene ganham; <b>NFCI</b> acima de 0 = crédito travando, risco para tudo. <b>Surpresa</b> compara a economia de cada país com o que se esperava: moeda com surpresa positiva tende a se valorizar contra a de surpresa negativa (ex.: <b>USD +40 e EUR −20</b> favorece EURUSD caindo). O <b>regime</b> dos EUA cruza surpresa de crescimento e de inflação: <b>estagflação</b> favorece ouro e franco; <b>cenário ideal</b> favorece Nasdaq.</p>
       <div class="rd-g">
         <div class="rd-c"><span class="tl-k">Liquidez líquida do Fed</span><div class="tl-v"><span class="v rd-liq">—</span><span class="tl-u rd-liq-d">—</span></div><span class="tl-chip rd-liq-chip">—</span><ul class="tl-l rd-liq-l"></ul>
-          <span class="mi-exp">Balanço do Fed − TGA − reverse repo: o dinheiro que circula no mercado. Subindo = injeção (ajuda Nasdaq e ouro); caindo = drenagem.</span></div>
+          <span class="mi-exp"><b>Balanço do Fed − TGA − reverse repo</b>: o dinheiro que circula no mercado. <b>Subindo</b> = injeção (ajuda Nasdaq e ouro); <b>caindo</b> = drenagem. Atualiza 1× por dia (TGA e RRP) e o balanço 1× por semana (quinta).</span></div>
         <div class="rd-c"><span class="tl-k">Estresse</span><ul class="tl-l rd-st"></ul>
-          <span class="mi-exp">VIX ÷ VIX 3 meses acima de 1 = pânico agudo (curva invertida). MOVE = "VIX dos títulos". NFCI (Fed de Chicago) acima de 0 = crédito apertado.</span></div>
+          <span class="mi-exp"><b>VIX ÷ VIX 3 meses</b> acima de 1 = pânico agudo (curva invertida). <b>MOVE</b> = "VIX dos títulos". <b>NFCI</b> (Fed de Chicago) acima de 0 = crédito apertado. VIX e MOVE atualizam a cada 5 min no pregão (com até ~15 min de atraso da fonte); NFCI 1× por semana (quarta).</span></div>
         <div class="rd-c"><span class="tl-k">Surpresa econômica · 90 dias</span><div class="rd-sp"></div><span class="tl-chip rd-reg">—</span>
-          <span class="mi-exp">Quanto os dados de cada país vieram acima (+) ou abaixo (−) da previsão, de −100 a +100, com peso maior para os recentes e os de alto impacto (como o índice do Citi). Desemprego e pedidos de seguro têm sinal invertido.</span></div>
+          <span class="mi-exp">Quanto os dados de cada país vieram <b>acima (+)</b> ou <b>abaixo (−)</b> da previsão, de −100 a +100, com peso maior para os recentes e os de alto impacto (como o índice do Citi). <b>Desemprego e pedidos de seguro</b> têm sinal invertido. Recalculado a cada 10 min.</span></div>
       </div></section>
 
     <div class="ativos-fixo"><span class="tl-k">Escolha o ativo</span><div class="ativos" role="group" aria-label="Ativo"></div></div>
