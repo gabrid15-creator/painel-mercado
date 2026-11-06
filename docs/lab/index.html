@@ -32,8 +32,7 @@
   <div class="row" style="margin-top:6px"><span class="big" id="final">–</span><span class="how" id="dhora"></span></div>
   <div id="dtxt" style="margin-top:8px;font-size:16px"></div>
   <div class="how" id="dctx"></div>
-  <div class="how"><b>Como funciona:</b> começa no score da véspera (abaixo); em dia de NFP (1ª sexta) cai para no máximo 35 e em dia de FOMC para 50, já desde a madrugada (NFP: 18% de dias de tendência x 9% normal; FOMC: 42% dos dias com range 1,5× o médio x 12%). Depois, a partir das 8h de NY (10h de Brasília), o movimento do dia pode derrubar o score.
-  Período todo 2021–2026: com 0,6× o alerta pega 51% dos dias de tendência até as 10h NY e 78% até as 12h NY (cada ano entre 40% e 88%), acertando ~3× mais que o acaso. Depois do alerta, o preço esticar mais 1 range médio contra quem opera reversão é 2–3× mais comum. Atualiza de 30 em 30 min.</div>
+  <div class="how"><b>Como funciona:</b> chance de o dia virar tendência, sem travas. Modelo do período todo out/2020–out/2026 que junta VRP, salto do GVZ, NFP/FOMC e, a partir das 8h NY, quanto o ouro já andou e se está na ponta. Calibrado (diz 5% → acontece ~4%; diz 30% → ~35%). AUC: pré-mercado 0,61 · 8h 0,68 · 10h 0,78 · 12h 0,86. 🟢 abaixo de 12% · 🟡 12–25% · 🔴 acima de 25%. Atualiza de 30 em 30 min.</div>
 </div>
 
 <div class="card">
@@ -88,24 +87,17 @@ const nf=(v,d=1)=>v==null?'–':Number(v).toLocaleString('pt-BR',{minimumFractio
 const dBR=s=>s?s.slice(8,10)+'/'+s.slice(5,7)+'/'+s.slice(0,4):'–';
 const $=id=>document.getElementById(id);
 function diag(j,I){
-  let s=j.score,txt,tag,cor;
-  const hoje=I&&I.atualizado&&I.estado&&I.estado!=='cedo'&&(Date.now()-new Date(I.atualizado+'-05:00'))<6*3600e3;
-  if(hoje&&I.estado==='tendencia')s=Math.min(s,20);else if(hoje&&I.estado==='atencao')s=Math.min(s,50);
-    const dNY = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    const ev = j.evento && j.evento_data === dNY ? j.evento : null;
-    if (ev === 'NFP') s = Math.min(s, 35); else if (ev === 'FOMC') s = Math.min(s, 50);
-  if(s<40){cor='bad';tag='🔴 NÃO operar contra'}else if(s<70){cor='warn';tag='🟡 cautela'}else{cor='ok';tag='🟢 dia bom p/ reversão'}
-  if(hoje&&I.estado==='tendencia')txt='<b>Dia de tendência de '+I.direcao+'.</b> O ouro já andou '+nf(Math.abs(I.mov_atr),2)+'× o range médio desde a meia-noite e está na ponta. Não tente pegar topo/fundo; só a favor ou fora.';
-  else if(hoje&&I.estado==='atencao')txt='<b>Atenção: começando a andar para '+I.direcao+'.</b> Já são '+nf(Math.abs(I.mov_atr),2)+'× o range médio e na ponta. Mão menor; se passar de 0,6× depois das 10h NY, vira tendência.';
-  else if(ev==='NFP')txt='<b>Dia de payroll (NFP, 8h30 NY).</b> Historicamente 2× mais dias de tendência. Não opere contra o movimento que sair do dado.';
-  else if(ev==='FOMC')txt='<b>Dia de FOMC (14h NY).</b> Range costuma ser ~1,5× o normal e com chicote para os dois lados. Mão menor e stop mais largo.';
-  else if(s<40)txt='<b>Véspera com cara de tendência</b> (opções esperando mais movimento do que o ouro vem fazendo). Evite operar contra até o mercado mostrar o contrário.';
-  else if(s<70)txt='<b>Dia neutro.</b> Reversão só com confluência forte e mão reduzida.';
-  else txt='<b>Dia favorável a reversão.</b> Opções esperando pouco movimento e o ouro sem disparar até agora.';
-  $('final').textContent=s;$('dtag').innerHTML='<span class="tag '+cor+'">'+tag+'</span>';$('diag').style.borderColor='var(--'+cor+')';$('dtxt').innerHTML=txt;
-  $('dhora').textContent=hoje?('Hoje às '+I.hora_ny+' NY · ouro '+nf(I.preco)+' ('+(I.mov_atr>0?'+':'')+nf(I.mov_atr,2)+'× range médio)'):'Só véspera (antes das 8h NY ou sem dados de hoje)';
-  let c=[];
-  $('dctx').innerHTML=c.join('<br>');
+  const dNY=new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+  const hoje=I&&I.p!=null&&I.atualizado&&I.atualizado.slice(0,10)===dNY;
+  const p=hoje?I.p:(j.evento_data===dNY?j.p0:null), base=j.base_pct||9.5, ev=j.evento_data===dNY?j.evento:null;
+  if(p==null){$('dtxt').textContent='Aguardando dados de hoje.';return}
+  const cor=p>=25?'bad':p>=12?'warn':'ok', tag=p>=25?'🔴 não operar contra':p>=12?'🟡 cautela':'🟢 bom p/ reversão';
+  let txt=p>=25?'<b>Alta chance de dia de tendência.</b> Não tente pegar topo/fundo; só a favor ou fora.':p>=12?'<b>Chance de tendência acima do normal.</b> Mão menor e reversão só com confluência forte.':'<b>Dia com cara de lateral/reversão.</b> Chance de tendência abaixo do normal.';
+  if(hoje&&I.p_hora>=8&&Math.abs(I.mov_atr)>=0.3)txt+=' Se virar tendência, deve ser de <b>'+I.direcao+'</b>.';
+  if(ev==='NFP')txt+=' Hoje tem payroll (8h30 NY).';else if(ev==='FOMC')txt+=' Hoje tem FOMC (14h NY).';
+  $('final').textContent=nf(p,0)+'%';$('dtag').innerHTML='<span class="tag '+cor+'">'+tag+'</span>';$('diag').style.borderColor='var(--'+cor+')';$('dtxt').innerHTML=txt;
+  $('dhora').textContent='chance de dia de tendência (normal '+nf(base,0)+'%) · '+(hoje&&I.p_hora?'com o movimento até '+I.hora_ny+' NY · ouro '+nf(I.preco)+' ('+(I.mov_atr>0?'+':'')+nf(I.mov_atr,2)+'× range médio)':'pré-mercado');
+  $('dctx').innerHTML='';
 }
 function lote(m){const b=parseFloat($('base').value)||0;$('lote').textContent=nf(Math.max(0.01,Math.round(b*m*100)/100),2);try{localStorage.setItem('lab_base',$('base').value)}catch(e){}}
 const URLI=URL_.replace('lab.json','intraday.json');

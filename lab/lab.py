@@ -92,6 +92,12 @@ def evento(d):
     if d.weekday() == 4 and d.day <= 7: return 'NFP'
     return None
 hoje_ny = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=5)).date()
+MOD = json.load(open(__file__.rsplit('/', 1)[0] + '/modelo_tendencia.json'))
+def prob(h, feats):
+    m = MOD['modelos'][str(h)]; z = m['b'] + sum(c * feats[k] for c, k in zip(m['coef'], m['cols']))
+    return 1 / (1 + math.exp(-z))
+ev_h = evento(hoje_ny)
+p0 = prob(0, {'vrp': max(-10, min(15, vrp or 0)), 'gvz5': max(-30, min(60, gch)), 'nfp': 1.0 if ev_h == 'NFP' else 0.0, 'fomc': 1.0 if ev_h == 'FOMC' else 0.0})
 try: ct = cot()
 except Exception: ct = []
 J = {
@@ -102,7 +108,7 @@ J = {
   'cot': {'data': ct[-1][0], 'mm_liq_pct_oi': round(ct[-1][1] * 100, 1),
           'z_3a': round((ct[-1][1] - st.mean(x for _, x in ct[-156:])) / st.stdev(x for _, x in ct[-156:]), 2)} if len(ct) > 20 else None,
   'mao': {'mult': round(mult, 2), 'vol_atual': round(vnow * 100, 1), 'vol_normal': round(vmed * 100, 1)},
-  'score': sc, 'pontos': pts, 'hist': hist, 'evento': evento(hoje_ny), 'evento_data': hoje_ny.isoformat(),
+  'score': sc, 'pontos': pts, 'hist': hist, 'evento': ev_h, 'p0': round(p0 * 100, 1), 'base_pct': MOD['base_pct'], 'evento_data': hoje_ny.isoformat(),
 }
 open(f'{OUT}/lab.json', 'w').write(json.dumps(J, ensure_ascii=False, separators=(',', ':')))
 print(json.dumps({k: J[k] for k in ('data', 'preco', 'vrp', 'score', 'pontos', 'cta', 'mao')}, ensure_ascii=False))

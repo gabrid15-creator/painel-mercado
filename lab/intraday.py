@@ -48,5 +48,19 @@ if hj:
         else: estado = 'normal'
     J.update({'abertura': round(o, 1), 'preco': round(c, 1), 'max': round(h, 1), 'min': round(l, 1),
               'mov_atr': round(mv, 2), 'ponta': round(ponta, 2), 'estado': estado, 'direcao': 'alta' if mv > 0 else 'baixa'})
+# probabilidade de dia de tendência (modelo logístico por horário, período todo out/2020–out/2026)
+import math, os
+MOD = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modelo_tendencia.json')))
+try: L = json.load(open(f'{OUT}/lab.json'))
+except Exception: L = {}
+evt = L.get('evento') if L.get('evento_data') == hoje.isoformat() else None
+f = {'vrp': max(-10, min(15, L.get('vrp') or 0)), 'gvz5': max(-30, min(60, L.get('gvz_var5') or 0)),
+     'nfp': 1.0 if evt == 'NFP' else 0.0, 'fomc': 1.0 if evt == 'FOMC' else 0.0}
+hr = agora.hour + agora.minute / 60
+hh = 0 if (not hj or hr < 8) else min(12, int(hr))
+if hh:
+    mvv = min(3, abs(J['mov_atr'])); pt = max(0, min(1, J['ponta'])); f.update({'mov': mvv, 'ponta': pt, 'mov_x_ponta': mvv * pt})
+m = MOD['modelos'][str(hh)]; z = m['b'] + sum(c * f[k] for c, k in zip(m['coef'], m['cols']))
+J.update({'p': round(100 / (1 + math.exp(-z)), 1), 'p_hora': hh, 'evento': evt, 'base_pct': MOD['base_pct']})
 open(f'{OUT}/intraday.json', 'w').write(json.dumps(J, ensure_ascii=False, separators=(',', ':')))
 print(J)
