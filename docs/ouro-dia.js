@@ -18,10 +18,14 @@
       : p >= 12 ? '<b>Chance de tendência acima do normal.</b> Mão menor e reversão só com confluência forte.'
       : '<b>Dia com cara de lateral/reversão.</b> Chance de tendência abaixo do normal.';
     if (hoje && I.p_hora >= 8 && Math.abs(I.mov_atr) >= 0.3) t += ' Se virar tendência, deve ser de <b>' + I.direcao + '</b> (o dia fecha no sentido da manhã em ~97% dos dias de tendência).';
-    if (ev === 'NFP') t += ' Hoje tem payroll (8h30 NY).'; else if (ev === 'FOMC') t += ' Hoje tem FOMC (14h NY): range costuma ser maior, com chicote.';
+    const evs = (hoje && I.eventos && I.eventos.length) ? I.eventos : (ev ? [ev] : []);
+    if (evs.length) t += ' Hoje: ' + evs.map(e => ({ NFP: 'payroll 8h30 NY', CPI: 'CPI 8h30 NY', PPI: 'PPI 8h30 NY', FOMC: 'FOMC 14h NY' })[e] || e).join(', ') + '.';
     el.querySelector('.od-n').textContent = nf(p, 0) + '%';
     el.querySelector('.od-tag').className = 'tl-chip od-tag ' + cls; el.querySelector('.od-tag').textContent = tag;
     el.style.borderLeft = '4px solid var(--color-' + cls + ')';
+    el.querySelector('.od-txt').innerHTML = t;
+    const pr = hoje && I.p_range != null ? I.p_range : null;
+    if (pr != null) t += '<br><b>Range grande (≥ 1,5× o normal, "não respeita níveis"): ' + nf(pr, 0) + '%</b> (normal ' + nf(I.base_range, 0) + '%)' + (pr >= 35 ? ' → afaste as entradas do DCA e use stop mais largo.' : pr >= 20 ? ' → atenção ao espaçamento do DCA.' : '.');
     el.querySelector('.od-txt').innerHTML = t;
     el.querySelector('.od-det').textContent = 'Chance de dia de tendência (normal ' + nf(base, 0) + '%) · ' + (hoje && I.p_hora ? 'calculada com o movimento até ' + I.hora_ny + ' NY' : 'pré-mercado (véspera + calendário)') + ' · mão sugerida ' + nf(j.mao.mult, 2) + '× · VRP ' + nf(j.vrp, 2) + ' · GVZ 5 dias ' + (j.gvz_var5 > 0 ? '+' : '') + nf(j.gvz_var5) + '%';
   }

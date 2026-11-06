@@ -29,7 +29,7 @@ def dias(b):  # agrupa por dia de calendário de NY (dia começa à meia-noite, 
     return d
 
 agora = dt.datetime.now(NY)
-g1h = bars('GC=F', '60d', '1h'); g5 = bars('GC=F', '1d', '5m')
+g1h = bars('GC=F', '6mo', '1h'); g5 = bars('GC=F', '1d', '5m')
 D = dias(g1h); hoje = agora.date()
 hist = [k for k in sorted(D) if k < hoje and k.weekday() < 5][-20:]
 atr = sum(D[k][1] - D[k][2] for k in hist) / len(hist)
@@ -62,5 +62,24 @@ if hh:
     mvv = min(3, abs(J['mov_atr'])); pt = max(0, min(1, J['ponta'])); f.update({'mov': mvv, 'ponta': pt, 'mov_x_ponta': mvv * pt})
 m = MOD['modelos'][str(hh)]; z = m['b'] + sum(c * f[k] for c, k in zip(m['coef'], m['cols']))
 J.update({'p': round(100 / (1 + math.exp(-z)), 1), 'p_hora': hh, 'evento': evt, 'base_pct': MOD['base_pct']})
+# chance de dia de RANGE GRANDE (>= 1,5x o range médio) — modelo do período todo 2021–2026
+MR = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modelo_range.json')))
+EV = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'eventos.json')))
+ks = [k for k in sorted(D) if k < hoje and k.weekday() < 5]
+rngs = [D[k][1] - D[k][2] for k in ks]
+atr_prev = sum(rngs[-21:-1]) / 20 if len(rngs) > 21 else atr
+reg = atr / (sum(rngs[-100:]) / len(rngs[-100:]))
+vixb = bars('^VIX', '10d', '1d'); vix = [x[4] for x in vixb if x[0].date() < hoje][-1] if vixb else 18.0
+o_h = hj[0][1] if hj else None
+fr = {'gvz': L.get('gvz') or 25, 'gvz5': max(-30, min(60, L.get('gvz_var5') or 0)), 'vix': vix,
+      'ontem_rng': rngs[-1] / atr_prev, 'reg_vol': reg, 'gap': abs(o_h - D[ks[-1]][3]) / atr if o_h else 0,
+      'seg': 1.0 if hoje.weekday() == 0 else 0.0}
+for n in ('cpi', 'nfp', 'ppi', 'fomc'): fr[n] = 1.0 if hoje.isoformat() in EV[n] else 0.0
+if hh and hj:
+    lon = [x for x in hj if 2 <= x[0].hour < min(hr, 8)]
+    fr.update({'rng_ate': min(4, (max(x[2] for x in hj) - min(x[3] for x in hj)) / atr), 'mov': min(3, abs(J['mov_atr'])),
+               'londres_rng': min(3, (max(x[2] for x in lon) - min(x[3] for x in lon)) / atr) if lon else 0})
+mr = MR['modelos'][str(hh)]; zr = mr['b'] + sum(c * fr[k] for c, k in zip(mr['coef'], mr['cols']))
+J.update({'p_range': round(100 / (1 + math.exp(-zr)), 1), 'base_range': MR['base_pct'], 'eventos': [n.upper() for n in ('fomc', 'cpi', 'nfp', 'ppi') if fr[n]]})
 open(f'{OUT}/intraday.json', 'w').write(json.dumps(J, ensure_ascii=False, separators=(',', ':')))
 print(J)
