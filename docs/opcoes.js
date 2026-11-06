@@ -22,9 +22,13 @@
   // ---------------- cálculos do euro (mesma lógica do painel do Claude)
   // ---------------- cálculo genérico (euro e ouro): paredes, gamma (Black-76) e código do TradingView
   const MES3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-  const venEur = (v) => { const mm = MES3.indexOf(String(v).slice(0, 3)); const y = 2000 + Number(String(v).slice(3)); const wd = new Date(Date.UTC(y, mm, 1)).getUTCDay(); return new Date(Date.UTC(y, mm, 1 + ((3 - wd + 7) % 7) + 2)); };
+  // vencimento como data (opções semanais: "2026-11-13"); senão código mensal ("DEC26")
+  const venData = (v) => (/^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? new Date(String(v) + 'T21:00:00Z') : null);
+  const venEur = (v) => { const dd = venData(v); if (dd) return dd; return venEur0(v); };
+  const venEur0 = (v) => { const mm = MES3.indexOf(String(v).slice(0, 3)); const y = 2000 + Number(String(v).slice(3)); const wd = new Date(Date.UTC(y, mm, 1)).getUTCDay(); return new Date(Date.UTC(y, mm, 1 + ((3 - wd + 7) % 7) + 2)); };
   // ouro (OG): 4 dias úteis antes do fim do mês anterior ao do contrato
-  const venOuro = (v) => { const mm = MES3.indexOf(String(v).slice(0, 3)); const y = 2000 + Number(String(v).slice(3)); let d = new Date(Date.UTC(y, mm, 0)); let n = 0;
+  const venOuro = (v) => { const dd = venData(v); if (dd) return dd; return venOuro0(v); };
+  const venOuro0 = (v) => { const mm = MES3.indexOf(String(v).slice(0, 3)); const y = 2000 + Number(String(v).slice(3)); let d = new Date(Date.UTC(y, mm, 0)); let n = 0;
     while (true) { if (d.getUTCDay() % 6 !== 0) { if (n === 4) return d; n++; } d = new Date(d.getTime() - 864e5); } };
   function calcGamma(cad, cfg) {
     const ninv = (p) => { let lo = -8, hi = 8; for (let i = 0; i < 80; i++) { const mid = (lo + hi) / 2; const z = Math.abs(mid) / Math.SQRT2; const k = 1 / (1 + 0.3275911 * z); const e = 1 - (((((1.061405429 * k - 1.453152027) * k) + 1.421413741) * k - 0.284496736) * k + 0.254829592) * k * Math.exp(-z * z); const c = 0.5 * (1 + (mid < 0 ? -e : e)); if (c < p) lo = mid; else hi = mid; } return (lo + hi) / 2; };
