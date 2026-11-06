@@ -546,7 +546,7 @@
     const vr = row('VIX ÷ VIX 3 meses'), mv = row('MOVE (vol. de Treasuries)'), nc = row('Condições financeiras (NFCI)');
     li(st, 'VIX ÷ VIX 3 meses', vr ? nf(vr.valor, 2) : '—', '', vr ? (vr.valor >= 1 ? ['pânico agudo', 'bad'] : vr.valor >= 0.92 ? ['atenção', 'warn'] : ['calmo', 'ok']) : null);
     li(st, 'MOVE', mv ? nf(mv.valor, 0) : '—', '', mv ? (mv.pctil_1a >= 80 ? ['alto no ano', 'bad'] : mv.pctil_1a <= 20 ? ['baixo no ano', 'ok'] : ['normal', '']) : null);
-    li(st, 'Condições financeiras', nc ? nf(nc.valor, 2) : '—', '', nc ? (nc.valor > 0 ? ['apertadas', 'bad'] : ['frouxas', 'ok']) : null);
+    li(st, 'NFCI · condições financeiras' + (nc ? ' (' + br(nc.data).slice(0, 5) + ')' : ''), nc ? nf(nc.valor, 2) : '—', '', nc ? (nc.valor > 0 ? ['apertadas', 'bad'] : ['frouxas', 'ok']) : null);
     const sp = $('.rd-sp'); sp.replaceChildren();
     for (const cur of ['USD', 'EUR', 'GBP', 'JPY', 'CHF']) {
       const v = surpresaIdx(cur, false); const r = document.createElement('div'); r.className = 'rd-b';

@@ -195,13 +195,15 @@ def b_bund():
 def b_fred():
     ini = (NOW.date() - dt.timedelta(days=3 * 366)).isoformat()
     FR["Balanço Fed"] = {d: v / 1000 for d, v in fred(["WALCL"], ini)["WALCL"].items()}   # milhões -> bilhões
-    txt = get("https://www.chicagofed.org/-/media/publications/nfci/nfci-data-series-csv.csv").decode("utf-8", "replace")
-    nfci = {}
-    for r in csv.DictReader(io.StringIO(txt)):
-        try: d = dt.datetime.strptime(r["Friday_of_Week"].strip(), "%m/%d/%Y").date()
-        except Exception: continue
-        if d.isoformat() >= ini and r.get("NFCI"): nfci[d] = float(r["NFCI"])
-    FR["Condições financeiras (NFCI)"] = nfci
+    try: FR["Condições financeiras (NFCI)"] = fred(["NFCI"], ini)["NFCI"]   # FRED: semanal, em dia
+    except Exception:   # reserva: arquivo do Fed de Chicago (às vezes desatualizado)
+        txt = get("https://www.chicagofed.org/-/media/publications/nfci/nfci-data-series-csv.csv").decode("utf-8", "replace")
+        nfci = {}
+        for r in csv.DictReader(io.StringIO(txt)):
+            try: d = dt.datetime.strptime(r["Friday_of_Week"].strip(), "%m/%d/%Y").date()
+            except Exception: continue
+            if d.isoformat() >= ini and r.get("NFCI"): nfci[d] = float(r["NFCI"])
+        FR["Condições financeiras (NFCI)"] = nfci
 
 b_precos(); b_tsy(); b_liq(); b_bund(); b_fred()
 
