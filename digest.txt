@@ -1,0 +1,107 @@
+Data 07/11/2026 15:10 BRT. F&G 22.0, VIX pctil 95.0, DXY 20d 0.088%
+
+EURUSD: preço 1.12283 (1d -0.06%, 5d 0.41%, 20d 0.14%), score 64 Altista
+  - Tendência (-3.3): preço acima da média de 20, abaixo da de 200 dias; média 20 abaixo da 50
+  - Movimento de hoje (-0.4): -0,06% hoje = 0,1x a oscilação média diária
+  - Juros (macro) (+7.8): Spread 2a EUA−Alemanha nos últimos 20 dias empurra o preço +0,78%
+  - Dólar (DXY) (-0.3): DXY +0,09% em 20 dias
+  - COT (+7.5): Fundos alavancados muito vendidos (índice 0): espaço para alta
+  - Risco (VIX/F&G) (-0.7): ambiente de aversão a risco (VIX percentil 95, F&G 22)
+  - Sazonalidade (+1.0): mês atual nos últimos 10 anos: subiu 60% (viés de alta)
+  - Valor justo (+2.2): preço abaixo do justo (z -1,8, R² 0,34)
+
+GBPUSD: preço 1.34561 (1d -0.16%, 5d 0.58%, 20d 1.72%), score 56 Neutro
+  - Tendência (+3.3): preço acima da média de 20, acima da de 200 dias; média 20 abaixo da 50
+  - Movimento de hoje (-1.2): -0,16% hoje = 0,3x a oscilação média diária
+  - Juros (macro) (+1.0): US2Y nos últimos 20 dias empurra o preço +0,10%
+  - Dólar (DXY) (-0.3): DXY +0,09% em 20 dias
+  - COT (+2.2): posição neutra (índice 41); gestores de ativos aumentaram compra na semana
+  - Risco (VIX/F&G) (-1.1): ambiente de aversão a risco (VIX percentil 95, F&G 22)
+  - Sazonalidade (+2.5): mês atual nos últimos 10 anos: subiu 80% (viés de alta)
+  - Valor justo (+0.0): preço acima do justo (z +0,5, R² 0,03): relação fraca, peso zero
+
+USDJPY: preço 158.425 (1d 0.59%, 5d 0.47%, 20d 0.14%), score 55 Neutro
+  - Tendência (+3.3): preço acima da média de 20, abaixo da de 200 dias; média 20 acima da 50
+  - Movimento de hoje (+4.0): +0,59% hoje = 1,2x a oscilação média diária
+  - Juros (macro) (-2.8): US2Y nos últimos 20 dias empurra o preço -0,28%
+  - Dólar (DXY) (+0.3): DXY +0,09% em 20 dias
+  - COT (+2.2): posição neutra (índice 65); gestores de ativos reduziram compra na semana (futuro da moeda: sinal invertido para o par)
+  - Risco (VIX/F&G) (-2.6): ambiente de aversão a risco (VIX percentil 95, F&G 22)
+  - Sazonalidade (+0.0): mês atual nos últimos 10 anos: subiu 50% (inconclusivo)
+  - Valor justo (+0.0): preço abaixo do justo (z -0,7, R² 0,11): relação fraca, peso zero
+
+USDCHF: preço 0.81538 (1d -0.13%, 5d -1.0%, 20d -1.92%), score 40 Baixista
+  - Tendência (+3.3): preço abaixo da média de 20, acima da de 200 dias; média 20 acima da 50
+  - Movimento de hoje (-0.7): -0,13% hoje = 0,2x a oscilação média diária
+  - Juros (macro) (-8.9): US2Y nos últimos 20 dias empurra o preço -0,89%
+  - Dólar (DXY) (+0.3): DXY +0,09% em 20 dias
+  - COT (-2.2): posição neutra (índice 22); gestores de ativos aumentaram compra na semana (futuro da moeda: sinal invertido para o par)
+  - Risco (VIX/F&G) (-1.8): ambiente de aversão a risco (VIX percentil 95, F&G 22)
+  - Sazonalidade (+0.0): mês atual nos últimos 10 anos: subiu 50% (inconclusivo)
+  - Valor justo (-0.0): preço acima do justo (z +0,0, R² 0,61)
+
+XAUUSD: preço 4074.9 (1d -0.94%, 5d 4.51%, 20d -3.35%), score 48 Neutro
+  - Tendência (-10.0): preço abaixo da média de 20, abaixo da de 200 dias; média 20 abaixo da 50
+  - Movimento de hoje (-1.5): -0,94% hoje = 0,5x a oscilação média diária
+  - Juros (macro) (+10.0): Juro real 10a nos últimos 20 dias empurra o preço +3,47%
+  - Dólar (DXY) (-0.3): DXY +0,09% em 20 dias
+  - COT (-2.2): posição neutra (índice 38); managed money reduziram compra na semana
+  - Risco (VIX/F&G) (+1.1): ambiente de aversão a risco (VIX percentil 95, F&G 22)
+  - Sazonalidade (+0.0): mês atual nos últimos 10 anos: subiu 50% (inconclusivo)
+  - Valor justo (+0.5): preço abaixo do justo (z -0,4, R² 0,32)
+
+NAS100: preço 26990.0 (1d 1.35%, 5d -4.91%, 20d -12.61%), score 29 Baixista
+  - Tendência (-10.0): preço abaixo da média de 20, abaixo da de 200 dias; média 20 abaixo da 50
+  - Movimento de hoje (+2.4): +1,35% hoje = 0,7x a oscilação média diária
+  - Juros (macro) (-10.0): Juro real 10a nos últimos 20 dias empurra o preço -4,73%
+  - Dólar (DXY) (-0.3): DXY +0,09% em 20 dias
+  - COT (-4.9): Fundos alavancados muito comprados (índice 93): risco de reversão
+  - Risco (VIX/F&G) (-3.6): ambiente de aversão a risco (VIX percentil 95, F&G 22)
+  - Sazonalidade (+2.5): mês atual nos últimos 10 anos: subiu 80% (viés de alta)
+  - Valor justo (+2.5): preço abaixo do justo (z -2,1, R² 0,60)
+
+Radar institucional e juros: Liquidez líquida Fed 5811.772 (20d -0.82%, pctil 1a 62.0); VIX ÷ VIX 3 meses 1.042 (20d 0.207p.p., pctil 1a 98.0); MOVE (vol. de Treasuries) 92.77 (20d -7.875%, pctil 1a 84.0); Condições financeiras (NFCI) -0.459 (20d 0.045p.p., pctil 1a 100.0); US2Y 4.51 (20d -0.24p.p., pctil 1a 84.0); US10Y 4.86 (20d -0.36p.p., pctil 1a 84.0); Juro real 10a 2.63 (20d -0.24p.p., pctil 1a 88.0); Spread 2a EUA−Alemanha 1.56 (20d -0.11p.p., pctil 1a 80.0)
+Últimos dados oficiais dos EUA (período de referência): Non-Farm Employment Change 2026-10 = 165.0K; Unemployment Rate 2026-10 = 4.1%; Average Hourly Earnings m/m 2026-10 = 0.37%; CPI m/m 2026-09 = 0.649%; Core CPI m/m 2026-09 = 0.335%; CPI y/y 2026-09 = 4.002%; PPI m/m 2026-09 = 1.343%; Core PPI m/m 2026-09 = 0.681%; Unemployment Claims 2026-10-31 = 189.0K; Retail Sales m/m 2026-09 = 0.771%; Core Retail Sales m/m 2026-09 = 0.899%; Core PCE Price Index m/m 2026-09 = 0.317%; JOLTS Job Openings 2026-09 = 7.523M; Advance GDP q/q 2026-07 = 3.4%
+
+Red folder da semana (BRT):
+  2026-11-03 12:16 USD Congressional Elections prev  ant 
+  2026-11-05 09:00 GBP BOE Monetary Policy Report prev  ant 
+  2026-11-05 09:00 GBP Monetary Policy Summary prev  ant 
+  2026-11-05 09:00 GBP MPC Official Bank Rate Votes prev 7-0-2 ant 3-0-6
+  2026-11-05 09:00 GBP Official Bank Rate prev 4.00% ant 3.75%
+  2026-11-05 09:30 GBP BOE Gov Bailey Speaks prev  ant 
+  2026-11-06 10:30 USD Average Hourly Earnings m/m prev 0.3% ant 0.1%
+  2026-11-06 10:30 USD Non-Farm Employment Change prev 65K ant 29K
+  2026-11-06 10:30 USD Unemployment Rate prev 4.2% ant 4.2%
+  2026-11-06 13:00 JPY BOJ Gov Ueda Speaks prev  ant 
+Manchetes:
+  [The Daily Star] New Gini housing project attacked again in ECB Chattar
+  [Yahoo Finance Singapore] 3 Financial Stocks Retail Investors Are Watching As Treasury Yields Stay Higher
+  [Seeking Alpha] Astec Industries, Inc. 2026 Q3 - Results - Earnings Call Presentation (NASDAQ:ASTE) 2026-11-07
+  [Opening Bell Daily] Stock market this week: S&P 500 ETF falls 2.7%
+  [Seeking Alpha] Real estate stocks gain as the Blue Wave sends Treasury yields lower (XLRE:NYSEARCA)
+  [finance.biggo.com] Anthropic’s IPO in Question, Midterms Hit AI, Nasdaq Drops 5%, and RSI Accelerates | #309｜Peter Diamandis
+  [FT] Berkshire Hathaway steps up share buybacks with $9.6bn of purchases
+  [BusinessLine] Dow Jones, S&P 500, Nasdaq: Last week’s AI stocks crash is not your garden variety correction
+  [Investing.com] ECB’s Lagarde says inflation to stay high, sees little reason to alter rate course
+  [TradingView] NASDAQ Pre-Market Range Sweep Indicator - November 2–6 for OANDA:NAS100USD by josseliani
+  [MarketBeat] Peloton Interactive (NASDAQ:PTON) Upgraded at Zacks Research
+  [MarketBeat] TripAdvisor (NASDAQ:TRIP) Stock Rating Cut to Strong Sell at Zacks Research
+  [MarketBeat] Independent Bank Corp. (NASDAQ:INDB) Stock Rated "Buy" by Sell-Side Analysts
+  [MarketBeat] Amdocs Limited (NASDAQ:DOX) Stock Rated "Hold" by Wall Street Analysts
+  [MarketBeat] Turtle Beach (NASDAQ:TBCH) Upgraded at Zacks Research
+  [Seeking Alpha] Micron: Market Mistook A Slowdown For A Total Collapse (NASDAQ:MU)
+  [The Motley Fool] 5 Stocks Yielding 5X the Nasdaq-100 to Buy in November
+  [Seeking Alpha] IREN: I Tripled My Position After The Crash (NASDAQ:IREN)
+  [Seeking Alpha] Applied Optoelectronics: The Selloff Changed My 2027 Playbook (Rating Upgrade)
+  [CryptoRank] Wrapped Nasdaq Tokenized ETF (xStock) Analytics
+  [Business Wire] APP Deadline: Rosen Law Firm Urges AppLovin Corporation (NASDAQ: APP) Investors with Losses in Excess of $100K to Contact the Firm for Information About Their Rights
+  [Forex Factory] BOJ chief Ueda sees 'some upside risks' to inflation
+  [BCE] Christine Lagarde: Interview with Yomiuri Shimbun
+  [Bloomberg.com] ECB’s Lagarde Says Inflation Likely to Stay High in Near Future
+  [Simply Wall St] Here's What Analysts Are Forecasting For WillScot Holdings Corporation (NASDAQ:WSC) After Its Third-Quarter Results
+  [Yahoo Finance] Goldman Sachs Cuts Gold Price Forecasts as Hawkish Federal Reserve Weighs on Demand
+  [Simply Wall St] ICF International, Inc. (NASDAQ:ICFI) Third-Quarter Results: Here's What Analysts Are Forecasting For Next Year
+  [StoneX] Nasdaq volatility shock warns against buying too early
+  [Seeking Alpha] Amazon Stock: Strong Buy Before AWS Growth Rewrites The Earnings Story (NASDAQ:AMZN)
+  [Simply Wall St] Beam Therapeutics Inc. (NASDAQ:BEAM) Consensus Forecasts Have Become A Little Darker Since Its Latest Report
