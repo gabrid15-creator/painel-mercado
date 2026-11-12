@@ -687,7 +687,7 @@
     const W = Math.max(300, el.clientWidth), H = 280, PW = Math.min(140, W * 0.25), m = { t: 10, r: 8, b: 22, l: 52 };
     const hm = (s) => { const [h, mi] = s.split(':').map(Number); return h * 60 + mi; };
     const x = d3.scaleLinear(d3.extent(pts, (p) => hm(p.t)), [m.l, W - m.r - PW - 8]);
-    const ser = [['p', '#888', 'Ouro'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
+    const ser = [['p', 'var(--color-fg)', 'Ouro (linha cheia)'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
     const on = (k) => !z0off.has(k); const vals = []; pts.forEach((p) => { ser.forEach(([k]) => { if (on(k) && p[k] != null) vals.push(p[k]); }); if (on('s1') && p.s1) vals.push(...p.s1); });
     if (!vals.length) pts.forEach((p) => vals.push(p.p));
     const y = d3.scaleLinear(d3.extent(vals), [H - m.b, m.t]).nice();
@@ -696,8 +696,10 @@
     const s1 = on('s1') ? pts.filter((p) => p.s1) : [];
     svg.append('path').datum(s1).attr('d', d3.area().x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
     if (s1.length) for (const v of s1[0].s1) svg.append('line').attr('x1', m.l).attr('x2', W - m.r - PW - 8).attr('y1', y(v)).attr('y2', y(v)).style('stroke', '#2a9d8f').style('stroke-dasharray', '4 3');
-    for (const [k, c] of ser.filter(([k]) => on(k))) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
-      .style('fill', 'none').style('stroke', c).style('stroke-width', k === 'p' ? 2.5 : 1.6);
+    const ord = ser.filter(([k]) => on(k) && k !== 'p').concat(on('p') ? ser.filter(([k]) => k === 'p') : []);
+    if (on('p')) svg.append('path').datum(pts).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p.p))).style('fill', 'none').style('stroke', 'var(--color-panel)').style('stroke-width', 6);
+    for (const [k, c] of ord) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
+      .style('fill', 'none').style('stroke', k === 'p' ? 'var(--color-fg)' : c).style('stroke-width', k === 'p' ? 2.5 : 1.6).style('stroke-dasharray', k === 'p' ? null : '6 3');
     // perfil de volume do dia (calls à direita em vermelho, puts em verde)
     const pv = (z.perfil_vol || []).filter((r) => r[0] >= y.domain()[0] && r[0] <= y.domain()[1]);
     const tpv = tip(el); const mx = d3.max(pv, (r) => r[1] + r[2]) || 1, x0 = W - m.r - PW, bw = Math.max(2, Math.min(8, (H - m.t - m.b) / Math.max(pv.length, 1) - 1));
@@ -709,7 +711,9 @@
     }
     // etiqueta com o último valor de cada linha
     const ult = pts[pts.length - 1], xe = W - m.r - PW - 8;
-    for (const [k, c] of ser.filter(([k]) => on(k))) if (ult[k] != null) svg.append('text').attr('x', xe - 2).attr('y', y(ult[k]) - 3).attr('text-anchor', 'end').style('font-size', '11px').style('font-weight', 600).style('fill', c).text(nf(ult[k], 1));
+    const eti = ser.filter(([k]) => on(k) && ult[k] != null).map(([k, c]) => ({ k, c, v: ult[k], y: y(ult[k]) - 3 })).sort((p, q) => p.y - q.y);
+    for (let i = 1; i < eti.length; i++) if (eti[i].y - eti[i - 1].y < 13) eti[i].y = eti[i - 1].y + 13;   // afasta etiquetas encavaladas
+    for (const e of eti) svg.append('text').attr('x', xe - 2).attr('y', e.y).attr('text-anchor', 'end').style('font-size', '11px').style('font-weight', 700).style('fill', e.k === 'p' ? 'var(--color-fg)' : e.c).style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3).text((e.k === 'p' ? 'Ouro ' : '') + nf(e.v, 1));
     // ao passar o mouse: horário e valor de cada nível
     const tp = tip(el);
     svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', xe - m.l).attr('height', H - m.t - m.b).attr('fill', 'transparent')
@@ -720,12 +724,12 @@
     const ax = svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat((v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'))); axisStyle(ax);
     const ay = svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => nf(v, 0))); axisStyle(ay);
     const lg = document.createElement('div'); lg.className = 'op-legend';
-    for (const [k, c, n] of [...ser, ['s1', '#2a9d8f', '±1σ (tracejado = abertura)']]) {
+    for (const [k, c, n] of [...ser, ['s1', '#2a9d8f', '±1σ: sombra verde = faixa de cada momento · tracejado = faixa da abertura']]) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.setAttribute('aria-pressed', String(on(k)));
       b.style.opacity = on(k) ? 1 : 0.45; b.innerHTML = `<i class="op-sw" style="background:${c}"></i>${n}`;
       b.addEventListener('click', () => { z0off.has(k) ? z0off.delete(k) : z0off.add(k); drawZ0(...z0arg); }); lg.appendChild(b);
     }
-    const nt = document.createElement('span'); nt.textContent = 'Toque para mostrar/esconder (a escala se ajusta). Barras: volume do dia por strike (verde puts, vermelho calls).'; lg.appendChild(nt);
+    const nt = document.createElement('span'); nt.textContent = 'Níveis em linha tracejada; preço do ouro em linha cheia por cima. Toque para mostrar/esconder (a escala se ajusta). Barras à direita: volume do dia por strike (verde = puts, vermelho = calls).'; lg.appendChild(nt);
     el.appendChild(lg);
   }
 
