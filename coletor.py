@@ -434,7 +434,7 @@ def b_dolar():
     except Exception as e: STATUS.append({"bloco": "MOF Japão (JGB)", "ok": False, "msg": str(e)[:120]})
     try:   # GDPNow (Fed de Atlanta): previsão do PIB do trimestre, atualizada a cada dado novo
         g = fred(["GDPNOW"], (NOW.date() - dt.timedelta(days=200)).isoformat())["GDPNOW"]
-        if g: ponto("GDPNow (PIB EUA, trimestre atual)", g, "% anualizado", bps=False)
+        if g: ponto("GDPNow (PIB EUA, trimestre atual)", g, "% anualizado", bps=False); rows[-1]["d1"] = rows[-1]["d5"] = None   # série por trimestre: variação diária não se aplica
     except Exception as e: STATUS.append({"bloco": "FRED: GDPNOW", "ok": False, "msg": str(e)[:120]})
     if not rows: raise ValueError("nenhuma série de dólar/juros")
     save("mi_dolar.json", rows)
