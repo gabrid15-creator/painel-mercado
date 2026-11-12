@@ -733,8 +733,9 @@
     $('.mp-dia-q').textContent = 'Projetado na abertura de ' + (m.dia_ini || '—') + ' · vale até ' + (m.dia_fim || '—') + (m.proj_dia ? ' (calculado ' + m.proj_dia + ')' : '');
     $('.mp-sem-q').textContent = 'Projetado na abertura de ' + (m.sem_ini || '—') + ' · vale até ' + (m.sem_fim || '—') + (m.proj_sem ? ' (calculado ' + m.proj_sem + ')' : '');
     const u = (x, s) => nf(m.ab_dia * Math.exp(x * s), k), d = (x, s) => nf(m.ab_dia * Math.exp(-x * s), k);
-    $('.mp-resumo').innerHTML = `<b>Hoje, em resumo:</b> em 1 de cada 2 dias o ${NOME[atv].toLowerCase()} chega a <b>${u(0.5, sd)}</b> (para cima) ou <b>${d(0.5, sd)}</b> (para baixo). ` +
-      `Chegar a <b>${u(1, sd)}</b> ou <b>${d(1, sd)}</b> acontece só em ~1 de cada 4 dias para cada lado; passar de <b>${u(2, sd)}</b> ou <b>${d(2, sd)}</b> é raro (~3%).`;
+    const pc = (x) => Math.round((tb.dia_toca_cima[ix(x)] + tb.dia_toca_baixo[ix(x)]) / 2);
+    $('.mp-resumo').innerHTML = `<b>Hoje, em resumo:</b> em ${pc(0.5)}% dos dias o preço chega a <b>${u(0.5, sd)}</b> (para cima) ou a <b>${d(0.5, sd)}</b> (para baixo), cada lado. ` +
+      `Chegar a <b>${u(1, sd)}</b> ou <b>${d(1, sd)}</b> acontece em ${pc(1)}% dos dias; passar de <b>${u(2, sd)}</b> ou <b>${d(2, sd)}</b>, só em ${pc(2)}%.`;
     const inp = $('.mp-in'), out = $('.mp-out');
     inp.oninput = () => {
       const v = parseFloat(inp.value.replace(/\./g, '').replace(',', '.')) || parseFloat(inp.value); if (!v) { out.textContent = ''; return; }
