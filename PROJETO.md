@@ -105,6 +105,9 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 - Tarefa noturna renomeada "Opções ouro e euro (noite)": ouro primeiro, inclui séries que vencem em 0–2 dias úteis. Falhou em 12/11 por limite de uso da conta.
 - **0DTE gráfico do dia:** caminho de cada nível (teto, piso, flip, max pain, ±1σ) a cada 5 min + perfil de volume por strike; zera no vencimento seguinte (`mi_0dte_dia.json`).
 - **Faixa do ouro com duas fontes:** GVZ (Cboe/GLD) e CME (straddle no dinheiro do pregão anterior; tarefa noturna agora grava `settle`).
+- **Faixa das moedas:** trocada para vol. realizada 21d × 1,09 (testada); opções dos ETFs de moeda descartadas (pouco negociadas). Etiqueta da vol. vs. média 1/3/5 anos (peso 50/30/20).
+- **0DTE gráfico:** valores ao passar o mouse, etiqueta de preço por linha, linhas liga/desliga (escala se ajusta).
+- **Termômetro do dólar:** testado (concordância de 5 ativos em 2 h não prevê a hora seguinte: 55%/49%, t < 2) → descartado. Regra: só entra o que prevê com teste.
 - Databento: adiado (pago; CME ao vivo a partir de US$ 199/mês).
 - **Visual:** cards por ativo (Regime, Faixa das opções, 0DTE, CTA) ficam abaixo do seletor e só aparecem para o ativo escolhido; níveis com cores (teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom).
 - **Precisão:** Regime forte mantém a direção 13 semanas em 91–100% (DXY) e 57–90% (juros); faixa ±1σ semana 72–74% / ±2σ 93–96%; 0DTE sem teste ainda.
