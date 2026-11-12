@@ -527,17 +527,23 @@ def b_faixa():
                        "s1": [rnd(px * math.exp(-sd), casas), rnd(px * math.exp(sd), casas)],
                        "s2": [rnd(px * math.exp(-2 * sd), casas), rnd(px * math.exp(2 * sd), casas)]})
         row = {"ativo": a, "preco": rnd(px, casas), "iv": rnd(iv, 2), "fonte": fonte, "faixas": fx, "validado": a == "XAUUSD"}
-        # nível da vol.: compara com a média de 1 ano (ouro: do próprio GVZ; moedas: vol. realizada de 1 ano × 1,1, o prêmio típico das opções)
+        # nível da vol.: compara com a média de 1, 3 e 5 anos (peso 50/30/20). Ouro: do próprio GVZ; moedas: vol. realizada × 1,1 (prêmio típico)
         try:
-            if idx:
-                g = closes(yahoo(idx, 10)); lim = max(g) - dt.timedelta(days=365)
-                media = st.mean(v for d, v in g.items() if d >= lim); ref = "média do GVZ em 1 ano"; m10 = st.mean(g.values())
+            if idx: g = closes(yahoo(idx, 5)); ref = "GVZ"
             else:
-                ks_ = sorted(c)[-253:]; r_ = [math.log(c[ks_[i]] / c[ks_[i - 1]]) for i in range(1, len(ks_))]
-                media = st.stdev(r_) * math.sqrt(252) * 100 * 1.1; ref = "vol. realizada de 1 ano + prêmio típico"; m10 = None
+                ks_ = sorted(c); g = {}
+                for i_ in range(22, len(ks_)):
+                    if i_ % 5: continue
+                    r_ = [math.log(c[ks_[k]] / c[ks_[k - 1]]) for k in range(i_ - 20, i_ + 1)]
+                    g[ks_[i_]] = st.stdev(r_) * math.sqrt(252) * 100 * 1.1
+                ref = "vol. realizada + prêmio típico"
+            fim_ = max(g); med = {}
+            for n_ in (1, 3, 5):
+                v_ = [v for d, v in g.items() if d >= fim_ - dt.timedelta(days=365 * n_)]
+                if v_: med[n_] = st.mean(v_)
+            media = sum(med[n_] * w for n_, w in ((1, .5), (3, .3), (5, .2)) if n_ in med) / sum(w for n_, w in ((1, .5), (3, .3), (5, .2)) if n_ in med)
             q = iv / media
-            row["nivel"] = {"media": rnd(media, 1), "ref": ref, "razao": rnd(q, 2),
-                            "media10": rnd(m10, 1) if m10 else None,
+            row["nivel"] = {"media": rnd(media, 1), "m1": rnd(med.get(1), 1), "m3": rnd(med.get(3), 1), "m5": rnd(med.get(5), 1), "ref": ref, "razao": rnd(q, 2),
                             "txt": "bem acima do normal" if q >= 1.25 else "acima do normal" if q >= 1.1 else "bem abaixo do normal" if q <= 0.8 else "abaixo do normal" if q <= 0.9 else "normal"}
         except Exception: pass
         if a == "XAUUSD":   # vol. implícita da CME: straddle no dinheiro (ajuste do pregão anterior) → σ ≈ straddle ÷ (0,8 × F × √T)
