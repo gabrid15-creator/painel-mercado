@@ -707,37 +707,46 @@
 
   // mapa de probabilidades: níveis em σ a partir da abertura do dia/semana, com a frequência real de toque (2 anos, 1 h)
   function drawMapa() {
-    const t = $('.mp-t tbody'); if (!t) return; t.replaceChildren();
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), tb = (D('toque_tabela').data || {})[atv];
-    const card = $('.op-card.mp'); const ok = fr && fr.mapa && tb; $('.mp-t').hidden = !ok; $('.mp-teste').hidden = !ok;
-    $('.mp-chip').textContent = ok ? 'projetado na abertura' + (fr.mapa.proj_dia ? ' (' + fr.mapa.proj_dia + ')' : '') + ' · testado em ' + tb.n_dias + ' dias' : 'sem mapa para este ativo';
+    const ok = fr && fr.mapa && tb; $('.mp-wrap').hidden = !ok; $('.mp-teste').hidden = !ok; $('.mp-resumo').hidden = !ok;
+    $('.mp-chip').textContent = ok ? 'chances medidas em ' + tb.n_dias + ' dias' : 'sem mapa para este ativo';
     if (!ok) return;
     const m = fr.mapa, sd = m.sd_dia, sw = m.sd_sem || sd * Math.sqrt(5), k = CASAS[atv];
     const lv = (txt, c) => { const s = document.createElement('span'); s.className = 'lv ' + c; s.textContent = txt; return s; };
-    const ks = [2, 1.5, 1, 0.5]; const ix = (x) => tb.k.indexOf(x);
-    const linha = (nome, cor, pd, pdc, tocD, pw, pwc, tocS) => {
-      const tr = document.createElement('tr'); const c0 = document.createElement('td'); c0.appendChild(lv(nome, cor)); tr.appendChild(c0);
-      td(tr, nf(pd, k), 'num').style.fontWeight = 600; const a1 = td(tr, pdc + '%', 'num'); if (tocD) { a1.textContent = ''; a1.appendChild(lv('✓ tocado', 'lv-pw')); }
-      td(tr, nf(pw, k), 'num').style.fontWeight = 600; const a2 = td(tr, pwc + '%', 'num'); if (tocS) { a2.textContent = ''; a2.appendChild(lv('✓ tocado', 'lv-pw')); }
-      t.appendChild(tr);
+    const leit = (p) => (p >= 50 ? 'alvo provável' : p >= 20 ? 'alvo possível' : p >= 8 ? 'difícil' : 'raro');
+    const ks = [2, 1.5, 1, 0.5], ix = (x) => tb.k.indexOf(x), fx = (x) => nf(x, x % 1 ? 1 : 0);
+    const tabela = (sel, ab, s, mx, mn, cima, baixo) => {
+      const t = $(sel + ' tbody'); t.replaceChildren(); const lin = [];
+      for (const x of ks) lin.push(['+' + fx(x) + 'σ', x >= 1.5 ? 'lv-cw' : 'lv-gf', ab * Math.exp(x * s), cima[ix(x)], mx >= ab * Math.exp(x * s)]);
+      lin.push(['Abertura', 'lv-now', ab, null, false]);
+      for (const x of ks.slice().reverse()) lin.push(['−' + fx(x) + 'σ', x >= 1.5 ? 'lv-pw' : 'lv-s1', ab * Math.exp(-x * s), baixo[ix(x)], mn <= ab * Math.exp(-x * s)]);
+      for (const [nm, c, pr, ch, toc] of lin) {
+        const tr = document.createElement('tr'); const c0 = document.createElement('td'); c0.appendChild(lv(nm, c)); tr.appendChild(c0);
+        td(tr, nf(pr, k), 'num').style.fontWeight = 600;
+        if (ch == null) { td(tr, ''); td(tr, 'ponto de partida'); tr.style.background = 'var(--color-bg)'; }
+        else { td(tr, ch + '%', 'num'); const l = document.createElement('td'); if (toc) l.appendChild(lv('✓ já tocou', 'lv-pw')); else l.textContent = leit(ch); tr.appendChild(l); }
+        t.appendChild(tr);
+      }
     };
-    for (const x of ks) { const d = m.ab_dia * Math.exp(x * sd), w = m.ab_sem * Math.exp(x * sw);
-      linha('+' + nf(x, x % 1 ? 1 : 0) + 'σ', x >= 1.5 ? 'lv-cw' : 'lv-gf', d, tb.dia_toca_cima[ix(x)], m.max_dia >= d, w, tb.sem_toca_cima[ix(x)], m.max_sem >= w); }
-    { const tr = document.createElement('tr'); const c0 = document.createElement('td'); c0.appendChild(lv('Abertura', 'lv-now')); tr.appendChild(c0);
-      td(tr, nf(m.ab_dia, k), 'num'); td(tr, ''); td(tr, nf(m.ab_sem, k), 'num'); td(tr, ''); tr.style.background = 'var(--color-bg)'; t.appendChild(tr); }
-    for (const x of ks.slice().reverse()) { const d = m.ab_dia * Math.exp(-x * sd), w = m.ab_sem * Math.exp(-x * sw);
-      linha('−' + nf(x, x % 1 ? 1 : 0) + 'σ', x >= 1.5 ? 'lv-pw' : 'lv-s1', d, tb.dia_toca_baixo[ix(x)], m.min_dia <= d, w, tb.sem_toca_baixo[ix(x)], m.min_sem <= w); }
+    tabela('.mp-dia', m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo);
+    tabela('.mp-sem', m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo);
+    $('.mp-dia-q').textContent = 'Projetado na abertura de ' + (m.dia_ini || '—') + ' · vale até ' + (m.dia_fim || '—') + (m.proj_dia ? ' (calculado ' + m.proj_dia + ')' : '');
+    $('.mp-sem-q').textContent = 'Projetado na abertura de ' + (m.sem_ini || '—') + ' · vale até ' + (m.sem_fim || '—') + (m.proj_sem ? ' (calculado ' + m.proj_sem + ')' : '');
+    const u = (x, s) => nf(m.ab_dia * Math.exp(x * s), k), d = (x, s) => nf(m.ab_dia * Math.exp(-x * s), k);
+    $('.mp-resumo').innerHTML = `<b>Hoje, em resumo:</b> em 1 de cada 2 dias o ${NOME[atv].toLowerCase()} chega a <b>${u(0.5, sd)}</b> (para cima) ou <b>${d(0.5, sd)}</b> (para baixo). ` +
+      `Chegar a <b>${u(1, sd)}</b> ou <b>${d(1, sd)}</b> acontece só em ~1 de cada 4 dias para cada lado; passar de <b>${u(2, sd)}</b> ou <b>${d(2, sd)}</b> é raro (~3%).`;
     const inp = $('.mp-in'), out = $('.mp-out');
     inp.oninput = () => {
       const v = parseFloat(inp.value.replace(/\./g, '').replace(',', '.')) || parseFloat(inp.value); if (!v) { out.textContent = ''; return; }
       const ch = (ab, s, mx, mn, cima, baixo) => { const z = Math.log(v / ab) / s; const up = z >= 0;
-        if (up ? mx >= v : mn <= v) return 'já tocado';
+        if (up ? mx >= v : mn <= v) return 'já tocou';
         const arr = up ? cima : baixo, az = Math.abs(z); if (az <= tb.k[0]) return arr[0] + '% ou mais'; if (az >= tb.k[tb.k.length - 1]) return 'menos de ' + arr[arr.length - 1] + '%';
         let i = 0; while (tb.k[i + 1] < az) i++; const f = (az - tb.k[i]) / (tb.k[i + 1] - tb.k[i]); return Math.round(arr[i] + f * (arr[i + 1] - arr[i])) + '%'; };
-      out.textContent = 'chance de tocar ' + nf(v, k) + ': hoje ' + ch(m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo) + ' · na semana ' + ch(m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo);
+      out.textContent = 'chance de o preço chegar a ' + nf(v, k) + ': hoje ' + ch(m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo) + ' · nesta semana ' + ch(m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo);
     };
     inp.oninput();
   }
+
 
   // cards do ativo selecionado (aparecem só quando há dado para ele)
   function drawAtv() {
