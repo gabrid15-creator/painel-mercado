@@ -69,7 +69,7 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 
 ## 4. Opções (fluxo especial)
 
-- A CME bloqueia servidores do GitHub, então a leitura é feita por uma **tarefa agendada do Claude**: **"Opções euro e ouro (noite) → Drive → painel-mercado"**, Sonnet 5.5, **ter–sáb 03:37**.
+- A CME bloqueia servidores do GitHub, então a leitura é feita por uma **tarefa agendada do Claude**: **"Opções ouro e euro (noite) → Drive → painel-mercado"**, Sonnet 5.5, **ter–sáb 03:37**.
 - Ela grava `opcoes_<data>_<hora>.json` na pasta pública do Drive **painel-mercado-opcoes** (conta gabridemes15@gmail.com, id `1GTHAZCrqQe_LYxf8OuR3zwqncQmHUunx`).
 - Vencimentos: **semanais dos próximos 10 dias + mensal mais próxima**.
 - Status: **euro funcionando** (pregão 05/11 carregado). **Ouro pendente** (não achou a série mensal OG; dados de 30/10).
@@ -101,7 +101,9 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 - **Estoque do GLD (toneladas, diário desde 2004):** acompanha o preço na mesma semana (0,39), mas **não antecipa** (t < 2). Não entrou.
 - **Put/call dos ETFs de moeda:** pouquíssimos contratos, não representa institucional. Não entrou.
 - **0DTE ouro (GLD, vence todo dia):** faixa do dia (straddle), call/put wall, gamma flip, max pain → no painel (`mi_0dte.json`); validação após ~30 pregões (`mi_0dte_hist.json`). Moedas: sem 0DTE gratuito (ETFs ilíquidos; CME só pela tarefa noturna).
-- Databento: adiado (pago).
+- **0DTE CME:** card mostra GLD (ao vivo) ao lado da CME (pregão anterior, vencimento do dia) quando a tarefa noturna traz `ouro_cadeia` com venc = data.
+- Tarefa noturna renomeada "Opções ouro e euro (noite)": ouro primeiro, inclui séries que vencem em 0–2 dias úteis. Falhou em 12/11 por limite de uso da conta.
+- Databento: adiado (pago; CME ao vivo a partir de US$ 199/mês).
 - **Visual:** cards por ativo (Regime, Faixa das opções, 0DTE, CTA) ficam abaixo do seletor e só aparecem para o ativo escolhido; níveis com cores (teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom).
 - **Precisão:** Regime forte mantém a direção 13 semanas em 91–100% (DXY) e 57–90% (juros); faixa ±1σ semana 72–74% / ±2σ 93–96%; 0DTE sem teste ainda.
 - Pendente: contratos em aberto da CME (via tarefa noturna), e Databento (precisa de conta).
