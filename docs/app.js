@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -115,12 +115,12 @@
     const corS0 = (s) => (s >= 60 ? 'var(--color-ok)' : s <= 40 ? 'var(--color-bad)' : 'var(--color-warn)');
     bar.querySelectorAll('button').forEach((x) => {
       x.setAttribute('aria-pressed', String(x.dataset.a === atv));
-      const s0 = D('mi_score').status === 'ok' ? D('mi_score').data.find((r) => r.ativo === x.dataset.a) : null;
-      const sv = x.querySelector('.sv'); sv.firstChild.textContent = s0 ? s0.score : '—'; sv.style.color = s0 ? corS0(s0.score) : '';
-      sv.querySelector('small').textContent = s0 ? (s0.score >= 60 ? '▲ alta' : s0.score <= 40 ? '▼ baixa' : '■ neutro') : '';
+      const a0 = (D('mi_ativos').data || []).find((r) => r.ativo === x.dataset.a);
+      const sv = x.querySelector('.sv'); const v1 = a0 ? a0.var_1d : null; sv.firstChild.textContent = v1 == null ? '—' : sg(v1, 2); sv.style.color = v1 > 0 ? 'var(--color-ok)' : v1 < 0 ? 'var(--color-bad)' : '';
+      sv.querySelector('small').textContent = 'hoje';
     });
     const G = D('mi_geral'), A = D('mi_ativos'), S = D('mi_sazon'), C = D('mi_corr'), K = D('mi_cot'), M = D('mi_macro'), Hh = D('mi_hist'),
-      AG = D('mi_agenda'), N = D('mi_noticias'), ST = D('mi_status'), SC = D('mi_score'), IA = D('mi_ia');
+      AG = D('mi_agenda'), N = D('mi_noticias'), ST = D('mi_status'), IA = D('mi_ia');
     const g = G.status === 'ok' ? G.data[0] : null;
     const mrow = (k) => (M.status === 'ok' ? M.data.find((r) => r.serie === k) : null);
     const FGT = { 'extreme fear': 'medo extremo', fear: 'medo', neutral: 'neutro', greed: 'ganância', 'extreme greed': 'ganância extrema' };
@@ -171,39 +171,10 @@
 
     // score + IA
     const ia = (k) => (IA.status === 'ok' ? IA.data.find((r) => r.ativo === k) : null);
-    const corS = (s) => (s >= 60 ? 'var(--color-ok)' : s <= 40 ? 'var(--color-bad)' : 'var(--color-warn)');
-    const vies = (sel, r) => { const e = $(sel); const v = r && r.vies; e.hidden = !v; if (!v) return;
-      e.textContent = v === 'bullish' ? '▲ Bullish' : v === 'bearish' ? '▼ Bearish' : '■ Neutro'; e.className = 'tl-chip ia-vies ' + sel.slice(1) + ' ' + (v === 'bullish' ? 'ok' : v === 'bearish' ? 'bad' : 'warn'); };
-    const g0 = ia('GERAL'); vies('.mi-ia-geral-v', g0); $('.mi-ia-geral').textContent = g0 ? g0.texto : '—'; $('.mi-ia-geral-q').textContent = g0 ? 'escrita em ' + br(g0.gerado_em) : '';
-    const sc = SC.status === 'ok' ? SC.data.find((r) => r.ativo === atv) : null;
-    {
-      const el = $('.sc-ring'); el.replaceChildren(); const R = 80, sw = 16, val = sc ? sc.score : 50, cor = sc ? corS(sc.score) : 'var(--color-border-line)';
-      const svg = d3.select(el).append('svg').attr('viewBox', '0 0 200 200').attr('width', '100%');
-      const arc = d3.arc().innerRadius(R - sw).outerRadius(R).cornerRadius(8);
-      const g = svg.append('g').attr('transform', 'translate(100,100)');
-      const a0 = -Math.PI * 0.75, a1 = Math.PI * 0.75;
-      g.append('path').attr('d', arc({ startAngle: a0, endAngle: a1 })).style('fill', 'var(--color-border-line)');
-      g.append('path').attr('d', arc({ startAngle: a0, endAngle: a0 + (a1 - a0) * val / 100 })).style('fill', cor);
-      for (const t0 of [40, 60]) { const ang = a0 + (a1 - a0) * t0 / 100; g.append('line').attr('x1', Math.sin(ang) * (R - sw - 2)).attr('y1', -Math.cos(ang) * (R - sw - 2)).attr('x2', Math.sin(ang) * (R + 2)).attr('y2', -Math.cos(ang) * (R + 2)).style('stroke', 'var(--color-panel)').style('stroke-width', 3); }
-      g.append('text').attr('text-anchor', 'middle').attr('dy', '0.1em').style('font-family', 'var(--font-anthropic-serif)').style('font-size', '52px').style('fill', cor).text(sc ? sc.score : '—');
-      g.append('text').attr('text-anchor', 'middle').attr('y', 34).style('font-size', '13px').style('font-weight', 600).style('fill', cor).text(sc ? sc.vies.toUpperCase() : '');
-      g.append('text').attr('x', -62).attr('y', 82).attr('text-anchor', 'middle').style('font-size', '10px').style('fill', 'var(--color-fg-muted)').text('baixista');
-      g.append('text').attr('x', 62).attr('y', 82).attr('text-anchor', 'middle').style('font-size', '10px').style('fill', 'var(--color-fg-muted)').text('altista');
-    }
+    const g0 = ia('GERAL'); $('.mi-ia-geral').textContent = g0 ? g0.texto : '—'; $('.mi-ia-geral-q').textContent = g0 ? 'escrita em ' + br(g0.gerado_em) : '';
     $('.sc-nome').textContent = atv + ' · ' + NOME[atv];
-    $('.sc-vies').textContent = sc ? (sc.score >= 60 ? '▲ Viés altista · os fatores somados puxam para cima' : sc.score <= 40 ? '▼ Viés baixista · os fatores somados puxam para baixo' : '■ Neutro · fatores divididos, sem direção clara') : '—';
-    $('.sc-vies').style.color = sc ? corS(sc.score) : '';
-    const sb = $('.sc-bars'); sb.replaceChildren();
-    for (const c of sc ? sc.componentes : []) {
-      const row = document.createElement('div'); row.className = 'sc-b';
-      const l = document.createElement('span'); l.textContent = c.fator; const tr = document.createElement('span'); tr.className = 'tr'; const i = document.createElement('i');
-      const w = Math.abs(c.sinal) * 50; i.style.width = w + '%'; i.style.left = (c.sinal >= 0 ? 50 : 50 - w) + '%'; i.style.background = c.sinal >= 0 ? 'var(--color-ok)' : 'var(--color-bad)'; tr.appendChild(i);
-      const p = document.createElement('span'); p.className = 'num ' + cls(c.pontos); p.textContent = sg(c.pontos, 1, '');
-      row.append(l, tr, p); sb.appendChild(row);
-    }
-    const ia1 = ia(atv); vies('.mi-ia-atv-v', ia1); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) + ' · score atualiza a cada 5 min' : '';
-    const tb0 = $('.mi-sc-t tbody'); tb0.replaceChildren();
-    for (const c of sc ? sc.componentes : []) { const tr = document.createElement('tr'); td(tr, c.fator + ' (' + c.peso + ')'); td(tr, sg(c.pontos, 1, ''), 'num ' + cls(c.pontos)); td(tr, c.leitura); tb0.appendChild(tr); }
+    const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) : '';
+    drawMapa();
 
     // ativo
     const a = A.status === 'ok' ? A.data.find((r) => r.ativo === atv) : null; const cs = CASAS[atv];
@@ -732,6 +703,40 @@
     }
     const nt = document.createElement('span'); nt.textContent = 'Níveis em linha tracejada; preço do ouro em linha cheia por cima. Toque para mostrar/esconder (a escala se ajusta). Barras à direita: volume do dia por strike (verde = puts, vermelho = calls).'; lg.appendChild(nt);
     el.appendChild(lg);
+  }
+
+  // mapa de probabilidades: níveis em σ a partir da abertura do dia/semana, com a frequência real de toque (2 anos, 1 h)
+  function drawMapa() {
+    const t = $('.mp-t tbody'); if (!t) return; t.replaceChildren();
+    const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), tb = (D('toque_tabela').data || {})[atv];
+    const card = $('.op-card.mp'); const ok = fr && fr.mapa && tb; $('.mp-t').hidden = !ok; $('.mp-teste').hidden = !ok;
+    $('.mp-chip').textContent = ok ? 'testado em ' + tb.n_dias + ' dias' : 'sem mapa para este ativo';
+    if (!ok) return;
+    const m = fr.mapa, sd = m.sd_dia, sw = sd * Math.sqrt(5), k = CASAS[atv];
+    const lv = (txt, c) => { const s = document.createElement('span'); s.className = 'lv ' + c; s.textContent = txt; return s; };
+    const ks = [2, 1.5, 1, 0.5]; const ix = (x) => tb.k.indexOf(x);
+    const linha = (nome, cor, pd, pdc, tocD, pw, pwc, tocS) => {
+      const tr = document.createElement('tr'); const c0 = document.createElement('td'); c0.appendChild(lv(nome, cor)); tr.appendChild(c0);
+      td(tr, nf(pd, k), 'num').style.fontWeight = 600; const a1 = td(tr, pdc + '%', 'num'); if (tocD) { a1.textContent = ''; a1.appendChild(lv('✓ tocado', 'lv-pw')); }
+      td(tr, nf(pw, k), 'num').style.fontWeight = 600; const a2 = td(tr, pwc + '%', 'num'); if (tocS) { a2.textContent = ''; a2.appendChild(lv('✓ tocado', 'lv-pw')); }
+      t.appendChild(tr);
+    };
+    for (const x of ks) { const d = m.ab_dia * Math.exp(x * sd), w = m.ab_sem * Math.exp(x * sw);
+      linha('+' + nf(x, x % 1 ? 1 : 0) + 'σ', x >= 1.5 ? 'lv-cw' : 'lv-gf', d, tb.dia_toca_cima[ix(x)], m.max_dia >= d, w, tb.sem_toca_cima[ix(x)], m.max_sem >= w); }
+    { const tr = document.createElement('tr'); const c0 = document.createElement('td'); c0.appendChild(lv('Abertura', 'lv-now')); tr.appendChild(c0);
+      td(tr, nf(m.ab_dia, k), 'num'); td(tr, ''); td(tr, nf(m.ab_sem, k), 'num'); td(tr, ''); tr.style.background = 'var(--color-bg)'; t.appendChild(tr); }
+    for (const x of ks.slice().reverse()) { const d = m.ab_dia * Math.exp(-x * sd), w = m.ab_sem * Math.exp(-x * sw);
+      linha('−' + nf(x, x % 1 ? 1 : 0) + 'σ', x >= 1.5 ? 'lv-pw' : 'lv-s1', d, tb.dia_toca_baixo[ix(x)], m.min_dia <= d, w, tb.sem_toca_baixo[ix(x)], m.min_sem <= w); }
+    const inp = $('.mp-in'), out = $('.mp-out');
+    inp.oninput = () => {
+      const v = parseFloat(inp.value.replace(/\./g, '').replace(',', '.')) || parseFloat(inp.value); if (!v) { out.textContent = ''; return; }
+      const ch = (ab, s, mx, mn, cima, baixo) => { const z = Math.log(v / ab) / s; const up = z >= 0;
+        if (up ? mx >= v : mn <= v) return 'já tocado';
+        const arr = up ? cima : baixo, az = Math.abs(z); if (az <= tb.k[0]) return arr[0] + '% ou mais'; if (az >= tb.k[tb.k.length - 1]) return 'menos de ' + arr[arr.length - 1] + '%';
+        let i = 0; while (tb.k[i + 1] < az) i++; const f = (az - tb.k[i]) / (tb.k[i + 1] - tb.k[i]); return Math.round(arr[i] + f * (arr[i + 1] - arr[i])) + '%'; };
+      out.textContent = 'chance de tocar ' + nf(v, k) + ': hoje ' + ch(m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo) + ' · na semana ' + ch(m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo);
+    };
+    inp.oninput();
   }
 
   // cards do ativo selecionado (aparecem só quando há dado para ele)

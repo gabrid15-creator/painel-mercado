@@ -508,7 +508,7 @@ b_regime()
 def b_faixa():
     # volatilidade implícita de 30 dias → faixa de ±1σ e ±2σ para dia, semana e mês
     # validação ouro (GVZ, 2016+): semana ±1σ conteve 74% dos fechamentos (teórico 68%), ±2σ 96%
-    FONTE = {"XAUUSD": ("GLD", "^GVZ"), "USDJPY": ("FXY", None), "USDCHF": ("FXF", None), "EURUSD": ("FXE", None)}
+    FONTE = {"XAUUSD": ("GLD", "^GVZ"), "USDJPY": ("FXY", None), "USDCHF": ("FXF", None), "EURUSD": ("FXE", None), "GBPUSD": (None, None)}
     rows = []; hist = {(h["ativo"], h["data"]): h for h in ler("mi_faixa_hist.json")}
     for a, (etf, idx) in FONTE.items():
         if a not in P: continue
@@ -565,6 +565,18 @@ def b_faixa():
                          "s2": [rnd(px * math.exp(-2 * ivc / 100 * math.sqrt(n / 252)), casas), rnd(px * math.exp(2 * ivc / 100 * math.sqrt(n / 252)), casas)]}
                         for f, n in zip(fx, (1, 5, 21))]}
             except Exception as e: STATUS.append({"bloco": "Faixa CME (ouro)", "ok": False, "msg": str(e)[:120]})
+        # aberturas do dia (17h NY) e da semana, e máxima/mínima desde então, para o mapa de probabilidades
+        try:
+            j = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ATIVOS[a][0])}?range=10d&interval=1h"))["chart"]["result"][0]
+            q = j["indicators"]["quote"][0]; NYz = ZoneInfo("America/New_York")
+            bars = [(dt.datetime.fromtimestamp(t, NYz), o, h, l) for t, o, h, l in zip(j["timestamp"], q["open"], q["high"], q["low"]) if o and h and l]
+            sess = lambda d: (d + dt.timedelta(hours=7)).date()   # dia de negociação começa 17h NY
+            hoje_s = sess(bars[-1][0]); dia = [b for b in bars if sess(b[0]) == hoje_s]
+            seg = hoje_s - dt.timedelta(days=hoje_s.weekday()); sem = [b for b in bars if sess(b[0]) >= seg]
+            sd = iv / 100 / math.sqrt(252)
+            row["mapa"] = {"sd_dia": rnd(sd, 6), "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
+                           "ab_sem": rnd(sem[0][1], casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas)}
+        except Exception as e: STATUS.append({"bloco": "Mapa " + a, "ok": False, "msg": str(e)[:120]})
         rows.append(row)
         hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
     if not rows: raise ValueError("sem volatilidade")
@@ -823,8 +835,15 @@ def b_score():
         f.write(f"Data {NOW:%d/%m/%Y %H:%M} BRT. F&G {fg}, VIX pctil {vixp}, DXY 20d {dxy20}%\n")
         for x in rows:
             r = at[x["ativo"]]
-            f.write(f"\n{x['ativo']}: preço {r['preco']} (1d {r['var_1d']}%, 5d {r['var_5d']}%, 20d {r['var_20d']}%), score {x['score']} {x['vies']}\n")
-            for cpt in x["componentes"]: f.write(f"  - {cpt['fator']} ({cpt['pontos']:+}): {cpt['leitura']}\n")
+            f.write(f"\n{x['ativo']}: preço {r['preco']} (1d {r['var_1d']}%, 5d {r['var_5d']}%, 20d {r['var_20d']}%)\n")
+            fx_ = next((y for y in ler("mi_faixa.json") if y["ativo"] == x["ativo"]), None)
+            if fx_:
+                f.write(f"  vol. implícita/esperada {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}); " + "; ".join(f"{y['prazo']} ±1σ {y['s1'][0]}–{y['s1'][1]}, ±2σ {y['s2'][0]}–{y['s2'][1]}" for y in fx_["faixas"]) + "\n")
+            rg_ = next((y for y in ler("mi_regime.json") if y["ativo"] == x["ativo"]), None)
+            if rg_: f.write("  regime 26 semanas: " + "; ".join(f"{y['fator']} corr {y['corr26']}{' (quebrou)' if y['quebrou'] else ''}" for y in rg_["fatores"]) + "\n")
+            if x["ativo"] == "XAUUSD":
+                z_ = (ler("mi_0dte.json") or [{}])[0]
+                if z_: f.write(f"  0DTE GLD ({z_.get('vencimento')}): teto {z_.get('call_wall')}, piso {z_.get('put_wall')}, gamma flip {z_.get('gamma_flip')}, faixa do dia {z_.get('faixa')}, {z_.get('regime')}\n")
         rd = {k: mac.get(k) for k in ("Liquidez líquida Fed", "VIX ÷ VIX 3 meses", "MOVE (vol. de Treasuries)", "Condições financeiras (NFCI)", "US2Y", "US10Y", "Juro real 10a", "Spread 2a EUA−Alemanha")}
         f.write("\nRadar institucional e juros: " + "; ".join(f"{k} {v['valor']} (20d {v['var_20d']}{v['unidade_var']}, pctil 1a {v['pctil_1a']})" for k, v in rd.items() if v) + "\n")
         eu = ler("mi_eua.json")

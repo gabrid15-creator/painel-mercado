@@ -14,7 +14,7 @@
 | **Disparo** | cron-job.org chama o workflow a cada 5 min (o cron do GitHub não disparava) | cron-job.org (token GitHub "cron painel", só Actions) |
 | **Dados** | JSON ficam na branch `dados`; o site lê via `raw.githubusercontent.com` | branch `dados` |
 | **Site** | HTML/JS estático, publicado no GitHub Pages **só em push** (código) | `docs/index.html`, `docs/app.js`, `docs/opcoes.js` |
-| **Leitura da IA** | Haiku 5.5 escreve o texto geral e de cada ativo + viés (bullish/neutro/bearish) | `ia.py`, segredo `ANTHROPIC_API_KEY` |
+| **Leitura da IA** | Haiku 5.5 escreve o texto geral e de cada ativo (sem viés: faixas, regime, eventos) | `ia.py`, segredo `ANTHROPIC_API_KEY` |
 | **Opções de ouro (CME)** | Tarefa agendada do Claude lê a CME e grava no Google Drive; a coleta importa (0DTE e vol. CME) | ver seção 4 |
 
 **Frequência da IA:** 6h–18h de hora em hora · à noite só 20h e 0h · sempre após red folder · parada sex 18h → dom 18h. Custo real ≈ US$ 0,003/leitura (~R$ 5–6/mês).
@@ -29,7 +29,7 @@
 - **Radar institucional:** liquidez líquida do Fed (balanço − TGA − RRP), estresse (VIX ÷ VIX 3m, MOVE, NFCI), surpresa econômica por moeda (90 dias) e regime dos EUA.
 - **Dólar e juros:** EUA 13 sem / 5a / 10a (intraday), Fed Funds implícito (futuro) vs. efetivo, JGB 10a, diferencial EUA−Japão, GDPNow.
 - **CTA (estimativa):** posição dos fundos de tendência por ativo (−100% a +100%) e gatilho de virada mais próximo.
-- **Seletor de ativo** (gruda ao rolar) → score 0–100 com fatores, leitura da IA do ativo, preço, valor justo, sazonalidade (padrão 10 anos), ATR.
+- **Seletor de ativo** (gruda ao rolar) → mapa de probabilidades (níveis e chance de toque), leitura da IA do ativo, preço, valor justo, sazonalidade (padrão 10 anos), ATR.
 - **Sazonalidade, caminho do mês, COT, correlações, Goldbach x extremos e sweeps (10 anos).**
 - **Tabela macro** (juros, dólar, liquidez, risco, energia) + gráfico.
 - **Agenda da semana** (Forex Factory) com **Atual em tempo real**:
@@ -102,6 +102,8 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 - **Faixa das moedas:** trocada para vol. realizada 21d × 1,09 (testada); opções dos ETFs de moeda descartadas (pouco negociadas). Etiqueta da vol. vs. média 1/3/5 anos (peso 50/30/20).
 - **0DTE gráfico:** valores ao passar o mouse, etiqueta de preço por linha, linhas liga/desliga (escala se ajusta).
 - **Termômetro do dólar:** testado (concordância de 5 ativos em 2 h não prevê a hora seguinte: 55%/49%, t < 2) → descartado. Regra: só entra o que prevê com teste.
+- **Score e viés removidos (12/11/2026):** 52 testes macro de prazo maior (carry, diferencial de juros, valor justo, juro real, prêmio de vol. do ouro, momento) + 40 diários + intradiário → nenhum prevê direção com segurança. No lugar: **mapa de probabilidades** por ativo (níveis ±0,5/1/1,5/2σ a partir da abertura do dia 17h NY e da semana, chance real de toque em ~2 anos de 1 h, `docs/data/toque_tabela.json`; ✓ quando já tocado; campo para testar um preço). IA sem viés: descreve faixas, regime e eventos.
+- GLD é o ETF de ouro mais negociado (≈ 24× o open interest de opções do IAU).
 - Databento: adiado (pago; CME ao vivo a partir de US$ 199/mês).
 - **Visual:** cards por ativo (Regime, Faixa das opções, 0DTE, CTA) ficam abaixo do seletor e só aparecem para o ativo escolhido; níveis com cores (teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom).
 - **Precisão:** Regime forte mantém a direção 13 semanas em 91–100% (DXY) e 57–90% (juros); faixa ±1σ semana 72–74% / ±2σ 93–96%; 0DTE sem teste ainda.
