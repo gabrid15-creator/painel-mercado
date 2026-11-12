@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -678,6 +678,37 @@
     drawAtv();
   }
 
+  // gráfico do 0DTE: níveis ao longo do dia (não apaga até o próximo vencimento) + perfil de volume por strike
+  function drawZ0(z, pts) {
+    const el = $('.z0-chart'); if (!el) return; el.replaceChildren();
+    if (pts.length < 2) { el.textContent = 'O gráfico começa a se formar com 2 coletas no pregão de NY (a cada 5 min).'; return; }
+    const W = Math.max(300, el.clientWidth), H = 280, PW = Math.min(140, W * 0.25), m = { t: 10, r: 8, b: 22, l: 52 };
+    const hm = (s) => { const [h, mi] = s.split(':').map(Number); return h * 60 + mi; };
+    const x = d3.scaleLinear(d3.extent(pts, (p) => hm(p.t)), [m.l, W - m.r - PW - 8]);
+    const ser = [['p', '#888', 'Ouro'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
+    const vals = []; pts.forEach((p) => { ser.forEach(([k]) => { if (p[k] != null) vals.push(p[k]); }); if (p.s1) vals.push(...p.s1); });
+    const y = d3.scaleLinear(d3.extent(vals), [H - m.b, m.t]).nice();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    // faixa ±1σ de cada momento (sombra) e a da abertura (tracejada, fixa)
+    const s1 = pts.filter((p) => p.s1);
+    svg.append('path').datum(s1).attr('d', d3.area().x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
+    if (s1.length) for (const v of s1[0].s1) svg.append('line').attr('x1', m.l).attr('x2', W - m.r - PW - 8).attr('y1', y(v)).attr('y2', y(v)).style('stroke', '#2a9d8f').style('stroke-dasharray', '4 3');
+    for (const [k, c] of ser) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
+      .style('fill', 'none').style('stroke', c).style('stroke-width', k === 'p' ? 2.5 : 1.6);
+    // perfil de volume do dia (calls à direita em vermelho, puts em verde)
+    const pv = (z.perfil_vol || []).filter((r) => r[0] >= y.domain()[0] && r[0] <= y.domain()[1]);
+    const mx = d3.max(pv, (r) => r[1] + r[2]) || 1, x0 = W - m.r - PW, bw = Math.max(2, Math.min(8, (H - m.t - m.b) / Math.max(pv.length, 1) - 1));
+    for (const [k, c, p] of pv) {
+      svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2).attr('width', (p / mx) * PW).attr('height', bw).style('fill', '#1f8a5b').style('opacity', 0.8);
+      svg.append('rect').attr('x', x0 + (p / mx) * PW).attr('y', y(k) - bw / 2).attr('width', (c / mx) * PW).attr('height', bw).style('fill', '#c8443a').style('opacity', 0.8);
+    }
+    const ax = svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat((v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'))); axisStyle(ax);
+    const ay = svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => nf(v, 0))); axisStyle(ay);
+    const lg = document.createElement('div'); lg.className = 'op-legend';
+    lg.innerHTML = ser.map(([, c, n]) => `<span><i class="op-sw" style="background:${c}"></i>${n}</span>`).join('') + '<span><i class="op-sw" style="background:#2a9d8f"></i>±1σ (tracejado = abertura)</span><span>Barras: volume do dia por strike (verde puts, vermelho calls)</span>';
+    el.appendChild(lg);
+  }
+
   // cards do ativo selecionado (aparecem só quando há dado para ele)
   function drawAtv() {
     const mostra = (sel, ok) => { const e = $(sel); if (e) e.hidden = !ok; return ok; };
@@ -709,7 +740,15 @@
         const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
         td(tr, i ? '' : nf(fr.iv, 1) + '%', 'num');
         cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr);
-      }); }
+      });
+      const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 4; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; return tr; };
+      t.prepend(fonte(fr.fonte));
+      if (fr.cme) { t.appendChild(fonte('CME · opções de ouro (pregão ' + br(fr.cme.pregao) + ', vencimento ' + br(fr.cme.venc) + ')'));
+        fr.cme.faixas.forEach((f, i) => { const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
+          td(tr, i ? '' : nf(fr.cme.iv, 1) + '%', 'num');
+          cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr); });
+      } else if (atv === 'XAUUSD') t.appendChild(fonte('CME: aguardando a tarefa noturna trazer os preços de ajuste das opções.'));
+    }
     // 0DTE (só ouro)
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
@@ -724,6 +763,7 @@
       const hd = document.createElement('tr'); td(hd, ''); td(hd, 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (pregão ' + br(z.cme.pregao) + ')' : 'CME (sem dado hoje)', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; td(tr, k, 'num').style.fontWeight = 600; t.appendChild(tr); }
       const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' : '', 'num'); t.appendChild(tr);
+      drawZ0(z, (D('mi_0dte_dia').data || []).filter((d) => d.v === z.vencimento && d.p != null));
     }
   }
 

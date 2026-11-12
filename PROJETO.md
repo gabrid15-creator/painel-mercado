@@ -103,6 +103,8 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 - **0DTE ouro (GLD, vence todo dia):** faixa do dia (straddle), call/put wall, gamma flip, max pain → no painel (`mi_0dte.json`); validação após ~30 pregões (`mi_0dte_hist.json`). Moedas: sem 0DTE gratuito (ETFs ilíquidos; CME só pela tarefa noturna).
 - **0DTE CME:** card mostra GLD (ao vivo) ao lado da CME (pregão anterior, vencimento do dia) quando a tarefa noturna traz `ouro_cadeia` com venc = data.
 - Tarefa noturna renomeada "Opções ouro e euro (noite)": ouro primeiro, inclui séries que vencem em 0–2 dias úteis. Falhou em 12/11 por limite de uso da conta.
+- **0DTE gráfico do dia:** caminho de cada nível (teto, piso, flip, max pain, ±1σ) a cada 5 min + perfil de volume por strike; zera no vencimento seguinte (`mi_0dte_dia.json`).
+- **Faixa do ouro com duas fontes:** GVZ (Cboe/GLD) e CME (straddle no dinheiro do pregão anterior; tarefa noturna agora grava `settle`).
 - Databento: adiado (pago; CME ao vivo a partir de US$ 199/mês).
 - **Visual:** cards por ativo (Regime, Faixa das opções, 0DTE, CTA) ficam abaixo do seletor e só aparecem para o ativo escolhido; níveis com cores (teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom).
 - **Precisão:** Regime forte mantém a direção 13 semanas em 91–100% (DXY) e 57–90% (juros); faixa ±1σ semana 72–74% / ±2σ 93–96%; 0DTE sem teste ainda.

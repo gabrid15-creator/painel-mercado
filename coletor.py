@@ -526,8 +526,27 @@ def b_faixa():
             fx.append({"prazo": nome, "pct": rnd(sd * 100, 2),
                        "s1": [rnd(px * math.exp(-sd), casas), rnd(px * math.exp(sd), casas)],
                        "s2": [rnd(px * math.exp(-2 * sd), casas), rnd(px * math.exp(2 * sd), casas)]})
-        rows.append({"ativo": a, "preco": rnd(px, casas), "iv": rnd(iv, 2), "fonte": fonte, "faixas": fx,
-                     "validado": a == "XAUUSD"})
+        row = {"ativo": a, "preco": rnd(px, casas), "iv": rnd(iv, 2), "fonte": fonte, "faixas": fx, "validado": a == "XAUUSD"}
+        if a == "XAUUSD":   # vol. implícita da CME: straddle no dinheiro (ajuste do pregão anterior) → σ ≈ straddle ÷ (0,8 × F × √T)
+            try:
+                cad = [o for o in ler("ouro_cadeia.json") if o.get("settle") not in (None, "") and len(str(o.get("venc"))) == 10]
+                melhor = None
+                for v in sorted({o["venc"] for o in cad}):
+                    ln = [o for o in cad if o["venc"] == v]; pg = dt.date.fromisoformat(ln[0]["data_pregao"]); d = (dt.date.fromisoformat(v) - pg).days
+                    if d < 3: continue
+                    F = float(ln[0]["futuro"]); ks = {}
+                    for o in ln: ks.setdefault(float(o["strike"]), {})[str(o["tipo"])[0]] = float(o["settle"])
+                    k = min((k for k in ks if "C" in ks[k] and "P" in ks[k]), key=lambda k: abs(k - F), default=None)
+                    if k is not None: melhor = (v, pg, d, F, ks[k]["C"] + ks[k]["P"]); break
+                if melhor:
+                    v, pg, d, F, st_ = melhor; ivc = st_ / (0.798 * F * math.sqrt(d / 365)) * 100
+                    row["cme"] = {"iv": rnd(ivc, 2), "pregao": pg.isoformat(), "venc": v, "faixas": [
+                        {"prazo": f["prazo"], "pct": rnd(ivc / 100 * math.sqrt(n / 252) * 100, 2),
+                         "s1": [rnd(px * math.exp(-ivc / 100 * math.sqrt(n / 252)), casas), rnd(px * math.exp(ivc / 100 * math.sqrt(n / 252)), casas)],
+                         "s2": [rnd(px * math.exp(-2 * ivc / 100 * math.sqrt(n / 252)), casas), rnd(px * math.exp(2 * ivc / 100 * math.sqrt(n / 252)), casas)]}
+                        for f, n in zip(fx, (1, 5, 21))]}
+            except Exception as e: STATUS.append({"bloco": "Faixa CME (ouro)", "ok": False, "msg": str(e)[:120]})
+        rows.append(row)
         hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
     if not rows: raise ValueError("sem volatilidade")
     save("mi_faixa.json", rows)
@@ -578,7 +597,9 @@ def b_0dte():
            "call_wall": conv(lado(cw, lambda k: k >= S)), "put_wall": conv(lado(pw, lambda k: k <= S)),
            "gamma_flip": conv(flip), "max_pain": conv(min(dor, key=dor.get)) if dor else None,
            "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(S) > 0 else "gamma negativo (movimentos tendem a acelerar)",
-           "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / S - 1) <= 0.03]}
+           "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / S - 1) <= 0.03],
+           "perfil_vol": [[conv(k), int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "C")),
+                           int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03]}
     # mesma análise com as opções de ouro da CME do mesmo vencimento (contratos em aberto do fechamento anterior, tarefa noturna)
     cme = [o for o in ler("ouro_cadeia.json") if str(o.get("venc")) == venc.isoformat() and o.get("oi")]
     if cme:
@@ -593,6 +614,12 @@ def b_0dte():
                       "call_wall": perto(cc, lambda k: k >= ouro), "put_wall": perto(pp, lambda k: k <= ouro),
                       "max_pain": min(dor2, key=dor2.get) if dor2 else None}
     save("mi_0dte.json", [row])
+    # histórico do dia (um ponto por coleta) para o gráfico; zera quando muda o vencimento
+    dia = [d for d in ler("mi_0dte_dia.json") if d.get("v") == row["vencimento"]]
+    if 9 * 60 + 30 <= ny.hour * 60 + ny.minute <= 16 * 60 + 15 and ny.weekday() < 5:
+        dia.append({"v": row["vencimento"], "t": ny.strftime("%H:%M"), "p": row["ouro"], "cw": row["call_wall"], "pw": row["put_wall"],
+                    "gf": row["gamma_flip"], "mp": row["max_pain"], "s1": row["s1"]})
+    save("mi_0dte_dia.json", dia[-200:] or [{"v": row["vencimento"]}])
     hist = {h["vencimento"]: h for h in ler("mi_0dte_hist.json")}
     h = hist.get(row["vencimento"]) or {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")}
     h["ultimo_ouro"] = row["ouro"]   # o primeiro retrato do dia fica; o preço vai sendo atualizado até o vencimento
