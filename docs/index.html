@@ -380,9 +380,14 @@
       <table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia</th><th class="num">5 dias</th></tr></thead><tbody></tbody></table>
     </section>
 
-    <section class="op-card cta"><div class="ag-top"><h2>CTA · fundos de tendência (estimativa)</h2><span class="tl-chip ia-chip">fluxo sistemático</span></div>
-      <p class="op-note"><b>Como ler:</b> CTAs são fundos que seguem tendência por regra e movem bilhões; as mesas estimam a posição deles com modelos como este. <b>Posição</b> de −100% (totalmente vendidos) a +100% (totalmente comprados), média das janelas de <b>1, 3, 6 e 12 meses</b>. <b>Gatilho</b> = preço que, se cruzado, vira o sinal de uma janela e obriga os CTAs a comprar ou vender: perto do gatilho = risco de fluxo forçado. Não é a posição real (essa ninguém publica de graça); é a estimativa do modelo, recalculada a cada 5 min.</p>
+    <section class="op-card cta"><div class="ag-top"><h2>CTA · fundos de tendência no ouro (estimativa)</h2><span class="tl-chip ia-chip">fluxo sistemático</span></div>
+      <p class="op-note"><b>Como ler:</b> CTAs são fundos que seguem tendência por regra. <b>Posição</b> de −100% (todos vendidos) a +100% (todos comprados), média das janelas de 1, 3, 6 e 12 meses. <b>Gatilho</b> = preço que, se cruzado, vira uma janela e força compra ou venda. <b>Teste (2016+):</b> no ouro o modelo acompanha a posição real dos fundos no COT (correlação 0,59) e acerta 54,5% em 20 dias: ajuda, mas pouco. Em iene, franco e euro <b>não passou no teste</b> e foi retirado.</p>
       <table class="op-table cta-t"><thead><tr><th>Ativo</th><th class="num">Posição</th><th>Gatilho mais próximo</th><th class="num">Distância</th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section class="op-card rg"><div class="ag-top"><h2>Regime · o que está mexendo cada par agora</h2><span class="tl-chip ia-chip">dólar e juros</span></div>
+      <p class="op-note"><b>Como ler:</b> mostra quanto cada par anda junto com o dólar (DXY) e os juros dos EUA nas <b>últimas 26 semanas</b>. <b>Correlação</b> de −1 a +1: perto de ±1 = andam juntos (forte acima de 0,4); perto de 0 = sem ligação. <b>Reação</b> = quanto o par costuma andar quando o juro sobe 10 bps (ou o DXY sobe 1%). <b>⚠ quebrou</b> = a ligação inverteu em relação ao histórico (ex.: ouro subindo junto com juro em 2025): não confie nela agora. Isso <b>explica</b> o movimento da semana, mas <b>não prevê</b> a próxima (testado desde 2016). Atualiza a cada coleta.</p>
+      <table class="op-table rg-t"><thead><tr><th>Par</th><th>Fator</th><th class="num">Correlação 26s</th><th class="num">52s</th><th class="num">Reação</th><th>Ligação</th></tr></thead><tbody></tbody></table>
     </section>
 
     <div class="ativos-fixo"><span class="tl-k">Escolha o ativo</span><div class="ativos" role="group" aria-label="Ativo"></div></div>
@@ -395,7 +400,7 @@
       </div>
       <div class="ia-atv"><div class="ia-h"><span class="tl-chip ia-chip">✦ Leitura da IA</span><span class="ia-quando mi-ia-atv-q"></span><span class="tl-chip ia-vies mi-ia-atv-v" hidden></span></div><p class="mi-ia-txt mi-ia-atv">—</p></div>
       <table class="op-table mi-sc-t"><thead><tr><th>Fator (peso)</th><th class="num">Pontos</th><th>Leitura</th></tr></thead><tbody></tbody></table>
-      <p class="mi-exp">Como funciona: cada fator dá de −1 (puxa para baixo) a +1 (puxa para cima), multiplicado pelo peso. O score parte de 50 e soma os pontos: 60 ou mais = viés altista, 40 ou menos = baixista, entre os dois = neutro. Pesos: tendência 20, juros 20, dólar 15, COT 15, movimento de hoje 10, risco 10, sazonalidade 5 e valor justo 5. A leitura em texto é escrita pela IA (Claude) duas vezes por dia, juntando números, agenda e notícias.</p>
+      <p class="mi-exp">Como funciona: cada fator dá de −1 (puxa para baixo) a +1 (puxa para cima), multiplicado pelo peso. O score parte de 50 e soma os pontos: 60 ou mais = viés altista, 40 ou menos = baixista, entre os dois = neutro. Pesos: tendência 20, juros 20, dólar 15, COT 15, movimento de hoje 10, risco 10, sazonalidade 5 e valor justo 5. <b>Teste (2016+):</b> o score <b>não prevê</b> o retorno de 5 ou 20 dias em nenhum par (só a tendência do ouro passou). Use como resumo do momento, não como sinal de entrada. A leitura em texto é escrita pela IA (Claude) duas vezes por dia, juntando números, agenda e notícias.</p>
     </section>
 
     <section class="op-tiles">

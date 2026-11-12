@@ -445,8 +445,9 @@ def b_cta():
     # posição estimada de fundos de tendência: média do sinal de 4 janelas (1, 3, 6 e 12 meses);
     # gatilho = preço de referência de cada janela (cruzar ele vira o sinal daquela janela)
     rows = []
-    series = {k: closes(v) for k, v in P.items()}
-    if F.get("DXY"): series["DXY"] = F["DXY"]
+    # validação (2016+): só no ouro o modelo acompanha o COT (corr 0,59) e tem algum acerto em 20 dias (54,5%, t 2,1);
+    # em iene, franco e euro não passou → fica só o ouro
+    series = {k: closes(v) for k, v in P.items() if k == "XAUUSD"}
     for a, c in series.items():
         ks = sorted(c); px = c[ks[-1]]
         if len(ks) < 260: continue
@@ -461,6 +462,47 @@ def b_cta():
     if not rows: raise ValueError("sem séries")
     save("mi_cta.json", rows)
 b_cta()
+
+@bloco("Regime juros x pares")
+def b_regime():
+    # correlação e beta semanais (26 e 52 semanas) entre cada par e dólar/juros: mostra se a ligação está valendo agora
+    def semanal(s):
+        w = {}
+        for d in sorted(s): w[d.isocalendar()[:2]] = (d, s[d])
+        return {d: v for d, v in sorted(w.values())}
+    FAT = {"DXY": (F.get("DXY"), True), "EUA 2a": (FR.get("US2Y"), False), "EUA 10a": (FR.get("US10Y"), False),
+           "Juro real 10a": (FR.get("Juro real 10a"), False)}
+    ESP = {"XAUUSD": -1, "USDJPY": 1, "USDCHF": 1, "EURUSD": -1}   # sinal histórico esperado (2016+)
+    rows = []
+    for a, esp in ESP.items():
+        if a not in P: continue
+        pa = semanal(closes(P[a])); ra = {}
+        ks = list(pa)
+        for i in range(1, len(ks)): ra[ks[i].isocalendar()[:2]] = (pa[ks[i]] / pa[ks[i - 1]] - 1) * 100
+        fat = []
+        for nome, (serie, pct) in FAT.items():
+            if not serie: continue
+            pf = semanal(serie); kf = list(pf); rf = {}
+            for i in range(1, len(kf)):
+                rf[kf[i].isocalendar()[:2]] = (pf[kf[i]] / pf[kf[i - 1]] - 1) * 100 if pct else (pf[kf[i]] - pf[kf[i - 1]]) * 100
+            sem = sorted(set(ra) & set(rf))[:-1] if len(set(ra) & set(rf)) > 1 else []   # tira a semana em curso
+            def est(n):
+                ss = sem[-n:]
+                if len(ss) < n * 0.8: return None, None
+                x = [rf[k] for k in ss]; y = [ra[k] for k in ss]
+                try: c = st.correlation(x, y); b = st.linear_regression(x, y).slope
+                except Exception: return None, None
+                return c, b * (1 if pct else 10)
+            c26, b26 = est(26); c52, _ = est(52)
+            if c26 is None: continue
+            forca = "forte" if abs(c26) >= 0.4 else "média" if abs(c26) >= 0.2 else "fraca"
+            fat.append({"fator": nome, "corr26": rnd(c26, 2), "corr52": rnd(c52, 2), "beta": rnd(b26, 2),
+                        "unid": "% por +1% no DXY" if pct else "% por +10 bps", "forca": forca,
+                        "quebrou": abs(c26) >= 0.2 and (c26 > 0) != (esp > 0)})
+        if fat: rows.append({"ativo": a, "fatores": fat, "principal": max(fat, key=lambda f: abs(f["corr26"]))["fator"]})
+    if not rows: raise ValueError("sem dados")
+    save("mi_regime.json", rows)
+b_regime()
 
 # ---------------------------------------------------------------- Fear & Greed (CNN)
 @bloco("Fear & Greed (CNN)")

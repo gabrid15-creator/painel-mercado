@@ -76,13 +76,43 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 
 ---
 
-## 5. Pendências / próximos passos
+## 5. Foco atual (atualizado 12/11/2026)
 
-1. **Ouro nas opções:** ajustar a tarefa para achar a seção certa da CME (semanais OG1–OG5 + mensal OG).
-2. **Conferir o Fed Funds implícito** (+28 bps em um dia — possível troca de contrato).
-3. **Backtest** do score e do CTA contra o retorno de 5–20 dias (10 anos) — hoje só Goldbach, sazonalidade e correlações têm medição estatística.
-4. Previsão do CPI (Cleveland Fed nowcast) se houver fonte de dados confiável.
-5. Domínio próprio do site (adiado).
+**Prioridade: dólar e juros.** É o que move os pares operados: **XAU/USD, USD/JPY, USD/CHF, EUR/USD**. O euro fica em segundo plano (opções do euro só mantidas, sem evolução).
+
+### 5.1 Testes estatísticos (nada fica no painel sem medição)
+1. **CTA × DBMF/KMLM:** retorno implícito do modelo (posição × variação) vs. retorno diário do DBMF (réplica do SG CTA Index) e KMLM, desde 2019. Também vs. COT Managed Money semanal (desde 2016). Se a correlação for fraca → tirar o CTA do painel.
+2. ~~Backtest do score~~ feito (ver resultado abaixo).
+3. **Juros → pares:** medir quanto variação do 2a/10a EUA, diferencial EUA−Japão, EUA−Suíça, EUA−Alemanha, juro real (TIPS) e DXY explicam o retorno de cada par (correlação móvel, beta, defasagem).
+
+**Resultado 12/11/2026 (dados Yahoo/FRED/CFTC, 2016+):**
+- CTA × DBMF: corr 0,19 diária / 0,33 semanal → fraca.
+- CTA × COT (nível / variação semanal): ouro 0,59 / 0,51 · iene 0,56 / 0,06 · euro 0,45 / 0,14 · franco 0,27 / −0,23.
+- CTA prevendo 20 dias: ouro 54,5% de acerto (t = 2,1, fraco mas significativo); iene 55,5% (t = 1,5, não significativo); franco e euro abaixo de 50%.
+- **Feito:** CTA só no ouro; retirado de franco, euro e iene.
+- **Score:** backtest dos fatores tendência, movimento, dólar, COT e risco → não prevê 5 nem 20 dias em nenhum par (só a tendência do ouro, t ≈ 2,2). Marcado no site como "resumo do momento, não sinal". A refazer.
+- Juros → pares (semanal, mesma semana): DXY é o que mais explica (franco 0,69, euro −0,78). Juro real × ouro −0,39 (mas +0,31 em 2025: regime quebrou). EUA 10a × iene 0,42 (−0,04 em 2025).
+- Beta 12m: +10 bps no juro real → ouro −1,6%, iene +0,35%, franco +0,32%, euro −0,27%.
+- Juros **explicam** o movimento da semana, mas **não antecipam** a semana seguinte de forma confiável (o sinal aparente vem de desalinhamento de horário no câmbio do Yahoo).
+- **Feito:** card "Regime" (correlação 26/52 semanas + reação a +10 bps/+1% DXY, alerta de quebra) → `mi_regime.json`.
+
+### 5.2 Fluxo dos grandes (substituir/complementar o COT)
+- **Databento (CME, MBO em tempo real):** delta agressor, lotes grandes e absorção em **GC (ouro), 6J (iene), 6S (franco), 6E (euro)**. Cobrança por uso. Licença CME: não exibir tempo real em site público → só indicadores derivados ou página privada.
+- **CLS FX Flow:** fluxo por tipo de participante (fundos, empresas, bancos), horário. Institucional, preço sob consulta — só se houver orçamento.
+
+### 5.3 Dólar e juros — a expandir
+- Curva EUA 2a/5a/10a/30a e inclinação 2s10s; juro real 10a (TIPS) e breakeven (inflação implícita) — chave para o ouro.
+- Diferenciais por par: EUA−Japão (USD/JPY), EUA−Suíça (USD/CHF), EUA−Alemanha (EUR/USD), juro real EUA (ouro).
+- Precificação do Fed (Fed Funds futuro) → **conferir o salto de +28 bps** (possível troca de contrato).
+- Probabilidade implícita de BoJ e SNB, se houver fonte confiável.
+
+### 5.4 Outras pendências
+1. Ouro nas opções: ajustar a tarefa para a seção certa da CME (OG1–OG5 + OG mensal).
+2. Previsão do CPI (Cleveland Fed nowcast), se houver fonte confiável.
+3. Domínio próprio (adiado).
+
+### 5.5 Ambiente do Claude
+- Ambiente "painel-mercado" (rede liberada: Yahoo, FRED, CFTC) para rodar testes.
 
 ---
 

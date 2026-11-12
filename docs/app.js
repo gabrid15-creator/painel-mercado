@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -682,6 +682,14 @@
       const g = r.gatilho_proximo; td(tr, g ? nf(g.nivel, String(g.nivel).split('.')[1] ? String(g.nivel).split('.')[1].length : 0) + ' (' + g.janela + ', ' + (g.lado > 0 ? 'abaixo vira venda' : 'acima vira compra') + ')' : '—');
       td(tr, g ? sg(g.dist_pct, 2) : '—', 'num'); c.appendChild(tr);
     }
+    const rg = $('.rg-t tbody'); if (rg) { rg.replaceChildren();
+      for (const r of D('mi_regime').data || []) r.fatores.forEach((f, i) => {
+        const tr = document.createElement('tr'); td(tr, i ? '' : r.ativo).style.fontWeight = 600;
+        td(tr, f.fator + (f.fator === r.principal ? ' ★' : ''));
+        td(tr, nf(f.corr26, 2), 'num ' + cls(f.corr26)); td(tr, f.corr52 == null ? '—' : nf(f.corr52, 2), 'num');
+        td(tr, sg(f.beta, 2) + (f.fator === 'DXY' ? ' / +1%' : ' / +10 bps'), 'num');
+        td(tr, f.quebrou ? '⚠ quebrou' : f.forca); rg.appendChild(tr);
+      }); }
   }
 
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
