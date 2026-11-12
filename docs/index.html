@@ -329,9 +329,7 @@
     <div class="hj-bar"><span class="brand"><img src="favicon.svg" alt="" width="22" height="22"><b>Painel de mercado</b></span><span class="hj-k">Hoje</span><span class="hj-d">—</span><span class="hj-s">—</span><span class="hj-up">—</span></div>
     <nav class="op-tabs" role="tablist">
       <button type="button" class="op-tab" data-tab="sec-mi" aria-selected="true">Mercado</button>
-      <button type="button" class="op-tab" data-tab="sec-op" aria-selected="false">Paredes de opções</button>
-      <button type="button" class="op-tab" data-tab="sec-gb" aria-selected="false">Dias Goldbach</button>
-      <button type="button" class="op-tab" data-tab="sec-ai" aria-selected="false">Alto impacto EUA</button>
+      <button type="button" class="op-tab" data-tab="sec-dias" aria-selected="false">Dias de alto impacto</button>
     </nav>
   </div>
 
@@ -497,31 +495,9 @@
   </div>
 
   <!-- ============================== OPÇÕES ============================== -->
-  <div class="op-wrap op-sec" id="sec-op" hidden>
-    <header class="op-head"><h1>Paredes de opções</h1><p class="op-take">—</p></header>
-    <div class="mi-sel op-sub"><button type="button" class="op-btn" data-o="eur" aria-pressed="true">Euro (CME)</button><button type="button" class="op-btn" data-o="xau" aria-pressed="false">Ouro (CME + GLD/IAU)</button></div>
-    <p class="op-note"><b>Como ler:</b> parede = strike com muitos contratos em aberto; o preço tende a ser atraído ou travado nelas, principalmente perto do vencimento. Calls grandes acima do preço viram resistência para o par (no USDCHF, visão invertida, suporte); puts grandes abaixo viram suporte. <b>Gamma flip:</b> acima dele o hedge dos bancos segura o preço (mercado lateral, ímã); abaixo, o hedge acelera o movimento. O código vai direto no indicador Jireh Opções do TradingView. <span class="op-dt">—</span></p>
-    <div id="op-eur">
-      <section class="op-tiles op-tiles-eur"></section>
-      <section class="op-card"><h2>Código para o TradingView</h2><p class="op-note">Cole no campo "Código do dia" do Jireh Opções. Leva até 12 paredes de cada lado, o gamma flip (Z) e os gammas máximos (X e Y).</p><div class="op-code op-code-eur">—</div><button type="button" class="op-btn op-copy" data-c=".op-code-eur">Copiar código</button></section>
-      <div class="op-grid">
-        <section class="op-card"><h2>Contratos em aberto por strike</h2><p class="op-note">Calls à direita (verde), puts à esquerda (vermelho), nov e dez somados. Linha tracejada = futuro.</p><div class="mi-chart op-bfly"></div></section>
-        <section class="op-card"><h2>Gamma dos dealers (estimativa)</h2><p class="op-note">Black-76 em todos os strikes, vol de cada strike tirada do delta da CME. Convenção: dealers comprados em calls e vendidos em puts.</p><div class="op-tiles op-gtiles"></div><div class="mi-chart op-gchart"></div></section>
-        <section class="op-card"><h2>Por vencimento</h2><p class="op-note">As 6 maiores de cada lado em cada vencimento, com a variação do dia.</p><div class="op-tablebox"><table class="op-table op-par-t"><thead><tr><th>Venc.</th><th>Tipo</th><th class="num">Strike</th><th class="num">Em aberto</th><th class="num">Variação</th><th>USDCHF</th></tr></thead><tbody></tbody></table></div></section>
-      </div>
-    </div>
-    <div id="op-xau" hidden>
-      <section class="op-tiles op-tiles-xau"></section>
-      <section class="op-card"><h2>Código para o TradingView (ouro)</h2><p class="op-note">Cole no campo "Código do ouro" do Jireh Opções. C/P = paredes da CME, K/Q = paredes do GLD+IAU, Z/X/Y = gamma. Em preço do futuro de dezembro.</p><div class="op-code op-code-xau">—</div><button type="button" class="op-btn op-copy" data-c=".op-code-xau">Copiar código</button></section>
-      <div class="op-grid">
-        <section class="op-card"><h2>Contratos perto do preço</h2><p class="op-note">Faixas de 25 pontos até 10% do futuro. Calls à direita, puts à esquerda; CME e GLD+IAU em contratos equivalentes (100 onças).</p><div class="op-legend"><span><i class="op-sw" style="background:#3b7dd8"></i>CME</span><span><i class="op-sw" style="background:#2a9d8f"></i>GLD+IAU</span></div><div class="mi-chart op-xmap"></div></section>
-        <section class="op-card"><h2>Gamma dos dealers (estimativa)</h2><p class="op-note">Acima do flip o hedge segura o preço; abaixo, acelera.</p><div class="op-tiles op-xgtiles"></div><div class="mi-chart op-xg"></div></section>
-      </div>
-    </div>
-  </div>
-
   <!-- ============================== GOLDBACH ============================== -->
-  <div class="op-wrap op-sec" id="sec-ai" hidden>
+  <div class="op-sec" id="sec-dias" hidden>
+  <div class="op-wrap" id="sec-ai">
     <header class="op-head"><h1>Alto impacto EUA</h1><p class="ai-take">Carregando…</p></header>
     <section class="op-card">
       <h2>Calendário (mês anterior, atual e seguinte)</h2>
@@ -535,7 +511,7 @@
     </section>
   </div>
 
-  <div class="op-wrap op-sec" id="sec-gb" hidden>
+  <div class="op-wrap" id="sec-gb">
     <header class="op-head"><h1>Dias Goldbach e Hopiplaka</h1><p class="gb-take">—</p></header>
     <section class="op-tiles">
       <div class="op-card op-tile"><span class="s">Próximo dia Goldbach + Hopiplaka</span><span class="v gb-next2">—</span><span class="s gb-next2-s">—</span></div>
@@ -561,7 +537,7 @@
     </section>
   </div>
 </div>
-<script src="app.js?v=20261112a"></script>
-<script src="opcoes.js?v=20261112a"></script>
+</div>
+<script src="app.js?v=20261112b"></script>
 </body>
 </html>

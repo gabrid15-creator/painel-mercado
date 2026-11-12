@@ -15,7 +15,7 @@
 | **Dados** | JSON ficam na branch `dados`; o site lê via `raw.githubusercontent.com` | branch `dados` |
 | **Site** | HTML/JS estático, publicado no GitHub Pages **só em push** (código) | `docs/index.html`, `docs/app.js`, `docs/opcoes.js` |
 | **Leitura da IA** | Haiku 5.5 escreve o texto geral e de cada ativo + viés (bullish/neutro/bearish) | `ia.py`, segredo `ANTHROPIC_API_KEY` |
-| **Opções** | Tarefa agendada do Claude lê a CME e grava no Google Drive; a coleta importa | ver seção 4 |
+| **Opções de ouro (CME)** | Tarefa agendada do Claude lê a CME e grava no Google Drive; a coleta importa (0DTE e vol. CME) | ver seção 4 |
 
 **Frequência da IA:** 6h–18h de hora em hora · à noite só 20h e 0h · sempre após red folder · parada sex 18h → dom 18h. Custo real ≈ US$ 0,003/leitura (~R$ 5–6/mês).
 
@@ -39,14 +39,9 @@
   - caixa verde/vermelha acima/abaixo da previsão, "Acabou de sair", dia de hoje em âmbar, cabeçalho fixo.
 - **Notícias** (RSS, filtro por ativo).
 
-### Aba Paredes de opções (euro e ouro, mesmos cards)
-Pregão lido, futuro, maior call/put wall, gamma flip, gamma +/− máximo, código do TradingView (gerado dos mesmos dados), mapa de contratos e curva de gamma. Só strikes em **futuro ± 6×ATR** (mín. 300 pips / US$ 300).
-
-### Aba Dias Goldbach
-Calendário de 2 meses (H = dia do mês Hopiplaka), próximos dias, tabela.
-
-### Aba Alto impacto EUA
-Calendário do mês anterior, atual e seguinte só com dados americanos de alto impacto, marcando dias Goldbach (★/G/H), e lista com previsão, anterior e atual.
+### Aba Dias de alto impacto
+Junta, um embaixo do outro: **Alto impacto EUA** (calendário de 3 meses só com dados americanos de alto impacto, dias Goldbach marcados, lista com previsão/anterior/atual) e **Dias Goldbach e Hopiplaka** (calendário, próximos dias, tabela).
+A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0DTE, faixa e paredes por ativo; código do TradingView descontinuado).
 
 ### Visual
 Ícone, manifest (app no celular), modo claro/escuro, cards com sombra, abas em pílula, "Como ler" em todo indicador.
@@ -61,18 +56,17 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 | `ia.py` | Leitura da IA (Anthropic, Haiku 5.5) |
 | `opcoes_drive.py` | Importa o arquivo de opções mais recente da pasta do Drive |
 | `goldbach_gen.py` | Gera `docs/data/goldbach_dias.json` |
-| `docs/index.html` / `app.js` / `opcoes.js` | Site |
+| `docs/index.html` / `app.js` | Site (abas Mercado e Dias de alto impacto) |
 | `docs/data/*.json` | Cópia de reserva dos dados (o site prefere a branch `dados`) |
 | `.github/workflows/coleta.yml` | Coleta → branch `dados`; site → Pages só em push |
 
 ---
 
-## 4. Opções (fluxo especial)
+## 4. Opções de ouro da CME (fluxo especial)
 
-- A CME bloqueia servidores do GitHub, então a leitura é feita por uma **tarefa agendada do Claude**: **"Opções ouro e euro (noite) → Drive → painel-mercado"**, Sonnet 5.5, **ter–sáb 03:37**.
-- Ela grava `opcoes_<data>_<hora>.json` na pasta pública do Drive **painel-mercado-opcoes** (conta gabridemes15@gmail.com, id `1GTHAZCrqQe_LYxf8OuR3zwqncQmHUunx`).
-- Vencimentos: **semanais dos próximos 10 dias + mensal mais próxima**.
-- Status: **euro funcionando** (pregão 05/11 carregado). **Ouro pendente** (não achou a série mensal OG; dados de 30/10).
+- A CME bloqueia servidores do GitHub; a leitura é feita pela **tarefa agendada do Claude "Opções de ouro CME (noite) → Drive → painel-mercado"** (Sonnet 5.5, ter–sáb 03:37).
+- Só ouro: séries que vencem em 0–2 dias úteis (0DTE) + primeira semanal a partir de 3 dias (vol. implícita). Euro e ETFs removidos em 12/11/2026 para economizar a cota.
+- Grava `opcoes_<data>_<hora>.json` (ouro_cadeia com settle, ouro_boletim) na pasta do Drive **painel-mercado-opcoes** (id `1GTHAZCrqQe_LYxf8OuR3zwqncQmHUunx`); `opcoes_drive.py` importa.
 
 ---
 
@@ -124,7 +118,6 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 - Probabilidade implícita de BoJ e SNB, se houver fonte confiável.
 
 ### 5.4 Outras pendências
-1. Ouro nas opções: ajustar a tarefa para a seção certa da CME (OG1–OG5 + OG mensal).
 2. Previsão do CPI (Cleveland Fed nowcast), se houver fonte confiável.
 3. Domínio próprio (adiado).
 

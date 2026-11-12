@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -53,7 +53,8 @@
     drawAll();
   };
   document.querySelectorAll('button.op-tab').forEach((b) => b.addEventListener('click', () => { tabs(b.dataset.tab); history.replaceState(null, '', '#' + b.dataset.tab); }));
-  if (['#sec-gb', '#sec-op', '#sec-ai'].includes(location.hash)) tabs(location.hash.slice(1));
+  if (['#sec-gb', '#sec-ai', '#sec-op'].includes(location.hash)) tabs(location.hash === '#sec-op' ? 'sec-mi' : 'sec-dias');
+  else if (location.hash === '#sec-dias') tabs('sec-dias');
 
   // ---------------------------------------------------------------- mercado
   let atv = 'EURUSD', serie = 'Spread 2a EUA−Alemanha', jan = 10, nwF = 'ativo'; const vis = {};
@@ -364,7 +365,7 @@
     if (g.status !== 'ok') return;
     const hj = g.data.find((r) => r.data === t);
     const hs = $('.hj-s'); hs.textContent = hj ? hj.resumo : 'Não é dia Goldbach nem Hopiplaka'; hs.classList.toggle('both', !!hj && hj.tipo === 'Goldbach + Hopiplaka');
-    if ($('#sec-gb').hidden) return;
+    if ($('#sec-dias').hidden) return;
     const fut = g.data.filter((r) => r.data >= t);
     $('.gb-take').textContent = hj ? 'Hoje: ' + hj.resumo + (hj.goldbach ? ' — Goldbach por ' + hj.goldbach : '') : 'Hoje não é dia Goldbach nem Hopiplaka.';
     const a = fut.find((r) => r.tipo === 'Goldbach + Hopiplaka');
@@ -623,11 +624,11 @@
   async function aiTick() {
     const h = new Date(); const ini = new Date(Date.UTC(h.getFullYear(), h.getMonth() - 1, 1)), fim = new Date(Date.UTC(h.getFullYear(), h.getMonth() + 2, 0));
     try { const r = await fetch('https://biquote.io/api/calendar?countries=US&importance=high&from=' + ini.toISOString().slice(0, 10) + '&to=' + fim.toISOString().slice(0, 10), { cache: 'no-store' });
-      if (r.ok) { const j = await r.json(); AI.ev = (Array.isArray(j) ? j : []).filter((e) => e.currency === 'USD' && e.importance === 'high'); AI.t = Date.now(); if (!$('#sec-ai').hidden) drawAI(); } } catch (e) { /* mantém */ }
+      if (r.ok) { const j = await r.json(); AI.ev = (Array.isArray(j) ? j : []).filter((e) => e.currency === 'USD' && e.importance === 'high'); AI.t = Date.now(); if (!$('#sec-dias').hidden) drawAI(); } } catch (e) { /* mantém */ }
   }
   const brt = (iso) => { const d = new Date(new Date(iso).getTime() - 3 * 3600e3); return [d.toISOString().slice(0, 10), d.toISOString().slice(11, 16)]; };
   function drawAI() {
-    if (!AI || $('#sec-ai').hidden) return;
+    if (!AI || $('#sec-dias').hidden) return;
     const G = new Map((D('goldbach_dias').data || []).map((r) => [r.data, r])); const hj = hojeISO();
     const por = new Map(); for (const e of AI.ev) { const [d] = brt(e.time); if (!por.has(d)) por.set(d, []); por.get(d).push(e); }
     const nMes = [...por.keys()].filter((d) => d.slice(0, 7) === hj.slice(0, 7)).length;
@@ -794,7 +795,7 @@
   }
 
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
-  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); drawDJ(); } if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); drawAI(); }
+  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); drawDJ(); } drawAI(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
   load().then(() => { liveTick(); surpTick(); aiTick(); }); setInterval(load, 2 * 60 * 1000); setInterval(surpTick, 10 * 60 * 1000); setInterval(aiTick, 10 * 60 * 1000);
 })();
