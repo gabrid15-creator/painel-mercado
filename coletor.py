@@ -574,6 +574,7 @@ def b_0dte():
     row = {"vencimento": venc.isoformat(), "atualizado": ny.strftime("%H:%M") + " NY", "gld": rnd(S, 2), "ouro": rnd(ouro, 1),
            "contratos_hoje": int(sum(o["vol"] for o in ch)), "abertos": int(sum(o["oi"] for o in ch)),
            "faixa_pct": rnd(strad / S * 100, 2), "faixa": [conv(S - strad), conv(S + strad)],
+           "s1": [conv(S - 1.25 * strad), conv(S + 1.25 * strad)],   # straddle ≈ 0,8σ → 1σ ≈ 1,25 × straddle
            "call_wall": conv(lado(cw, lambda k: k >= S)), "put_wall": conv(lado(pw, lambda k: k <= S)),
            "gamma_flip": conv(flip), "max_pain": conv(min(dor, key=dor.get)) if dor else None,
            "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(S) > 0 else "gamma negativo (movimentos tendem a acelerar)",

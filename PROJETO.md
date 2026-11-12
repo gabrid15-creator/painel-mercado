@@ -102,6 +102,8 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 - **Put/call dos ETFs de moeda:** pouquíssimos contratos, não representa institucional. Não entrou.
 - **0DTE ouro (GLD, vence todo dia):** faixa do dia (straddle), call/put wall, gamma flip, max pain → no painel (`mi_0dte.json`); validação após ~30 pregões (`mi_0dte_hist.json`). Moedas: sem 0DTE gratuito (ETFs ilíquidos; CME só pela tarefa noturna).
 - Databento: adiado (pago).
+- **Visual:** cards por ativo (Regime, Faixa das opções, 0DTE, CTA) ficam abaixo do seletor e só aparecem para o ativo escolhido; níveis com cores (teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom).
+- **Precisão:** Regime forte mantém a direção 13 semanas em 91–100% (DXY) e 57–90% (juros); faixa ±1σ semana 72–74% / ±2σ 93–96%; 0DTE sem teste ainda.
 - Pendente: contratos em aberto da CME (via tarefa noturna), e Databento (precisa de conta).
 
 ### 5.2 Fluxo dos grandes (substituir/complementar o COT)

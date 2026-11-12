@@ -308,6 +308,11 @@
   .rd-b .tr::after { content: ""; position: absolute; left: 50%; top: -2px; width: 1px; height: 12px; background: var(--color-fg-muted); }
 
   /* seletor de ativo: fica acima do score e gruda abaixo do topo ao rolar */
+  .lv { display: inline-block; padding: 0 6px; border-radius: 6px; font-weight: 600; color: #fff; white-space: nowrap; }
+  .lv-cw { background: #c8443a; } .lv-pw { background: #1f8a5b; } .lv-gf { background: #c98a12; } .lv-mp { background: #7b5cc4; }
+  .lv-rg { background: #3b7dd8; } .lv-s1 { background: #2a9d8f; } .lv-s2 { background: #8d5a2b; } .lv-now { background: #555; }
+  .op-card[hidden] { display: none; }
+  .atv-cards { display: flex; flex-direction: column; gap: var(--cds-gap-lg, 16px); }
   .ativos-fixo { position: sticky; top: var(--topo-h, 96px); z-index: 15; display: flex; flex-direction: column; gap: 6px; padding: 8px 0; margin: -8px 0; background: color-mix(in srgb, var(--color-bg) 85%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
   .ativos-fixo.preso { box-shadow: 0 10px 16px -14px rgba(0,0,0,.6); border-bottom: 1px solid var(--color-border-line); }
   .ia-vies { font-size: 12px; padding: 3px 12px; letter-spacing: .04em; text-transform: uppercase; }
@@ -335,8 +340,6 @@
     <header class="op-head"><h1>Inteligência de mercado</h1><p class="mi-take">Carregando…</p></header>
     <section class="op-card mi-iag"><div class="ia-h"><h2>Leitura do dia</h2><span class="tl-chip ia-chip">✦ IA</span><span class="ia-quando mi-ia-geral-q"></span><span class="tl-chip ia-vies mi-ia-geral-v" hidden></span></div><p class="mi-ia-txt mi-ia-geral">—</p></section>
 
-
-
     <section class="op-tiles">
       <div class="op-card op-tile">
         <div class="tl-h"><span class="tl-k">Fear &amp; Greed · CNN</span><span class="tl-chip mi-fg-chip">—</span></div>
@@ -363,7 +366,6 @@
         <span class="mi-exp">Dólar contra 6 moedas (57% é o euro). Subindo: EURUSD, GBPUSD e ouro caem; USDJPY e USDCHF sobem. A variação de 20 dias dá a tendência.</span></div>
     </section>
 
-
     <section class="op-card radar"><div class="ag-top"><h2>Radar institucional</h2><span class="tl-chip ia-chip">o que as mesas olham</span></div>
       <p class="op-note"><b>Como ler:</b> são os termômetros que mesas de bancos e fundos olham antes do preço. <b>Liquidez</b> diz se há dinheiro entrando no sistema (combustível para Nasdaq e ouro). <b>Estresse</b> mostra se o medo é pontual ou sistêmico: <b>VIX ÷ VIX 3 meses</b> acima de 1 = pânico de curto prazo, costuma marcar fundos de bolsa quando volta abaixo de 1; <b>MOVE</b> alto = juros instáveis, dólar e iene ganham; <b>NFCI</b> acima de 0 = crédito travando, risco para tudo. <b>Surpresa</b> compara a economia de cada país com o que se esperava: moeda com surpresa positiva tende a se valorizar contra a de surpresa negativa (ex.: <b>USD +40 e EUR −20</b> favorece EURUSD caindo). O <b>regime</b> dos EUA cruza surpresa de crescimento e de inflação: <b>estagflação</b> favorece ouro e franco; <b>cenário ideal</b> favorece Nasdaq.</p>
       <div class="rd-g">
@@ -380,26 +382,6 @@
       <table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia</th><th class="num">5 dias</th></tr></thead><tbody></tbody></table>
     </section>
 
-    <section class="op-card cta"><div class="ag-top"><h2>CTA · fundos de tendência no ouro (estimativa)</h2><span class="tl-chip ia-chip">fluxo sistemático</span></div>
-      <p class="op-note"><b>Como ler:</b> CTAs são fundos que seguem tendência por regra. <b>Posição</b> de −100% (todos vendidos) a +100% (todos comprados), média das janelas de 1, 3, 6 e 12 meses. <b>Gatilho</b> = preço que, se cruzado, vira uma janela e força compra ou venda. <b>Teste (2016+):</b> no ouro o modelo acompanha a posição real dos fundos no COT (correlação 0,59) e acerta 54,5% em 20 dias: ajuda, mas pouco. Em iene, franco e euro <b>não passou no teste</b> e foi retirado.</p>
-      <table class="op-table cta-t"><thead><tr><th>Ativo</th><th class="num">Posição</th><th>Gatilho mais próximo</th><th class="num">Distância</th></tr></thead><tbody></tbody></table>
-    </section>
-
-    <section class="op-card rg"><div class="ag-top"><h2>Regime · o que está mexendo cada par agora</h2><span class="tl-chip ia-chip">dólar e juros</span></div>
-      <p class="op-note"><b>Como ler:</b> mostra quanto cada par anda junto com o dólar (DXY) e os juros dos EUA nas <b>últimas 26 semanas</b>. <b>Correlação</b> de −1 a +1: perto de ±1 = andam juntos (forte acima de 0,4); perto de 0 = sem ligação. <b>Reação</b> = quanto o par costuma andar quando o juro sobe 10 bps (ou o DXY sobe 1%). <b>⚠ quebrou</b> = a ligação inverteu em relação ao histórico (ex.: ouro subindo junto com juro em 2025): não confie nela agora. Isso <b>explica</b> o movimento da semana, mas <b>não prevê</b> a próxima (testado desde 2016). Atualiza a cada coleta.</p>
-      <table class="op-table rg-t"><thead><tr><th>Par</th><th>Fator</th><th class="num">Correlação 26s</th><th class="num">52s</th><th class="num">Reação</th><th>Ligação</th></tr></thead><tbody></tbody></table>
-    </section>
-
-    <section class="op-card fx"><div class="ag-top"><h2>Faixa esperada pelas opções</h2><span class="tl-chip ia-chip">o que os grandes precificam</span></div>
-      <p class="op-note"><b>Como ler:</b> quem opera opções (bancos e fundos) paga um preço que embute o <b>tamanho do movimento esperado</b> (volatilidade implícita). Daí sai a faixa: <b>±1σ</b> = onde o preço deve ficar em ~2 de cada 3 vezes; <b>±2σ</b> = extremo, rompe só ~1 em 20. Perto da borda de ±2σ = movimento esticado, chance maior de parar ou voltar. Calculada a partir do preço atual. <b>Teste no ouro (2016+):</b> a faixa da semana conteve <b>74%</b> dos fechamentos em ±1σ e <b>96%</b> em ±2σ: confiável. Nos pares de moeda a fonte é o ETF de opções (menos líquido): validação em andamento, histórico sendo gravado.</p>
-      <table class="op-table fx-t"><thead><tr><th>Par</th><th class="num">Vol. implícita</th><th>Prazo</th><th class="num">±1σ</th><th class="num">±2σ</th></tr></thead><tbody></tbody></table>
-    </section>
-
-    <section class="op-card z0"><div class="ag-top"><h2>0DTE ouro · opções que vencem hoje</h2><span class="tl-chip ia-chip z0-chip">—</span></div>
-      <p class="op-note"><b>Como ler:</b> opções do GLD (ETF de ouro) que vencem hoje, convertidas para o preço do ouro. São as apostas de curtíssimo prazo dos grandes. <b>Faixa do dia</b> = movimento que o mercado paga até o fechamento (straddle). <b>Call wall</b> = teto onde há mais calls (resistência); <b>put wall</b> = piso com mais puts (suporte). <b>Gamma flip</b>: acima dele os bancos que vendem opções tendem a <b>segurar</b> o preço; abaixo tendem a <b>acelerar</b> o movimento. <b>Max pain</b> = preço onde os compradores de opções perdem mais (o preço às vezes é puxado para lá no vencimento). Atraso de 15 min, só no pregão de NY (11h30–18h Brasília). <b>Ainda sem teste estatístico:</b> o painel grava um retrato por dia para medir a precisão; resultado após ~30 pregões.</p>
-      <table class="op-table z0-t"><tbody></tbody></table>
-    </section>
-
     <div class="ativos-fixo"><span class="tl-k">Escolha o ativo</span><div class="ativos" role="group" aria-label="Ativo"></div></div>
 
     <section class="op-card">
@@ -412,6 +394,29 @@
       <table class="op-table mi-sc-t"><thead><tr><th>Fator (peso)</th><th class="num">Pontos</th><th>Leitura</th></tr></thead><tbody></tbody></table>
       <p class="mi-exp">Como funciona: cada fator dá de −1 (puxa para baixo) a +1 (puxa para cima), multiplicado pelo peso. O score parte de 50 e soma os pontos: 60 ou mais = viés altista, 40 ou menos = baixista, entre os dois = neutro. Pesos: tendência 20, juros 20, dólar 15, COT 15, movimento de hoje 10, risco 10, sazonalidade 5 e valor justo 5. <b>Teste (2016+):</b> o score <b>não prevê</b> o retorno de 5 ou 20 dias em nenhum par (só a tendência do ouro passou). Use como resumo do momento, não como sinal de entrada. A leitura em texto é escrita pela IA (Claude) duas vezes por dia, juntando números, agenda e notícias.</p>
     </section>
+
+    <div class="atv-cards">
+    <section class="op-card rg"><div class="ag-top"><h2>Regime · o que está mexendo o ativo agora</h2><span class="tl-chip ia-chip">dólar e juros</span></div>
+      <p class="op-note"><b>Como ler:</b> quanto o ativo anda junto com o dólar (DXY) e os juros dos EUA nas <b>últimas 26 semanas</b>. <b>Correlação</b> de −1 a +1: perto de ±1 = andam juntos; perto de 0 = sem ligação. <b>Reação</b> = quanto o ativo costuma andar quando o juro sobe 10 bps (ou o DXY sobe 1%). <b>⚠ quebrou</b> = ligação invertida em relação ao histórico. <b>Precisão (teste 2016+):</b> quando a ligação está <b>forte</b> (≥ 0,4), ela mantém a direção nas 13 semanas seguintes em <b>91–100%</b> das vezes com o DXY e <b>57–90%</b> com os juros (melhor no ouro e no iene). O valor exato muda (erro médio ±0,15 a ±0,40): use a <b>direção e a força</b>, não o número. Explica o movimento, <b>não prevê</b> o preço.</p>
+      <table class="op-table rg-t"><thead><tr><th>Fator</th><th class="num">Correlação 26s</th><th class="num">52s</th><th class="num">Reação</th><th>Ligação</th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section class="op-card fx"><div class="ag-top"><h2>Faixa esperada pelas opções</h2><span class="tl-chip ia-chip">o que os grandes precificam</span></div>
+      <p class="op-note"><b>Como ler:</b> o preço das opções embute o <b>tamanho do movimento esperado</b> (volatilidade implícita de 30 dias). <span class="lv lv-s1">±1σ</span> = onde o preço deve ficar em ~2 de cada 3 vezes. <span class="lv lv-s2">±2σ</span> = extremo: perto dessa borda o movimento está esticado. Calculada a partir do preço atual. <b>Precisão (teste 2016+, semana):</b> ouro com a vol. das opções (GVZ) ficou dentro de ±1σ em <b>74%</b> e de ±2σ em <b>96%</b> (teórico 68% e 95%). Moedas: sem histórico gratuito da vol. das opções; o teste aproximado (vol. realizada + prêmio) deu <b>72–73%</b> e <b>93–95%</b>. Vol. atual das opções conferida contra a realizada: coerente.</p>
+      <table class="op-table fx-t"><thead><tr><th>Prazo</th><th class="num">Vol. implícita</th><th class="num">±1σ</th><th class="num">±2σ</th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section class="op-card z0"><div class="ag-top"><h2>0DTE ouro · opções que vencem hoje</h2><span class="tl-chip ia-chip z0-chip">—</span></div>
+      <p class="op-note"><b>Como ler:</b> opções do GLD (ETF de ouro) que vencem hoje, convertidas para o preço do ouro. <span class="lv lv-rg">Faixa do dia</span> = movimento médio que o mercado paga até o fechamento (straddle; ~58% dos dias fecham dentro) e <span class="lv lv-s1">±1σ</span> (~68%). <span class="lv lv-cw">Teto (call wall)</span> = onde há mais calls, resistência. <span class="lv lv-pw">Piso (put wall)</span> = onde há mais puts, suporte. <span class="lv lv-gf">Gamma flip</span>: acima dele os bancos tendem a <b>segurar</b> o preço; abaixo, a <b>acelerar</b>. <span class="lv lv-mp">Max pain</span> = preço onde os compradores de opções mais perdem. Atraso de 15 min, só no pregão de NY (11h30–18h Brasília). <b>Precisão: ainda sem teste</b> (não há histórico gratuito); o painel grava um retrato por dia e mede após ~30 pregões.</p>
+      <table class="op-table z0-t"><tbody></tbody></table>
+    </section>
+
+    <section class="op-card cta"><div class="ag-top"><h2>CTA · fundos de tendência (estimativa)</h2><span class="tl-chip ia-chip">fluxo sistemático</span></div>
+      <p class="op-note"><b>Como ler:</b> CTAs são fundos que seguem tendência por regra. <b>Posição</b> de −100% (todos vendidos) a +100% (todos comprados), média das janelas de 1, 3, 6 e 12 meses. <b>Gatilho</b> = preço que, se cruzado, vira uma janela e força compra ou venda. <b>Teste (2016+):</b> no ouro o modelo acompanha a posição real dos fundos no COT (correlação 0,59) e acerta 54,5% em 20 dias: ajuda, mas pouco. Em iene, franco e euro <b>não passou no teste</b> e foi retirado.</p>
+      <table class="op-table cta-t"><thead><tr><th>Ativo</th><th class="num">Posição</th><th>Gatilho mais próximo</th><th class="num">Distância</th></tr></thead><tbody></tbody></table>
+    </section>
+    </div>
+
 
     <section class="op-tiles">
       <div class="op-card op-tile"><span class="tl-k">Preço</span><span class="v mi-a" data-f="preco">—</span><ul class="tl-l mi-a-var"></ul><span class="mi-exp">Último preço e variação em 1 dia, 5 dias (semana), 20 dias (mês) e no ano.</span></div>

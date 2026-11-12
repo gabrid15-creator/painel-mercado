@@ -66,7 +66,7 @@
     const b = document.createElement('button'); b.type = 'button'; b.dataset.a = a;
     b.innerHTML = '<span class="an"><b></b><small></small></span><span class="sv">—<small></small></span>';
     b.querySelector('.an b').textContent = a; b.querySelector('.an small').textContent = NOME[a];
-    b.addEventListener('click', () => { atv = a; drawMI(); }); bar.appendChild(b);
+    b.addEventListener('click', () => { atv = a; drawMI(); drawAtv(); }); bar.appendChild(b);
   }
   document.querySelectorAll('.mi-jan button').forEach((b) => b.addEventListener('click', () => {
     jan = Number(b.dataset.j); document.querySelectorAll('.mi-jan button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); drawMI();
@@ -675,35 +675,54 @@
       td(tr, r.d1 == null ? '—' : sg(r.d1, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d1)); td(tr, r.d5 == null ? '—' : sg(r.d5, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d5));
       t.appendChild(tr);
     }
-    const c = $('.cta-t tbody'); c.replaceChildren();
-    for (const r of D('mi_cta').data || []) {
-      const tr = document.createElement('tr'); td(tr, r.ativo);
-      const p = td(tr, sg(r.posicao, 0, '%'), 'num ' + cls(r.posicao)); p.style.fontWeight = 600;
-      const g = r.gatilho_proximo; td(tr, g ? nf(g.nivel, String(g.nivel).split('.')[1] ? String(g.nivel).split('.')[1].length : 0) + ' (' + g.janela + ', ' + (g.lado > 0 ? 'abaixo vira venda' : 'acima vira compra') + ')' : '—');
-      td(tr, g ? sg(g.dist_pct, 2) : '—', 'num'); c.appendChild(tr);
-    }
-    const fxt = $('.fx-t tbody'); if (fxt) { fxt.replaceChildren();
-      for (const r of D('mi_faixa').data || []) r.faixas.forEach((f, i) => {
-        const tr = document.createElement('tr'); const cs = String(r.preco).split('.')[1]; const k = cs ? Math.min(cs.length, 5) : 2;
-        td(tr, i ? '' : r.ativo + (r.validado ? ' ✓' : '')).style.fontWeight = 600; td(tr, i ? '' : nf(r.iv, 1) + '%', 'num');
-        td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)');
-        td(tr, nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'num'); td(tr, nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'num'); fxt.appendChild(tr);
-      }); }
-    const z0 = $('.z0-t tbody'); const z = (D('mi_0dte').data || [])[0]; if (z0 && z) { z0.replaceChildren();
-      $('.z0-chip').textContent = 'vence ' + br(z.vencimento) + ' · ' + z.atualizado;
-      const lin = [['Ouro agora', nf(z.ouro, 1)], ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%)', nf(z.faixa[0], 1) + ' – ' + nf(z.faixa[1], 1)],
-        ['Call wall (teto)', z.call_wall == null ? '—' : nf(z.call_wall, 1)], ['Put wall (piso)', z.put_wall == null ? '—' : nf(z.put_wall, 1)],
-        ['Gamma flip', z.gamma_flip == null ? '—' : nf(z.gamma_flip, 1)], ['Max pain', z.max_pain == null ? '—' : nf(z.max_pain, 1)],
-        ['Regime', z.regime], ['Contratos negociados hoje / em aberto', nf(z.contratos_hoje, 0) + ' / ' + nf(z.abertos, 0)]];
-      for (const [k, v] of lin) { const tr = document.createElement('tr'); td(tr, k); td(tr, v, 'num').style.fontWeight = 600; z0.appendChild(tr); } }
-    const rg = $('.rg-t tbody'); if (rg) { rg.replaceChildren();
-      for (const r of D('mi_regime').data || []) r.fatores.forEach((f, i) => {
-        const tr = document.createElement('tr'); td(tr, i ? '' : r.ativo).style.fontWeight = 600;
-        td(tr, f.fator + (f.fator === r.principal ? ' ★' : ''));
+    drawAtv();
+  }
+
+  // cards do ativo selecionado (aparecem só quando há dado para ele)
+  function drawAtv() {
+    const mostra = (sel, ok) => { const e = $(sel); if (e) e.hidden = !ok; return ok; };
+    const casas = (v) => { const s = String(v).split('.')[1]; return s ? Math.min(s.length, 5) : 2; };
+    const lv = (txt, c) => { const s = document.createElement('span'); s.className = 'lv ' + c; s.textContent = txt; return s; };
+    const cel = (tr, el, c) => { const e = document.createElement('td'); if (c) e.className = c; e.appendChild(el); tr.appendChild(e); return e; };
+    // CTA
+    const ct = (D('mi_cta').data || []).filter((r) => r.ativo === atv);
+    if (mostra('.op-card.cta', ct.length)) { const c = $('.cta-t tbody'); c.replaceChildren();
+      for (const r of ct) {
+        const tr = document.createElement('tr'); td(tr, r.ativo);
+        const p = td(tr, sg(r.posicao, 0, '%'), 'num ' + cls(r.posicao)); p.style.fontWeight = 600;
+        const g = r.gatilho_proximo; td(tr, g ? nf(g.nivel, casas(g.nivel)) + ' (' + g.janela + ', ' + (g.lado > 0 ? 'abaixo vira venda' : 'acima vira compra') + ')' : '—');
+        td(tr, g ? sg(g.dist_pct, 2) : '—', 'num'); c.appendChild(tr);
+      } }
+    // Regime
+    const rr = (D('mi_regime').data || []).find((r) => r.ativo === atv);
+    if (mostra('.op-card.rg', rr)) { const t = $('.rg-t tbody'); t.replaceChildren();
+      for (const f of rr.fatores) {
+        const tr = document.createElement('tr'); td(tr, f.fator + (f.fator === rr.principal ? ' ★' : '')).style.fontWeight = 600;
         td(tr, nf(f.corr26, 2), 'num ' + cls(f.corr26)); td(tr, f.corr52 == null ? '—' : nf(f.corr52, 2), 'num');
         td(tr, sg(f.beta, 2) + (f.fator === 'DXY' ? ' / +1%' : ' / +10 bps'), 'num');
-        td(tr, f.quebrou ? '⚠ quebrou' : f.forca); rg.appendChild(tr);
+        cel(tr, f.quebrou ? lv('⚠ quebrou', 'lv-cw') : lv(f.forca, f.forca === 'forte' ? 'lv-pw' : f.forca === 'média' ? 'lv-gf' : 'lv-now')); t.appendChild(tr);
+      } }
+    // Faixa das opções
+    const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv);
+    if (mostra('.op-card.fx', fr)) { const t = $('.fx-t tbody'); t.replaceChildren(); const k = casas(fr.preco);
+      fr.faixas.forEach((f, i) => {
+        const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
+        td(tr, i ? '' : nf(fr.iv, 1) + '%', 'num');
+        cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr);
       }); }
+    // 0DTE (só ouro)
+    const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
+    if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
+      $('.z0-chip').textContent = 'vence ' + br(z.vencimento) + ' · ' + z.atualizado;
+      const n1 = (v) => (v == null ? '—' : nf(v, 1));
+      const niv = [['Ouro agora', z.ouro, 'lv-now'], ['Teto (call wall)', z.call_wall, 'lv-cw'], ['Gamma flip', z.gamma_flip, 'lv-gf'],
+        ['Max pain', z.max_pain, 'lv-mp'], ['Piso (put wall)', z.put_wall, 'lv-pw']].filter((x) => x[1] != null).sort((x, y) => y[1] - x[1]);   // escada: do mais alto ao mais baixo
+      const lin = [...niv.map(([nm, v, c]) => [nm, n1(v), c]),
+        ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%)', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg']];
+      if (z.s1) lin.push(['±1σ do dia', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1']);
+      for (const [nm, v, c] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; t.appendChild(tr); }
+      const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); t.appendChild(tr);
+    }
   }
 
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
