@@ -504,6 +504,36 @@ def b_regime():
     save("mi_regime.json", rows)
 b_regime()
 
+@bloco("Faixa esperada (opções)")
+def b_faixa():
+    # volatilidade implícita de 30 dias → faixa de ±1σ e ±2σ para dia, semana e mês
+    # validação ouro (GVZ, 2016+): semana ±1σ conteve 74% dos fechamentos (teórico 68%), ±2σ 96%
+    FONTE = {"XAUUSD": ("GLD", "^GVZ"), "USDJPY": ("FXY", None), "USDCHF": ("FXF", None), "EURUSD": ("FXE", None)}
+    rows = []; hist = {(h["ativo"], h["data"]): h for h in ler("mi_faixa_hist.json")}
+    for a, (etf, idx) in FONTE.items():
+        if a not in P: continue
+        iv = None; fonte = ""
+        if idx:
+            try: iv = last(closes(yahoo(idx, 0.1))); fonte = "índice " + idx.strip("^") + " (Cboe)"
+            except Exception: pass
+        if iv is None:
+            iv = json.loads(get(f"https://cdn.cboe.com/api/global/delayed_quotes/options/{etf}.json"))["data"]["iv30"]
+            fonte = f"opções do ETF {etf} (Cboe, 15 min de atraso)"
+        c = closes(P[a]); px = c[max(c)]; casas = ATIVOS[a][1]
+        fx = []
+        for n, nome in ((1, "dia"), (5, "semana"), (21, "mês")):
+            sd = iv / 100 * math.sqrt(n / 252)
+            fx.append({"prazo": nome, "pct": rnd(sd * 100, 2),
+                       "s1": [rnd(px * math.exp(-sd), casas), rnd(px * math.exp(sd), casas)],
+                       "s2": [rnd(px * math.exp(-2 * sd), casas), rnd(px * math.exp(2 * sd), casas)]})
+        rows.append({"ativo": a, "preco": rnd(px, casas), "iv": rnd(iv, 2), "fonte": fonte, "faixas": fx,
+                     "validado": a == "XAUUSD"})
+        hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
+    if not rows: raise ValueError("sem volatilidade")
+    save("mi_faixa.json", rows)
+    save("mi_faixa_hist.json", sorted(hist.values(), key=lambda h: (h["ativo"], h["data"]))[-4000:])
+b_faixa()
+
 # ---------------------------------------------------------------- Fear & Greed (CNN)
 @bloco("Fear & Greed (CNN)")
 def b_fg():
