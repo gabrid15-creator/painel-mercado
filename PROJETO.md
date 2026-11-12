@@ -141,4 +141,4 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 | Claude (tarefa agendada) | leitura noturna da CME |
 
 ## 7. Preferências
-Português · respostas curtas e econômicas · "Como ler" em todo indicador novo · horário de Brasília · códigos do TradingView sempre gerados dos mesmos dados do painel.
+Português · respostas curtas e econômicas · "Como ler" em todo indicador novo · horário de Brasília · **opções: sempre incluir a CME (mercado muito maior) junto com o GLD, em qualquer análise ou teste**; só entra no painel o que passar em teste estatístico (previsão; retrato não serve).
