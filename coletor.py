@@ -586,7 +586,8 @@ def b_faixa():
             if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
             if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
             sd = FIXO[kd]["sd"]
-            hb = lambda d: dt.datetime.combine(d, dt.time(17), NYz).astimezone(BRT).strftime("%a %d/%m %Hh").replace("Mon", "seg").replace("Tue", "ter").replace("Wed", "qua").replace("Thu", "qui").replace("Fri", "sex").replace("Sat", "sáb").replace("Sun", "dom")
+            hab = 18 if a == "XAUUSD" else 17   # ouro: a CME reabre às 18h de NY; moedas viram o dia às 17h
+            hb = lambda d: dt.datetime.combine(d, dt.time(hab), NYz).astimezone(BRT).strftime("%a %d/%m %Hh").replace("Mon", "seg").replace("Tue", "ter").replace("Wed", "qua").replace("Thu", "qui").replace("Fri", "sex").replace("Sat", "sáb").replace("Sun", "dom")
             row["mapa"] = {"sd_dia": rnd(sd, 6), "sd_sem": rnd(FIXO[kw]["sd"], 6), "proj_dia": FIXO[kd]["em"], "proj_sem": FIXO[kw]["em"],
                            "dia_ini": hb(hoje_s - dt.timedelta(days=3 if hoje_s.weekday() == 0 else 1)), "dia_fim": hb(hoje_s),
                            "sem_ini": hb(seg - dt.timedelta(days=1)), "sem_fim": hb(seg + dt.timedelta(days=4)), "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
