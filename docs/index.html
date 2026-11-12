@@ -375,6 +375,16 @@
           <span class="mi-exp">Quanto os dados de cada país vieram <b>acima (+)</b> ou <b>abaixo (−)</b> da previsão, de −100 a +100, com peso maior para os recentes e os de alto impacto (como o índice do Citi). <b>Desemprego e pedidos de seguro</b> têm sinal invertido. Recalculado a cada 10 min.</span></div>
       </div></section>
 
+    <section class="op-card dj"><div class="ag-top"><h2>Dólar e juros</h2><span class="tl-chip ia-chip">o motor do câmbio</span></div>
+      <p class="op-note"><b>Como ler:</b> o dólar segue os <b>juros americanos</b> e a <b>expectativa do Fed</b>. Juro de <b>13 semanas</b> = o que o mercado espera do Fed nos próximos meses; <b>5 e 10 anos</b> = crescimento e inflação. <b>Fed Funds implícito</b> abaixo do efetivo = mercado precificando <b>cortes</b> (dólar mais fraco). <b>Diferencial EUA − Japão</b> subindo = USDJPY tende a subir (carry); caindo = iene se fortalece. <b>GDPNow</b> = previsão do PIB do Fed de Atlanta, atualizada a cada dado: subindo antes de um dado = economia vindo mais forte que o esperado. Variações em <b>pontos-base</b> (bps: 0,01 p.p.). Juros a cada 5 min (Yahoo, até ~15 min de atraso); JGB e GDPNow 1× por dia.</p>
+      <table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia</th><th class="num">5 dias</th></tr></thead><tbody></tbody></table>
+    </section>
+
+    <section class="op-card cta"><div class="ag-top"><h2>CTA · fundos de tendência (estimativa)</h2><span class="tl-chip ia-chip">fluxo sistemático</span></div>
+      <p class="op-note"><b>Como ler:</b> CTAs são fundos que seguem tendência por regra e movem bilhões; as mesas estimam a posição deles com modelos como este. <b>Posição</b> de −100% (totalmente vendidos) a +100% (totalmente comprados), média das janelas de <b>1, 3, 6 e 12 meses</b>. <b>Gatilho</b> = preço que, se cruzado, vira o sinal de uma janela e obriga os CTAs a comprar ou vender: perto do gatilho = risco de fluxo forçado. Não é a posição real (essa ninguém publica de graça); é a estimativa do modelo, recalculada a cada 5 min.</p>
+      <table class="op-table cta-t"><thead><tr><th>Ativo</th><th class="num">Posição</th><th>Gatilho mais próximo</th><th class="num">Distância</th></tr></thead><tbody></tbody></table>
+    </section>
+
     <div class="ativos-fixo"><span class="tl-k">Escolha o ativo</span><div class="ativos" role="group" aria-label="Ativo"></div></div>
 
     <section class="op-card">
@@ -529,7 +539,7 @@
     </section>
   </div>
 </div>
-<script src="app.js?v=20261106m"></script>
-<script src="opcoes.js?v=20261106m"></script>
+<script src="app.js?v=20261112a"></script>
+<script src="opcoes.js?v=20261112a"></script>
 </body>
 </html>

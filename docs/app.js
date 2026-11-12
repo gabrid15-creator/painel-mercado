@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -665,8 +665,27 @@
     if (!lista.length) { const tr = document.createElement('tr'); td(tr, AI.t ? 'Sem eventos.' : 'Carregando…'); tb.appendChild(tr); }
   }
 
+
+  function drawDJ() {
+    const t = $('.dj-t tbody'); if (!t) return; t.replaceChildren();
+    for (const r of D('mi_dolar').data || []) {
+      const tr = document.createElement('tr'); const bps = r.unid !== '% anualizado';
+      td(tr, r.serie + (r.vs_efetivo_bps != null ? ' · ' + sg(r.vs_efetivo_bps, 0, ' bps vs. efetivo') : ''));
+      td(tr, nf(r.valor, r.unid === 'p.p.' ? 2 : 2) + (r.unid === '% anualizado' ? '%' : r.unid === 'p.p.' ? ' p.p.' : '%'), 'num');
+      td(tr, r.d1 == null ? '—' : sg(r.d1, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d1)); td(tr, r.d5 == null ? '—' : sg(r.d5, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d5));
+      t.appendChild(tr);
+    }
+    const c = $('.cta-t tbody'); c.replaceChildren();
+    for (const r of D('mi_cta').data || []) {
+      const tr = document.createElement('tr'); td(tr, r.ativo);
+      const p = td(tr, sg(r.posicao, 0, '%'), 'num ' + cls(r.posicao)); p.style.fontWeight = 600;
+      const g = r.gatilho_proximo; td(tr, g ? nf(g.nivel, String(g.nivel).split('.')[1] ? String(g.nivel).split('.')[1].length : 0) + ' (' + g.janela + ', ' + (g.lado > 0 ? 'abaixo vira venda' : 'acima vira compra') + ')' : '—');
+      td(tr, g ? sg(g.dist_pct, 2) : '—', 'num'); c.appendChild(tr);
+    }
+  }
+
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
-  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); } if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); drawAI(); }
+  function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); drawDJ(); } if (!$('#sec-op').hidden && window.drawOP) window.drawOP(); drawAI(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
   load().then(() => { liveTick(); surpTick(); aiTick(); }); setInterval(load, 2 * 60 * 1000); setInterval(surpTick, 10 * 60 * 1000); setInterval(aiTick, 10 * 60 * 1000);
 })();

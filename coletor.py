@@ -399,6 +399,69 @@ def b_cot():
     save("mi_cot.json", rows)
 b_cot()
 
+# ---------------------------------------------------------------- dólar e juros (intraday) + nowcast + CTA
+@bloco("Dólar e juros (Yahoo, MOF Japão, FRED)")
+def b_dolar():
+    rows = []
+    def ponto(nome, serie, unid, bps=True):
+        ks = sorted(serie); v = serie[ks[-1]]
+        d1 = v - serie[ks[-2]] if len(ks) > 1 else None; d5 = v - serie[ks[-6]] if len(ks) > 5 else None
+        k = 100 if bps else 1
+        rows.append({"serie": nome, "data": ks[-1].isoformat(), "valor": rnd(v, 3), "unid": unid,
+                     "d1": rnd(d1 * k, 1) if d1 is not None else None, "d5": rnd(d5 * k, 1) if d5 is not None else None})
+    us = {}
+    for nome, sym, div in (("EUA 13 semanas", "^IRX", 1), ("EUA 5 anos", "^FVX", 1), ("EUA 10 anos", "^TNX", 1)):
+        try: us[nome] = closes(yahoo(sym, 1)); ponto(nome, us[nome], "%")
+        except Exception as e: STATUS.append({"bloco": "Yahoo: " + sym, "ok": False, "msg": str(e)[:120]})
+    try:   # Fed Funds futuro (mês corrente): juro implícito = 100 − preço; vs. Fed funds efetivo
+        zq = closes(yahoo("ZQ=F", 1)); imp = {d: 100 - v for d, v in zq.items()}; ponto("Fed Funds implícito (futuro)", imp, "%")
+        ef = FR.get("Fed funds")
+        if ef: rows[-1]["vs_efetivo_bps"] = rnd((imp[max(imp)] - ef[max(ef)]) * 100, 1)
+    except Exception as e: STATUS.append({"bloco": "Yahoo: ZQ=F", "ok": False, "msg": str(e)[:120]})
+    try:   # JGB 10 anos (Ministério das Finanças do Japão, diário)
+        txt = get("https://www.mof.go.jp/english/policy/jgbs/reference/interest_rate/jgbcme.csv").decode("utf-8", "replace")
+        lin = [l.split(",") for l in txt.splitlines() if l[:4].isdigit()]
+        hd = next(l.split(",") for l in txt.splitlines() if l.lower().startswith("date"))
+        i10 = [h.strip().upper() for h in hd].index("10Y")
+        jgb = {}
+        for l in lin[-400:]:
+            try: jgb[dt.datetime.strptime(l[0].strip(), "%Y/%m/%d").date()] = float(l[i10])
+            except Exception: pass
+        ponto("Japão 10 anos (JGB)", jgb, "%")
+        if us.get("EUA 10 anos"):
+            u = us["EUA 10 anos"]; sp = {d: u[d] - jgb[d] for d in u if d in jgb}
+            if sp: ponto("Diferencial 10a EUA − Japão", sp, "p.p.")
+    except Exception as e: STATUS.append({"bloco": "MOF Japão (JGB)", "ok": False, "msg": str(e)[:120]})
+    try:   # GDPNow (Fed de Atlanta): previsão do PIB do trimestre, atualizada a cada dado novo
+        g = fred(["GDPNOW"], (NOW.date() - dt.timedelta(days=200)).isoformat())["GDPNOW"]
+        if g: ponto("GDPNow (PIB EUA, trimestre atual)", g, "% anualizado", bps=False)
+    except Exception as e: STATUS.append({"bloco": "FRED: GDPNOW", "ok": False, "msg": str(e)[:120]})
+    if not rows: raise ValueError("nenhuma série de dólar/juros")
+    save("mi_dolar.json", rows)
+b_dolar()
+
+@bloco("CTA (modelo de tendência)")
+def b_cta():
+    # posição estimada de fundos de tendência: média do sinal de 4 janelas (1, 3, 6 e 12 meses);
+    # gatilho = preço de referência de cada janela (cruzar ele vira o sinal daquela janela)
+    rows = []
+    series = {k: closes(v) for k, v in P.items()}
+    if F.get("DXY"): series["DXY"] = F["DXY"]
+    for a, c in series.items():
+        ks = sorted(c); px = c[ks[-1]]
+        if len(ks) < 260: continue
+        jan = [(20, "1 mês"), (60, "3 meses"), (125, "6 meses"), (250, "12 meses")]
+        sin = []; gat = []
+        for n, nome in jan:
+            ref = c[ks[-1 - n]]; s_ = 1 if px > ref else -1; sin.append(s_)
+            gat.append({"janela": nome, "nivel": rnd(ref, ATIVOS.get(a, (None, 2))[1]), "lado": s_, "dist_pct": rnd((ref / px - 1) * 100, 2)})
+        pos = sum(sin) / len(sin) * 100
+        prox = min(gat, key=lambda g: abs(g["dist_pct"]))
+        rows.append({"ativo": a, "preco": rnd(px, 5), "posicao": rnd(pos, 0), "gatilhos": gat, "gatilho_proximo": prox})
+    if not rows: raise ValueError("sem séries")
+    save("mi_cta.json", rows)
+b_cta()
+
 # ---------------------------------------------------------------- Fear & Greed (CNN)
 @bloco("Fear & Greed (CNN)")
 def b_fg():
