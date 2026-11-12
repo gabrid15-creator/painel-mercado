@@ -103,7 +103,7 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 - **0DTE gráfico:** valores ao passar o mouse, etiqueta de preço por linha, linhas liga/desliga (escala se ajusta).
 - **Termômetro do dólar:** testado (concordância de 5 ativos em 2 h não prevê a hora seguinte: 55%/49%, t < 2) → descartado. Regra: só entra o que prevê com teste.
 - **Score e viés removidos (12/11/2026):** 52 testes macro de prazo maior (carry, diferencial de juros, valor justo, juro real, prêmio de vol. do ouro, momento) + 40 diários + intradiário → nenhum prevê direção com segurança. No lugar: **mapa de probabilidades** por ativo (níveis ±0,5/1/1,5/2σ a partir da abertura do dia 17h NY e da semana, chance real de toque em ~2 anos de 1 h, `docs/data/toque_tabela.json`; ✓ quando já tocado; campo para testar um preço). IA sem viés: descreve faixas, regime e eventos.
-- GLD é o ETF de ouro mais negociado (≈ 24× o open interest de opções do IAU).
+- GLD é o ETF de ouro mais negociado. IAU avaliado e descartado: < 1% da exposição em ouro das opções do GLD e só vence às sextas.
 - Databento: adiado (pago; CME ao vivo a partir de US$ 199/mês).
 - **Visual:** cards por ativo (Regime, Faixa das opções, 0DTE, CTA) ficam abaixo do seletor e só aparecem para o ativo escolhido; níveis com cores (teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom).
 - **Precisão:** Regime forte mantém a direção 13 semanas em 91–100% (DXY) e 57–90% (juros); faixa ±1σ semana 72–74% / ±2σ 93–96%; 0DTE sem teste ainda.
