@@ -527,6 +527,19 @@ def b_faixa():
                        "s1": [rnd(px * math.exp(-sd), casas), rnd(px * math.exp(sd), casas)],
                        "s2": [rnd(px * math.exp(-2 * sd), casas), rnd(px * math.exp(2 * sd), casas)]})
         row = {"ativo": a, "preco": rnd(px, casas), "iv": rnd(iv, 2), "fonte": fonte, "faixas": fx, "validado": a == "XAUUSD"}
+        # nível da vol.: compara com a média de 1 ano (ouro: do próprio GVZ; moedas: vol. realizada de 1 ano × 1,1, o prêmio típico das opções)
+        try:
+            if idx:
+                g = closes(yahoo(idx, 10)); lim = max(g) - dt.timedelta(days=365)
+                media = st.mean(v for d, v in g.items() if d >= lim); ref = "média do GVZ em 1 ano"; m10 = st.mean(g.values())
+            else:
+                ks_ = sorted(c)[-253:]; r_ = [math.log(c[ks_[i]] / c[ks_[i - 1]]) for i in range(1, len(ks_))]
+                media = st.stdev(r_) * math.sqrt(252) * 100 * 1.1; ref = "vol. realizada de 1 ano + prêmio típico"; m10 = None
+            q = iv / media
+            row["nivel"] = {"media": rnd(media, 1), "ref": ref, "razao": rnd(q, 2),
+                            "media10": rnd(m10, 1) if m10 else None,
+                            "txt": "bem acima do normal" if q >= 1.25 else "acima do normal" if q >= 1.1 else "bem abaixo do normal" if q <= 0.8 else "abaixo do normal" if q <= 0.9 else "normal"}
+        except Exception: pass
         if a == "XAUUSD":   # vol. implícita da CME: straddle no dinheiro (ajuste do pregão anterior) → σ ≈ straddle ÷ (0,8 × F × √T)
             try:
                 cad = [o for o in ler("ouro_cadeia.json") if o.get("settle") not in (None, "") and len(str(o.get("venc"))) == 10]

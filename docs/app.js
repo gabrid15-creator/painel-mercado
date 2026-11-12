@@ -738,7 +738,9 @@
     if (mostra('.op-card.fx', fr)) { const t = $('.fx-t tbody'); t.replaceChildren(); const k = casas(fr.preco);
       fr.faixas.forEach((f, i) => {
         const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
-        td(tr, i ? '' : nf(fr.iv, 1) + '%', 'num');
+        const nv = fr.nivel; const c0 = td(tr, i ? '' : nf(fr.iv, 1) + '%', 'num');
+        if (!i && nv) { c0.append(' '); const b = lv(nv.txt, /bem acima/.test(nv.txt) ? 'lv-cw' : /acima/.test(nv.txt) ? 'lv-gf' : /abaixo/.test(nv.txt) ? 'lv-rg' : 'lv-now'); b.title = 'Média: ' + nf(nv.media, 1) + '% (' + nv.ref + ')'; c0.append(b);
+          const m = document.createElement('div'); m.style.fontSize = '11px'; m.style.color = 'var(--color-fg-muted)'; m.textContent = 'média 1 ano ' + nf(nv.media, 1) + '%' + (nv.media10 ? ' · 10 anos ' + nf(nv.media10, 1) + '%' : ''); c0.append(m); }
         cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr);
       });
       const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 4; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; return tr; };
