@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_score', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'goldbach_dias', 'op_cadeia', 'op_paredes', 'op_boletim', 'ouro_paredes', 'ouro_resumo', 'ouro_gamma', 'ouro_cadeia', 'ouro_boletim', 'ouro_etf'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -689,6 +689,13 @@
         td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)');
         td(tr, nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'num'); td(tr, nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'num'); fxt.appendChild(tr);
       }); }
+    const z0 = $('.z0-t tbody'); const z = (D('mi_0dte').data || [])[0]; if (z0 && z) { z0.replaceChildren();
+      $('.z0-chip').textContent = 'vence ' + br(z.vencimento) + ' · ' + z.atualizado;
+      const lin = [['Ouro agora', nf(z.ouro, 1)], ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%)', nf(z.faixa[0], 1) + ' – ' + nf(z.faixa[1], 1)],
+        ['Call wall (teto)', z.call_wall == null ? '—' : nf(z.call_wall, 1)], ['Put wall (piso)', z.put_wall == null ? '—' : nf(z.put_wall, 1)],
+        ['Gamma flip', z.gamma_flip == null ? '—' : nf(z.gamma_flip, 1)], ['Max pain', z.max_pain == null ? '—' : nf(z.max_pain, 1)],
+        ['Regime', z.regime], ['Contratos negociados hoje / em aberto', nf(z.contratos_hoje, 0) + ' / ' + nf(z.abertos, 0)]];
+      for (const [k, v] of lin) { const tr = document.createElement('tr'); td(tr, k); td(tr, v, 'num').style.fontWeight = 600; z0.appendChild(tr); } }
     const rg = $('.rg-t tbody'); if (rg) { rg.replaceChildren();
       for (const r of D('mi_regime').data || []) r.fatores.forEach((f, i) => {
         const tr = document.createElement('tr'); td(tr, i ? '' : r.ativo).style.fontWeight = 600;

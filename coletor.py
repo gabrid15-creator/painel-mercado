@@ -534,6 +534,58 @@ def b_faixa():
     save("mi_faixa_hist.json", sorted(hist.values(), key=lambda h: (h["ativo"], h["data"]))[-4000:])
 b_faixa()
 
+@bloco("0DTE ouro (GLD)")
+def b_0dte():
+    # opções do GLD que vencem hoje (ou no próximo pregão): faixa do dia pelo straddle, paredes, gamma flip e max pain,
+    # convertidos para o preço do ouro (XAUUSD). Grava um retrato por dia para validar depois.
+    NY = ZoneInfo("America/New_York"); ny = NOW.astimezone(NY)
+    j = json.loads(get("https://cdn.cboe.com/api/global/delayed_quotes/options/GLD.json"))["data"]
+    S = j["current_price"]; ops = []
+    for x in j["options"]:
+        o = x["option"]; ops.append({"venc": dt.date(2000 + int(o[3:5]), int(o[5:7]), int(o[7:9])), "tipo": o[9], "k": int(o[10:]) / 1000,
+                                     "oi": x["open_interest"] or 0, "vol": x["volume"] or 0, "iv": x["iv"] or 0,
+                                     "mid": ((x["bid"] or 0) + (x["ask"] or 0)) / 2})
+    hoje = ny.date() if ny.hour < 16 else ny.date() + dt.timedelta(days=1)
+    venc = min(v for v in {o["venc"] for o in ops} if v >= hoje)
+    ch = [o for o in ops if o["venc"] == venc]
+    fim = dt.datetime.combine(venc, dt.time(16), NY); T = max((fim - ny).total_seconds(), 1800) / (365 * 86400)
+    def gama(Sx, o):
+        if o["iv"] <= 0: return 0
+        d1 = (math.log(Sx / o["k"]) + o["iv"] ** 2 / 2 * T) / (o["iv"] * math.sqrt(T))
+        return math.exp(-d1 * d1 / 2) / math.sqrt(2 * math.pi) / (Sx * o["iv"] * math.sqrt(T))
+    def gex(Sx):   # convenção de mercado: dealers vendidos em puts e comprados em calls dos clientes → call +, put −
+        return sum((1 if o["tipo"] == "C" else -1) * gama(Sx, o) * (o["oi"] + o["vol"]) * 100 * Sx * Sx * 0.01 for o in ch)
+    grade = [S * (1 + i / 1000) for i in range(-40, 41)]; g = [gex(x) for x in grade]
+    flip = None
+    for i in range(1, len(grade)):
+        if (g[i - 1] < 0) != (g[i] < 0): flip = grade[i] if flip is None or abs(grade[i] - S) < abs(flip - S) else flip
+    ks = sorted({o["k"] for o in ch}); atm = min(ks, key=lambda k: abs(k - S))
+    strad = sum(o["mid"] for o in ch if o["k"] == atm)
+    def peso(tp): 
+        m = {}
+        for o in ch:
+            if o["tipo"] == tp: m[o["k"]] = m.get(o["k"], 0) + o["oi"] + o["vol"]
+        return m
+    cw, pw = peso("C"), peso("P")
+    dor = {k: sum(max(0, k - o["k"]) * o["oi"] for o in ch if o["tipo"] == "C") + sum(max(0, o["k"] - k) * o["oi"] for o in ch if o["tipo"] == "P") for k in ks}
+    c = closes(P["XAUUSD"]); ouro = c[max(c)]; r = ouro / S
+    conv = lambda v: rnd(v * r, 1) if v is not None else None
+    lado = lambda m, f: max((k for k in m if f(k) and abs(k / S - 1) <= 0.03), key=lambda k: m[k], default=None)
+    row = {"vencimento": venc.isoformat(), "atualizado": ny.strftime("%H:%M") + " NY", "gld": rnd(S, 2), "ouro": rnd(ouro, 1),
+           "contratos_hoje": int(sum(o["vol"] for o in ch)), "abertos": int(sum(o["oi"] for o in ch)),
+           "faixa_pct": rnd(strad / S * 100, 2), "faixa": [conv(S - strad), conv(S + strad)],
+           "call_wall": conv(lado(cw, lambda k: k >= S)), "put_wall": conv(lado(pw, lambda k: k <= S)),
+           "gamma_flip": conv(flip), "max_pain": conv(min(dor, key=dor.get)) if dor else None,
+           "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(S) > 0 else "gamma negativo (movimentos tendem a acelerar)",
+           "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / S - 1) <= 0.03]}
+    save("mi_0dte.json", [row])
+    hist = {h["vencimento"]: h for h in ler("mi_0dte_hist.json")}
+    h = hist.get(row["vencimento"]) or {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")}
+    h["ultimo_ouro"] = row["ouro"]   # o primeiro retrato do dia fica; o preço vai sendo atualizado até o vencimento
+    hist[row["vencimento"]] = h
+    save("mi_0dte_hist.json", sorted(hist.values(), key=lambda x: x["vencimento"])[-500:])
+b_0dte()
+
 # ---------------------------------------------------------------- Fear & Greed (CNN)
 @bloco("Fear & Greed (CNN)")
 def b_fg():

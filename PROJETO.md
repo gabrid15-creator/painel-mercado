@@ -100,6 +100,8 @@ Calendário do mês anterior, atual e seguinte só com dados americanos de alto 
 - **Faixa das opções (vol. implícita):** ouro (GVZ) semana ±1σ = 74%, ±2σ = 96% → **precisa, no painel** (`mi_faixa.json`). Moedas via opções de FXY/FXF/FXE (Cboe): no painel, validação pendente (`mi_faixa_hist.json` grava o histórico).
 - **Estoque do GLD (toneladas, diário desde 2004):** acompanha o preço na mesma semana (0,39), mas **não antecipa** (t < 2). Não entrou.
 - **Put/call dos ETFs de moeda:** pouquíssimos contratos, não representa institucional. Não entrou.
+- **0DTE ouro (GLD, vence todo dia):** faixa do dia (straddle), call/put wall, gamma flip, max pain → no painel (`mi_0dte.json`); validação após ~30 pregões (`mi_0dte_hist.json`). Moedas: sem 0DTE gratuito (ETFs ilíquidos; CME só pela tarefa noturna).
+- Databento: adiado (pago).
 - Pendente: contratos em aberto da CME (via tarefa noturna), e Databento (precisa de conta).
 
 ### 5.2 Fluxo dos grandes (substituir/complementar o COT)
