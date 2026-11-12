@@ -579,6 +579,19 @@ def b_0dte():
            "gamma_flip": conv(flip), "max_pain": conv(min(dor, key=dor.get)) if dor else None,
            "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(S) > 0 else "gamma negativo (movimentos tendem a acelerar)",
            "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / S - 1) <= 0.03]}
+    # mesma análise com as opções de ouro da CME do mesmo vencimento (contratos em aberto do fechamento anterior, tarefa noturna)
+    cme = [o for o in ler("ouro_cadeia.json") if str(o.get("venc")) == venc.isoformat() and o.get("oi")]
+    if cme:
+        fut = cme[0].get("futuro") or ouro
+        cc, pp = {}, {}
+        for o in cme:
+            (cc if str(o["tipo"]).startswith("C") else pp)[float(o["strike"])] = (cc if str(o["tipo"]).startswith("C") else pp).get(float(o["strike"]), 0) + o["oi"]
+        kk = sorted(set(cc) | set(pp))
+        dor2 = {k: sum(max(0, k - x) * n for x, n in cc.items()) + sum(max(0, x - k) * n for x, n in pp.items()) for k in kk}
+        perto = lambda m, f: max((k for k in m if f(k) and abs(k / fut - 1) <= 0.03), key=lambda k: m[k], default=None)
+        row["cme"] = {"pregao": cme[0].get("data_pregao"), "abertos": int(sum(o["oi"] for o in cme)),
+                      "call_wall": perto(cc, lambda k: k >= ouro), "put_wall": perto(pp, lambda k: k <= ouro),
+                      "max_pain": min(dor2, key=dor2.get) if dor2 else None}
     save("mi_0dte.json", [row])
     hist = {h["vencimento"]: h for h in ler("mi_0dte_hist.json")}
     h = hist.get(row["vencimento"]) or {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")}
