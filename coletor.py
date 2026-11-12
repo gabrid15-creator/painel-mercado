@@ -99,8 +99,8 @@ def fred(ids, start):
 
 import urllib.parse
 
-def bund2y(start):
-    url = ("https://api.statistiken.bundesbank.de/rest/data/BBSIS/D.I.ZAR.ZI.EUR.S1311.B.A604.R02XX.R.A.A._Z._Z.A"
+def bund2y(start, prazo="R02XX"):
+    url = (f"https://api.statistiken.bundesbank.de/rest/data/BBSIS/D.I.ZAR.ZI.EUR.S1311.B.A604.{prazo}.R.A.A._Z._Z.A"
            f"?format=csv&startPeriod={start}&lang=en")
     txt = get(url, {"Accept": "text/csv"}).decode("utf-8", "replace")
     out = {}
@@ -432,6 +432,13 @@ def b_dolar():
             u = us["EUA 10 anos"]; sp = {d: u[d] - jgb[d] for d in u if d in jgb}
             if sp: ponto("Diferencial 10a EUA − Japão", sp, "p.p.")
     except Exception as e: STATUS.append({"bloco": "MOF Japão (JGB)", "ok": False, "msg": str(e)[:120]})
+    try:   # Bund 10 anos (Bundesbank, diário) e diferencial EUA − Alemanha (mede o euro)
+        b10 = bund2y((NOW.date() - dt.timedelta(days=400)).isoformat(), "R10XX")
+        ponto("Alemanha 10 anos (Bund)", b10, "%")
+        if us.get("EUA 10 anos"):
+            u = us["EUA 10 anos"]; sp = {d: u[d] - b10[d] for d in u if d in b10}
+            if sp: ponto("Diferencial 10a EUA − Alemanha", sp, "p.p.")
+    except Exception as e: STATUS.append({"bloco": "Bundesbank (Bund 10a)", "ok": False, "msg": str(e)[:120]})
     try:   # GDPNow (Fed de Atlanta): previsão do PIB do trimestre, atualizada a cada dado novo
         g = fred(["GDPNOW"], (NOW.date() - dt.timedelta(days=200)).isoformat())["GDPNOW"]
         if g: ponto("GDPNow (PIB EUA, trimestre atual)", g, "% anualizado", bps=False); rows[-1]["d1"] = rows[-1]["d5"] = None   # série por trimestre: variação diária não se aplica
@@ -510,6 +517,7 @@ def b_faixa():
     # validação ouro (GVZ, 2016+): semana ±1σ conteve 74% dos fechamentos (teórico 68%), ±2σ 96%
     FONTE = {"XAUUSD": ("GLD", "^GVZ"), "USDJPY": ("FXY", None), "USDCHF": ("FXF", None), "EURUSD": ("FXE", None), "GBPUSD": (None, None)}
     rows = []; hist = {(h["ativo"], h["data"]): h for h in ler("mi_faixa_hist.json")}
+    fx0 = ler("mapa_fixo.json"); FIXO = fx0[0] if fx0 else {}
     for a, (etf, idx) in FONTE.items():
         if a not in P: continue
         iv = None; fonte = ""
@@ -573,13 +581,18 @@ def b_faixa():
             sess = lambda d: (d + dt.timedelta(hours=7)).date()   # dia de negociação começa 17h NY
             hoje_s = sess(bars[-1][0]); dia = [b for b in bars if sess(b[0]) == hoje_s]
             seg = hoje_s - dt.timedelta(days=hoje_s.weekday()); sem = [b for b in bars if sess(b[0]) >= seg]
-            sd = iv / 100 / math.sqrt(252)
-            row["mapa"] = {"sd_dia": rnd(sd, 6), "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
+            # σ congelado na 1ª coleta da sessão (dia) e da semana: os níveis são projetados na abertura e não mudam até a próxima
+            kd, kw = f"{a}|{hoje_s}", f"{a}|{seg}"
+            if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
+            if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
+            sd = FIXO[kd]["sd"]
+            row["mapa"] = {"sd_dia": rnd(sd, 6), "sd_sem": rnd(FIXO[kw]["sd"], 6), "proj_dia": FIXO[kd]["em"], "proj_sem": FIXO[kw]["em"], "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
                            "ab_sem": rnd(sem[0][1], casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas)}
         except Exception as e: STATUS.append({"bloco": "Mapa " + a, "ok": False, "msg": str(e)[:120]})
         rows.append(row)
         hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
     if not rows: raise ValueError("sem volatilidade")
+    save("mapa_fixo.json", [dict(sorted(FIXO.items())[-200:])])
     save("mi_faixa.json", rows)
     save("mi_faixa_hist.json", sorted(hist.values(), key=lambda h: (h["ativo"], h["data"]))[-4000:])
 b_faixa()

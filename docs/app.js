@@ -710,9 +710,9 @@
     const t = $('.mp-t tbody'); if (!t) return; t.replaceChildren();
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), tb = (D('toque_tabela').data || {})[atv];
     const card = $('.op-card.mp'); const ok = fr && fr.mapa && tb; $('.mp-t').hidden = !ok; $('.mp-teste').hidden = !ok;
-    $('.mp-chip').textContent = ok ? 'testado em ' + tb.n_dias + ' dias' : 'sem mapa para este ativo';
+    $('.mp-chip').textContent = ok ? 'projetado na abertura' + (fr.mapa.proj_dia ? ' (' + fr.mapa.proj_dia + ')' : '') + ' · testado em ' + tb.n_dias + ' dias' : 'sem mapa para este ativo';
     if (!ok) return;
-    const m = fr.mapa, sd = m.sd_dia, sw = sd * Math.sqrt(5), k = CASAS[atv];
+    const m = fr.mapa, sd = m.sd_dia, sw = m.sd_sem || sd * Math.sqrt(5), k = CASAS[atv];
     const lv = (txt, c) => { const s = document.createElement('span'); s.className = 'lv ' + c; s.textContent = txt; return s; };
     const ks = [2, 1.5, 1, 0.5]; const ix = (x) => tb.k.indexOf(x);
     const linha = (nome, cor, pd, pdc, tocD, pw, pwc, tocS) => {
