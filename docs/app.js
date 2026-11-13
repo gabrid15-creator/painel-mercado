@@ -638,15 +638,36 @@
   }
 
 
+  // o que o movimento do dia de cada série favorece (relação testada no mesmo dia/semana; não é previsão)
+  function djLeitura(r) {
+    const d = r.d1, s = r.serie; if (d == null) return ['—', 0];
+    const lim = r.unid === '% anualizado' ? 0.05 : 2; if (Math.abs(d) < lim) return ['<span class="op-note">neutro</span>', 0];
+    const up = d > 0, U = (x) => `<span class="mi-pos">${x}</span>`, N = (x) => `<span class="mi-neg">${x}</span>`;
+    if (/^EUA|Fed Funds/.test(s)) return [up ? U('dólar ↑') + ' · ouro ↓' : N('dólar ↓') + ' · ouro ↑', up ? 1 : -1];
+    if (/EUA − Japão/.test(s)) return [up ? U('USDJPY ↑') + ' (carry)' : N('USDJPY ↓') + ' · iene ↑', 0];
+    if (/EUA − Alemanha/.test(s)) return [up ? N('EURUSD ↓') + ' · dólar ↑' : U('EURUSD ↑') + ' · euro ↑', 0];
+    if (/JGB|Japão 10/.test(s)) return [up ? 'iene ↑ · ' + N('USDJPY ↓') : 'iene ↓ · ' + U('USDJPY ↑'), 0];
+    if (/Bund|Alemanha 10/.test(s)) return [up ? 'euro ↑ · ' + U('EURUSD ↑') : 'euro ↓ · ' + N('EURUSD ↓'), 0];
+    if (/GDPNow/.test(s)) return [up ? U('economia forte') + ' · dólar ↑' : N('economia fraca') + ' · dólar ↓', 0];
+    return ['—', 0];
+  }
+
   function drawDJ() {
-    const t = $('.dj-t tbody'); if (!t) return; t.replaceChildren();
+    const t = $('.dj-t tbody'); if (!t) return; t.replaceChildren(); const votos = [];
     for (const r of D('mi_dolar').data || []) {
       const tr = document.createElement('tr'); const bps = r.unid !== '% anualizado';
       td(tr, r.serie + (r.vs_efetivo_bps != null ? ' · ' + sg(r.vs_efetivo_bps, 0, ' bps vs. efetivo') : ''));
       td(tr, nf(r.valor, r.unid === 'p.p.' ? 2 : 2) + (r.unid === '% anualizado' ? '%' : r.unid === 'p.p.' ? ' p.p.' : '%'), 'num');
       td(tr, r.d1 == null ? '—' : sg(r.d1, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d1)); td(tr, r.d5 == null ? '—' : sg(r.d5, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d5));
+      const [txt, voto] = djLeitura(r); const c = document.createElement('td'); c.style.fontSize = '12px';
+      c.innerHTML = txt; tr.appendChild(c); if (voto) votos.push(voto);
       t.appendChild(tr);
     }
+    const sobe = votos.filter((v) => v > 0).length, desce = votos.filter((v) => v < 0).length, rs = $('.dj-resumo');
+    if (rs) rs.innerHTML = !votos.length ? '<b>Hoje:</b> juros praticamente parados, sem pressão clara sobre o dólar.'
+      : '<b>Hoje:</b> ' + (sobe > desce ? `juros americanos subindo (${sobe} de ${votos.length} séries) → <b class="mi-pos">dólar mais forte</b>, pressão de baixa no ouro, EURUSD e alta no USDJPY/USDCHF.`
+        : desce > sobe ? `juros americanos caindo (${desce} de ${votos.length} séries) → <b class="mi-neg">dólar mais fraco</b>, ouro e EURUSD favorecidos, USDJPY/USDCHF pressionados.`
+        : 'juros mistos → sem direção clara para o dólar.') + ' Explica o dia; não prevê o próximo.';
     drawAtv();
   }
 
@@ -784,20 +805,16 @@
     // Faixa das opções
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv);
     if (mostra('.op-card.fx', fr)) { const t = $('.fx-t tbody'); t.replaceChildren(); const k = casas(fr.preco);
-      fr.faixas.forEach((f, i) => {
-        const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
-        const nv = fr.nivel; const c0 = td(tr, i ? '' : nf(fr.iv, 1) + '%', 'num');
-        if (!i && nv) { c0.append(' '); const b = lv(nv.txt, /bem acima/.test(nv.txt) ? 'lv-cw' : /acima/.test(nv.txt) ? 'lv-gf' : /abaixo/.test(nv.txt) ? 'lv-rg' : 'lv-now'); b.title = 'Média ponderada (1a 50%, 3a 30%, 5a 20%): ' + nf(nv.media, 1) + '% (' + nv.ref + ')'; c0.append(b);
-          const m = document.createElement('div'); m.style.fontSize = '11px'; m.style.color = 'var(--color-fg-muted)'; m.textContent = 'média 1a ' + nf(nv.m1, 1) + ' · 3a ' + nf(nv.m3, 1) + ' · 5a ' + nf(nv.m5, 1) + '%'; c0.append(m); }
-        cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr);
-      });
-      const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 4; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; return tr; };
-      t.prepend(fonte(fr.fonte));
-      if (fr.cme) { t.appendChild(fonte('CME · opções de ouro (pregão ' + br(fr.cme.pregao) + ', vencimento ' + br(fr.cme.venc) + ')'));
-        fr.cme.faixas.forEach((f, i) => { const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
-          td(tr, i ? '' : nf(fr.cme.iv, 1) + '%', 'num');
-          cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr); });
-      } else if (atv === 'XAUUSD') t.appendChild(fonte('CME: aguardando a tarefa noturna trazer os preços de ajuste das opções.'));
+      const faixas = (f) => { const tdc = document.createElement('td'); tdc.className = 'num'; const d = document.createElement('div'); d.className = 'fx-cel';
+        d.append(lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2')); tdc.appendChild(d); return tdc; };
+      const linha = (f) => { const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600; tr.appendChild(faixas(f)); t.appendChild(tr); };
+      const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 2; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; t.appendChild(tr); return e; };
+      // linha da fonte com a volatilidade e a etiqueta (antes era uma coluna, que estourava a largura no celular)
+      const f0 = fonte(fr.fonte + ' · vol. ' + nf(fr.iv, 1) + '% '); const nv = fr.nivel;
+      if (nv) { const b = lv(nv.txt, /bem acima/.test(nv.txt) ? 'lv-cw' : /acima/.test(nv.txt) ? 'lv-gf' : /abaixo/.test(nv.txt) ? 'lv-rg' : 'lv-now'); f0.append(b, ' média 1a ' + nf(nv.m1, 1) + ' · 3a ' + nf(nv.m3, 1) + ' · 5a ' + nf(nv.m5, 1) + '%'); }
+      fr.faixas.forEach(linha);
+      if (fr.cme) { fonte('CME · opções de ouro (pregão ' + br(fr.cme.pregao) + ', vencimento ' + br(fr.cme.venc) + ') · vol. ' + nf(fr.cme.iv, 1) + '%'); fr.cme.faixas.forEach(linha);
+      } else if (atv === 'XAUUSD') fonte('CME: aguardando a tarefa noturna trazer os preços de ajuste das opções.');
     }
     // 0DTE (só ouro)
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;

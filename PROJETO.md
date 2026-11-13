@@ -115,6 +115,8 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 - **Laboratório do ouro removido (13/11/2026):** página `docs/lab`, pasta `lab/`, capturas automáticas (lab, lab-intra, lab-gld), branches `lab-dados`, `lab-gld`, `lab-duka-2020` e tarefa antiga "Inteligência de mercado (madrugada)" apagados.
 - **Backtest diário (13/11/2026):** a coleta guarda cada dia/semana do mapa (`mi_mapa_hist.json`) e confere, a cada 5 min, o toque real dos níveis ±0,5/1/1,5/2σ vs. a chance da tabela, a faixa das opções (fechamento dentro de ±1σ/±2σ) e o 0DTE (dentro da faixa e entre as paredes) → `mi_validacao.json`; aparece como "Conferência diária" no fim do card do mapa.
 - **Repositório `Jireh-dados` (privado):** mantido para uso futuro; tem a cadeia diária do GLD (Cboe) desde 31/10/2026 em `dados/AAAA-MM-DD/cboe_gld.json`. Captura automática desligada em 13/11/2026 (dados até 12/11 mantidos). Não é usado pelo painel hoje.
+- **Dólar e juros (13/11/2026):** resumo do dia (juros EUA subindo/caindo → dólar), coluna "Leitura" por série (dólar/ouro, USDJPY, EURUSD; < 2 bps = neutro) e "Como ler" com EUA − Alemanha → EURUSD. Descreve o dia, não prevê.
+- **Faixa das opções no celular:** vol. e etiqueta passaram para a linha da fonte; ±1σ e ±2σ na mesma célula (empilham no celular).
 - Databento: adiado (pago; CME ao vivo a partir de US$ 199/mês).
 - **Visual:** cards por ativo (Regime, Faixa das opções, 0DTE, CTA) ficam abaixo do seletor e só aparecem para o ativo escolhido; níveis com cores (teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom).
 - **Precisão:** Regime forte mantém a direção 13 semanas em 91–100% (DXY) e 57–90% (juros); faixa ±1σ semana 72–74% / ±2σ 93–96%; 0DTE sem teste ainda.
@@ -127,7 +129,7 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 ### 5.3 Dólar e juros — a expandir
 - Curva EUA 2a/5a/10a/30a e inclinação 2s10s; juro real 10a (TIPS) e breakeven (inflação implícita) — chave para o ouro.
 - Diferenciais por par: EUA−Japão (USD/JPY), EUA−Suíça (USD/CHF), EUA−Alemanha (EUR/USD), juro real EUA (ouro).
-- Precificação do Fed (Fed Funds futuro) → **conferir o salto de +28 bps** (possível troca de contrato).
+- ~~Salto do Fed Funds~~ resolvido 13/11/2026: era troca de contrato do ZQ=F no Yahoo; agora usa o contrato fixo do próximo mês (ex.: ZQZ26.CBT).
 - Probabilidade implícita de BoJ e SNB, se houver fonte confiável.
 
 ### 5.4 Outras pendências

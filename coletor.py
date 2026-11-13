@@ -413,8 +413,10 @@ def b_dolar():
     for nome, sym, div in (("EUA 13 semanas", "^IRX", 1), ("EUA 5 anos", "^FVX", 1), ("EUA 10 anos", "^TNX", 1)):
         try: us[nome] = closes(yahoo(sym, 1)); ponto(nome, us[nome], "%")
         except Exception as e: STATUS.append({"bloco": "Yahoo: " + sym, "ok": False, "msg": str(e)[:120]})
-    try:   # Fed Funds futuro (mês corrente): juro implícito = 100 − preço; vs. Fed funds efetivo
-        zq = closes(yahoo("ZQ=F", 1)); imp = {d: 100 - v for d, v in zq.items()}; ponto("Fed Funds implícito (futuro)", imp, "%")
+    try:   # Fed Funds futuro do PRÓXIMO mês, contrato fixo (o ZQ=F do Yahoo troca de contrato e cria saltos falsos): juro implícito = 100 − preço
+        mm = NOW.month % 12 + 1; aa = NOW.year + (NOW.month == 12); cod = "FGHJKMNQUVXZ"[mm - 1]
+        zq = closes(yahoo(f"ZQ{cod}{aa % 100:02d}.CBT", 1)); imp = {d: 100 - v for d, v in zq.items()}
+        ponto("Fed Funds implícito (" + ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][mm - 1] + f"/{aa % 100:02d})", imp, "%")
         ef = FR.get("Fed funds")
         if ef: rows[-1]["vs_efetivo_bps"] = rnd((imp[max(imp)] - ef[max(ef)]) * 100, 1)
     except Exception as e: STATUS.append({"bloco": "Yahoo: ZQ=F", "ok": False, "msg": str(e)[:120]})
