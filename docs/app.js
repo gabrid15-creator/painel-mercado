@@ -675,55 +675,77 @@
   }
 
 
-  // 0DTE dólar/iene: contratos em aberto por strike em "borboleta" (puts à esquerda, calls à direita do eixo central),
-  // com faixa até o vencimento (sombra azul), preço (linha cheia) e níveis (tracejados) com etiqueta à direita
-  function drawZ0j(z) {
-    const el = $('.z0j-chart'); if (!el) return; el.replaceChildren(); const pf = (z.perfil || []).slice().sort((a, b) => a[0] - b[0]);
+  // gráfico padrão de opções por strike em "borboleta" (puts à esquerda, calls à direita do eixo central), igual para todos os ativos:
+  // rows = [[strike, calls, puts, linhas extras do tooltip]]; lv = {preco, teto, piso, gamma, mp, faixa}; o = {casas, rotulo}
+  function drawBorb(el, rows, lv, o = {}) {
+    el.replaceChildren(); const pf = rows.slice().sort((a, b) => a[0] - b[0]), cs = o.casas ?? 2;
     if (!pf.length) { el.textContent = 'Sem contratos perto do preço neste vencimento.'; return; }
     const W = Math.max(300, el.clientWidth), cel = W < 600, bh = cel ? 16 : 18, gap = 5;
     const m = { t: 22, r: cel ? 92 : 118, b: 6, l: cel ? 46 : 54 }, H = m.t + m.b + pf.length * (bh + gap) - gap;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
-    const x0 = m.l, x1 = W - m.r, xm = (x0 + x1) / 2, half = (x1 - x0) / 2 - (cel ? 34 : 38);   // sobra para o número na ponta
+    const x0 = m.l, x1 = W - m.r, xm = (x0 + x1) / 2, half = (x1 - x0) / 2 - (cel ? 38 : 44);   // sobra para o número na ponta
     const mx = d3.max(pf, (r) => Math.max(r[1], r[2])) || 1, w = (v) => (v / mx) * half;
     const y = (i) => m.t + (pf.length - 1 - i) * (bh + gap);   // strike maior em cima
     const pos = (v) => { if (v == null) return null; if (v <= pf[0][0]) return y(0) + bh / 2; if (v >= pf[pf.length - 1][0]) return y(pf.length - 1) + bh / 2;
       let i = 0; while (i < pf.length - 1 && pf[i + 1][0] < v) i++; const f = (v - pf[i][0]) / (pf[i + 1][0] - pf[i][0]); return y(i) + bh / 2 + f * (y(i + 1) - y(i)); };
     const fs = cel ? '10px' : '11px', mu = 'var(--color-fg-muted)';
-    // cabeçalho das colunas
     svg.append('text').attr('x', xm - 6).attr('y', 12).attr('text-anchor', 'end').style('font-size', fs).style('font-weight', 700).style('fill', '#c8443a').text('◀ puts (apostam na queda)');
     svg.append('text').attr('x', xm + 6).attr('y', 12).style('font-size', fs).style('font-weight', 700).style('fill', '#1f8a5b').text('calls (apostam na alta) ▶');
-    // faixa até o vencimento
-    if (z.faixa) { const ya = pos(z.faixa[1]), yb = pos(z.faixa[0]); svg.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', ya).attr('height', Math.max(2, yb - ya)).style('fill', '#3b7dd8').style('opacity', 0.1); }
+    if (lv.faixa) { const ya = pos(lv.faixa[1]), yb = pos(lv.faixa[0]); svg.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', ya).attr('height', Math.max(2, yb - ya)).style('fill', '#3b7dd8').style('opacity', 0.1); }
     // níveis: linhas atrás das barras e etiquetas à direita sem sobrepor
-    const lvs = [['preço', z.preco, 'var(--color-fg)'], ['teto', z.call_wall, '#c8443a'], ['piso', z.put_wall, '#1f8a5b'], ['gamma', z.gamma_flip, '#c98a12'], ['max pain', z.max_pain, '#7b5cc4']]
+    const lvs = [['preço', lv.preco, 'var(--color-fg)'], ['teto', lv.teto, '#c8443a'], ['piso', lv.piso, '#1f8a5b'], ['gamma', lv.gamma, '#c98a12'], ['max pain', lv.mp, '#7b5cc4']]
       .map(([n, v, c]) => ({ n, v, c, y: pos(v) })).filter((e) => e.y != null).sort((a, b) => a.y - b.y);
     const ly = lvs.map((e) => e.y + 4); for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 13) ly[i] = ly[i - 1] + 13;
     const sob = ly.length ? ly[ly.length - 1] - (H - 2) : 0; if (sob > 0) for (let i = ly.length - 1; i >= 0; i--) { ly[i] -= sob; if (i && ly[i] - ly[i - 1] >= 13) break; }
     lvs.forEach((e, i) => { const pr = e.n === 'preço';
       svg.append('line').attr('x1', x0).attr('x2', x1 + 4).attr('y1', e.y).attr('y2', e.y).style('stroke', e.c).style('stroke-width', pr ? 2 : 1.3).style('stroke-dasharray', pr ? null : '5 3').style('opacity', pr ? 1 : 0.9);
       svg.append('path').attr('d', `M${x1 + 4},${e.y} L${x1 + 9},${ly[i] - 4}`).style('stroke', e.c).style('fill', 'none');
-      svg.append('text').attr('x', x1 + 11).attr('y', ly[i]).style('font-size', fs).style('font-weight', 700).style('fill', e.c).text(e.n + ' ' + nf(e.v, 2)); });
+      svg.append('text').attr('x', x1 + 11).attr('y', ly[i]).style('font-size', fs).style('font-weight', 700).style('fill', e.c).text(e.n + ' ' + nf(e.v, cs)); });
     const tp = tip(el), big = d3.max(pf, (r) => r[1] + r[2]);
-    pf.forEach(([k, c, p], i) => {
+    pf.forEach(([k, c, p, ex], i) => {
       const yy = y(i), tot = c + p;
-      svg.append('text').attr('x', x0 - 6).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).style('font-weight', tot === big ? 700 : 400).text(nf(k, 2));
+      svg.append('text').attr('x', x0 - 6).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).style('font-weight', tot === big ? 700 : 400).text(nf(k, cs));
       svg.append('rect').attr('x', xm - w(p)).attr('y', yy).attr('width', w(p)).attr('height', bh).attr('rx', 2).style('fill', '#c8443a').style('opacity', 0.9);
       svg.append('rect').attr('x', xm).attr('y', yy).attr('width', w(c)).attr('height', bh).attr('rx', 2).style('fill', '#1f8a5b').style('opacity', 0.9);
-      if (p) svg.append('text').attr('x', xm - w(p) - 4).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).attr('class', 'z0j-n').text(nf(p, 0));
-      if (c) svg.append('text').attr('x', xm + w(c) + 4).attr('y', yy + bh / 2 + 4).style('font-size', fs).style('fill', mu).attr('class', 'z0j-n').text(nf(c, 0));
+      if (p) svg.append('text').attr('x', xm - w(p) - 4).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(nf(p, 0));
+      if (c) svg.append('text').attr('x', xm + w(c) + 4).attr('y', yy + bh / 2 + 4).style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(nf(c, 0));
       svg.append('rect').attr('x', 0).attr('y', yy - gap / 2).attr('width', W).attr('height', bh + gap).attr('fill', 'transparent')
-        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, 3), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), 'Total: ' + nf(tot, 0)])).on('mouseleave', () => { tp.hidden = true; });
+        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, cs + 1), ...(o.rotulo ? [o.rotulo] : []), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), 'Total: ' + nf(tot, 0), ...(ex || [])])).on('mouseleave', () => { tp.hidden = true; });
     });
-    svg.selectAll('.z0j-n').each(function () { const bb = this.getBBox(); svg.insert('rect', () => this).attr('x', bb.x - 2).attr('y', bb.y).attr('width', bb.width + 4).attr('height', bb.height).attr('rx', 2).style('fill', 'var(--color-panel)'); });   // fundo: linha do nível não corta o número
+    svg.selectAll('.bb-n').each(function () { const bb = this.getBBox(); svg.insert('rect', () => this).attr('x', bb.x - 2).attr('y', bb.y).attr('width', bb.width + 4).attr('height', bb.height).attr('rx', 2).style('fill', 'var(--color-panel)'); });   // fundo: linha do nível não corta o número
     svg.append('line').attr('x1', xm).attr('x2', xm).attr('y1', m.t - 4).attr('y2', H - m.b).style('stroke', mu).style('stroke-width', 1);
   }
 
-  // gráfico do 0DTE: níveis ao longo do dia (não apaga até o próximo vencimento) + perfil de volume por strike
-  const z0off = new Set(['mp']); let z0arg = null, z0modo = 'vol';   // barras: 'vol' = volume do dia, 'oi' = contratos em aberto (GLD + CME)   // linhas escondidas (max pain começa escondido: costuma estar longe e achata a escala)
+  // 0DTE dólar/iene: contratos em aberto por strike (só CME)
+  function drawZ0j(z) {
+    const el = $('.z0j-chart'); if (!el) return;
+    drawBorb(el, z.perfil || [], { preco: z.preco, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 2, rotulo: 'Contratos em aberto (CME)' });
+  }
+
+  // 0DTE ouro: por strike, GLD + CME juntos na grade de strikes do GLD (1 degrau ≈ US$ 11); botão alterna volume do dia e contratos em aberto
+  let z0bModo = 'oi';
+  function drawZ0b(z) {
+    const el = $('.z0b-chart'), bt = $('.z0b-bt'); if (!el) return;
+    const rat = z.gld && z.ouro ? z.ouro / z.gld : 10.9, fat = rat;   // 1 contrato CME (100 oz) ≈ ouro ÷ GLD contratos do GLD
+    const g0 = Math.round(z.ouro / rat), ini = Math.floor(g0 * 0.987), fim = Math.ceil(g0 * 1.013), grid = new Map();
+    for (let g = ini; g <= fim; g++) grid.set(g, { k: g * rat, c: 0, p: 0, gc: 0, gp: 0, mc: 0, mp: 0 });
+    const soma = (lst, f, src) => { for (const [k, c, p] of lst || []) { const b = grid.get(Math.round(k / rat)); if (!b) continue; const cc = Math.round(c * f), pp = Math.round(p * f); b.c += cc; b.p += pp; b[src + 'c'] += cc; b[src + 'p'] += pp; } };
+    if (z0bModo === 'oi') { soma(z.perfil_oi || z.perfil, 1, 'g'); soma(z.cme && z.cme.perfil, fat, 'm'); } else soma(z.perfil_vol || z.perfil, 1, 'g');
+    let bs = [...grid.values()]; const nz = bs.filter((b) => b.c || b.p); if (nz.length) { const lo = Math.min(...nz.map((b) => b.k)), hi = Math.max(...nz.map((b) => b.k)); bs = bs.filter((b) => b.k >= lo - 0.1 && b.k <= hi + 0.1); }
+    const rows = bs.map((b) => [b.k, b.c, b.p, z0bModo === 'oi' ? ['GLD: ' + nf(b.gc, 0) + ' calls / ' + nf(b.gp, 0) + ' puts', 'CME: ' + nf(b.mc, 0) + ' calls / ' + nf(b.mp, 0) + ' puts (em equivalente GLD)'] : ['Só GLD (a CME não tem volume do dia no PDF)']]);
+    drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 0, rotulo: z0bModo === 'oi' ? 'Contratos em aberto (GLD + CME)' : 'Volume negociado hoje (GLD)' });
+    if (bt) { bt.replaceChildren(); bt.append('Barras: ');
+      for (const [md, nm] of [['oi', 'Em aberto (GLD + CME)'], ['vol', 'Volume do dia (GLD)']]) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.textContent = (z0bModo === md ? '● ' : '○ ') + nm; b.setAttribute('aria-pressed', String(z0bModo === md));
+        b.style.opacity = z0bModo === md ? 1 : 0.5; b.style.fontWeight = z0bModo === md ? 700 : 400; b.addEventListener('click', () => { z0bModo = md; drawZ0b(z); }); bt.appendChild(b); } }
+  }
+
+  // gráfico do 0DTE: níveis ao longo do dia (não apaga até o próximo vencimento)
+  const z0off = new Set(['mp']); let z0arg = null;   // linhas escondidas (max pain começa escondido: costuma estar longe e achata a escala)
   function drawZ0(z, pts) {
     z0arg = [z, pts]; const el = $('.z0-chart'); if (!el) return; el.replaceChildren();
     if (pts.length < 2) { el.textContent = 'O gráfico começa a se formar com 2 coletas no pregão de NY (a cada 5 min).'; return; }
-    const W = Math.max(300, el.clientWidth), H = W < 600 ? 360 : 440, PW = Math.min(140, W * 0.22), CW = (z.cme ? Math.min(96, W * 0.2) : 0), m = { t: 26, r: 8, b: 22, l: 52 };
+    const W = Math.max(300, el.clientWidth), H = W < 600 ? 360 : 440, PW = 0, CW = (z.cme ? Math.min(96, W * 0.2) : 0), m = { t: 26, r: 8, b: 22, l: 52 };
     const hm = (s) => { const [h, mi] = s.split(':').map(Number); return h * 60 + mi; };
     const x = d3.scaleLinear(d3.extent(pts, (p) => hm(p.t)), [m.l, W - m.r - PW - CW - 8]);
     const ser = [['p', 'var(--color-fg)', 'Ouro (linha cheia)'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
@@ -753,26 +775,6 @@
     if (on('p')) svg.append('path').datum(pts).attr('d', d3.line().curve(d3.curveMonotoneX).x((p) => x(hm(p.t))).y((p) => y(p.p))).style('fill', 'none').style('stroke', 'var(--color-panel)').style('stroke-width', 6);
     for (const [k, c] of ord) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(k === 'p' ? d3.curveMonotoneX : d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
       .style('fill', 'none').style('stroke', k === 'p' ? 'var(--color-fg)' : c).style('stroke-width', k === 'p' ? 2.5 : 1.6).style('stroke-dasharray', k === 'p' ? null : '6 3');
-    // perfil de volume do dia (calls à direita em vermelho, puts em verde)
-    // barras: volume do dia (GLD) ou contratos em aberto (GLD + CME; 1 contrato CME = 100 oz ≈ 10,9 contratos do GLD, convertido para "equivalente GLD")
-    const fat = z.gld && z.ouro ? 100 / (100 * z.gld / z.ouro) : 10.9;
-    let pvOI = null;
-    if (z0modo === 'oi') {   // soma GLD + CME no mesmo degrau (strike da CME junta no strike do GLD mais perto, se a menos de meio degrau)
-      const passo = fat, bar = (z.perfil_oi || z.perfil || []).map((r) => ({ k: r[0], c: r[1], p: r[2], g: [r[1], r[2]], m: [0, 0] }));
-      for (const r of ((z.cme && z.cme.perfil) || [])) { const c = Math.round(r[1] * fat), p = Math.round(r[2] * fat);
-        const b = bar.reduce((a, b) => (!a || Math.abs(b.k - r[0]) < Math.abs(a.k - r[0]) ? b : a), null);
-        if (b && Math.abs(b.k - r[0]) <= passo / 2) { b.c += c; b.p += p; b.m[0] += c; b.m[1] += p; } else bar.push({ k: r[0], c, p, g: [0, 0], m: [c, p] }); }
-      pvOI = bar.map((b) => [b.k, b.c, b.p, 'GLD ' + nf(b.g[1], 0) + '/' + nf(b.g[0], 0) + ' · CME ' + nf(b.m[1], 0) + '/' + nf(b.m[0], 0) + ' (puts/calls)']);
-    }
-    const pv = (pvOI || z.perfil_vol || []).filter((r) => r[0] >= y.domain()[0] && r[0] <= y.domain()[1]);
-    svg.append('text').attr('x', W - m.r - PW).attr('y', 14).style('font-size', '10px').style('font-weight', 700).style('fill', 'var(--color-fg-muted)').text(z0modo === 'oi' ? 'Em aberto' : 'Volume hoje');
-    const tpv = tip(el); const mx = d3.max(pv, (r) => r[1] + r[2]) || 1, x0 = W - m.r - PW, bw = Math.max(2, Math.min(8, (H - m.t - m.b) / Math.max(pv.length, 1) - 1));
-    for (const [k, c, p, fonte] of pv) {
-      svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2 - 1).attr('width', PW).attr('height', bw + 2).attr('fill', 'transparent')
-        .on('mousemove', (ev) => show(el, tpv, ev, ['Strike ' + nf(k, 1), (z0modo === 'oi' ? 'Contratos em aberto (GLD + CME)' : 'Volume negociado hoje (GLD)'), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), ...(fonte ? [fonte, 'CME em equivalente GLD (1 contrato = 100 oz)'] : [])])).on('mouseleave', () => { tpv.hidden = true; });
-      svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2).attr('width', (c / mx) * PW).attr('height', bw).style('fill', '#1f8a5b').style('opacity', 0.8).style('pointer-events', 'none');   // calls = verde
-      svg.append('rect').attr('x', x0 + (c / mx) * PW).attr('y', y(k) - bw / 2).attr('width', (p / mx) * PW).attr('height', bw).style('fill', '#c8443a').style('opacity', 0.8).style('pointer-events', 'none');   // puts = vermelho
-    }
     // etiqueta com o último valor de cada linha
     const ult = pts[pts.length - 1], xe = W - m.r - PW - CW - 8;
     const eti = ser.filter(([k]) => on(k) && ult[k] != null).map(([k, c]) => ({ k, c, v: ult[k], y: y(ult[k]) - 3 }))
@@ -794,13 +796,7 @@
       b.style.opacity = on(k) ? 1 : 0.45; b.innerHTML = `<i class="op-sw" style="background:${c}"></i>${n}`;
       b.addEventListener('click', () => { z0off.has(k) ? z0off.delete(k) : z0off.add(k); drawZ0(...z0arg); }); lg.appendChild(b);
     }
-    const sg2 = document.createElement('span'); sg2.style.display = 'inline-flex'; sg2.style.alignItems = 'center'; sg2.style.gap = '4px'; sg2.append('Barras: ');
-    for (const [md, nm] of [['vol', 'Volume do dia'], ['oi', 'Contratos em aberto']]) {
-      const bm = document.createElement('button'); bm.type = 'button'; bm.className = 'op-btn'; bm.textContent = (z0modo === md ? '● ' : '○ ') + nm; bm.setAttribute('aria-pressed', String(z0modo === md));
-      bm.style.opacity = z0modo === md ? 1 : 0.5; bm.style.fontWeight = z0modo === md ? 700 : 400;
-      bm.addEventListener('click', () => { z0modo = md; drawZ0(...z0arg); }); sg2.appendChild(bm); }
-    lg.appendChild(sg2);
-    const nt = document.createElement('div'); nt.style.cssText = 'display:block;flex-basis:100%;width:100%'; nt.innerHTML = 'Toque nos botões para mostrar/esconder cada linha (a escala se ajusta). <b>Barras</b> (verde = calls, vermelho = puts): <b>volume do dia</b> = negociado hoje no GLD (onde está a briga agora); <b>contratos em aberto</b> = posições que vencem hoje, GLD + CME (onde o dinheiro está parado; podem atrair o preço perto do vencimento, "ímã", ainda sem teste). Faixa colorida no gráfico = GLD e CME concordam. Strike sem barra = sem contrato listado.'; lg.appendChild(nt);
+    const nt = document.createElement('div'); nt.style.cssText = 'display:block;flex-basis:100%;width:100%'; nt.innerHTML = 'Toque nos botões para mostrar/esconder cada linha (a escala se ajusta). Faixa colorida no gráfico = GLD e CME concordam.'; lg.appendChild(nt);
     el.appendChild(lg);
   }
 
@@ -938,6 +934,7 @@
           ck.appendChild(s); }
         t.appendChild(tr); }
       const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' + (z.cme.regime ? ' · ' + z.cme.regime : '') : '', 'num'); t.appendChild(tr);
+      drawZ0b(z);
       drawZ0(z, (D('mi_0dte_dia').data || []).filter((d) => d.v === z.vencimento && d.p != null && (d.d ? d.d === z.vencimento : d.t < '16:00')).sort((a, b) => (a.t < b.t ? -1 : 1)));   // só o dia do vencimento, em ordem
     }
   }
