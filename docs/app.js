@@ -782,7 +782,8 @@
       return `<b>${r.tipo === 'dia' ? 'Dias' : 'Semanas'}</b> (${r.n}): ` + n.map((x) => `±${nf(x.k, x.k % 1 ? 1 : 0)}σ previsto ${x.prev_cima}%/${x.prev_baixo}% · real ${nf(x.real_cima, 0)}%/${nf(x.real_baixo, 0)}%`).join(' — '); };
     const tx = [lin(vm.find((r) => r.tipo === 'dia')), lin(vm.find((r) => r.tipo === 'sem'))].filter(Boolean);
     if (vf) tx.push(`<b>Faixa das opções</b> (${vf.n} dias): fechou dentro de ±1σ em ${nf(vf.dentro_1s, 0)}% (esperado ~68%) e de ±2σ em ${nf(vf.dentro_2s, 0)}% (~95%)`);
-    if (atv === 'XAUUSD' && vd.zdte) tx.push(`<b>0DTE</b> (${vd.zdte.n} vencimentos): fechou dentro da faixa do dia em ${nf(vd.zdte.dentro_faixa, 0)}%` + (vd.zdte.entre_paredes != null ? ` e entre as paredes em ${nf(vd.zdte.entre_paredes, 0)}%` : ''));
+    if (atv === 'XAUUSD' && vd.zdte) tx.push(`<b>0DTE</b> (${vd.zdte.n} vencimentos, GLD): fechou dentro da faixa do dia em ${nf(vd.zdte.dentro_faixa, 0)}%` + (vd.zdte.entre_paredes != null ? ` e entre as paredes em ${nf(vd.zdte.entre_paredes, 0)}%` : ''));
+    if (atv === 'XAUUSD' && vd.zdte_cme) tx.push(`<b>0DTE CME</b> (${vd.zdte_cme.n} vencimentos): dentro da faixa em ${nf(vd.zdte_cme.dentro_faixa, 0)}%` + (vd.zdte_cme.entre_paredes != null ? ` e entre as paredes em ${nf(vd.zdte_cme.entre_paredes, 0)}%` : ''));
     $('.mp-val').innerHTML = tx.length ? `<b>Conferência diária</b> (cima/baixo; atualizado ${vd.atualizado}): ` + tx.join('. ') + '. <b>Como ler:</b> compara a chance que o painel mostrou com o que de fato aconteceu nos dias e semanas já fechados. Real perto do previsto = mapa confiável; muito acima = o preço anda mais que o esperado (níveis largos ficam mais alcançáveis); muito abaixo = mercado mais parado. Com menos de ~30 dias, ainda é amostra pequena.' : '<b>Conferência diária:</b> acumulando (começa a mostrar depois do primeiro dia fechado).';
   }
 

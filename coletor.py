@@ -724,6 +724,8 @@ def b_0dte():
     hist = {h["vencimento"]: h for h in ler("mi_0dte_hist.json")}
     h = hist.get(row["vencimento"]) or {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")}
     h["ultimo_ouro"] = row["ouro"]   # o primeiro retrato do dia fica; o preço vai sendo atualizado até o vencimento
+    if row.get("cme") and "cme" not in h:   # retrato da CME do mesmo vencimento, para comparar qual fonte acerta mais
+        h["cme"] = {k: row["cme"].get(k) for k in ("faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "pregao")}
     hist[row["vencimento"]] = h
     save("mi_0dte_hist.json", sorted(hist.values(), key=lambda x: x["vencimento"])[-500:])
     # put/call diário (volume e contratos em aberto, total e de curto prazo) do GLD e da CME, para testar se antecipa direção.
@@ -801,6 +803,11 @@ def b_valid():
     if zh:
         dentro = sum(z["faixa"][0] <= z["ultimo_ouro"] <= z["faixa"][1] for z in zh)
         par = [z for z in zh if z.get("put_wall") and z.get("call_wall")]
+        zc = [z for z in zh if (z.get("cme") or {}).get("faixa")]
+        if zc:   # mesma conferência com a faixa e as paredes da CME
+            pc = [z for z in zc if z["cme"].get("put_wall") and z["cme"].get("call_wall")]
+            out["zdte_cme"] = {"n": len(zc), "dentro_faixa": rnd(100 * sum(z["cme"]["faixa"][0] <= z["ultimo_ouro"] <= z["cme"]["faixa"][1] for z in zc) / len(zc), 0),
+                               "entre_paredes": rnd(100 * sum(z["cme"]["put_wall"] <= z["ultimo_ouro"] <= z["cme"]["call_wall"] for z in pc) / len(pc), 0) if pc else None}
         out["zdte"] = {"n": len(zh), "dentro_faixa": rnd(100 * dentro / len(zh), 0),
                        "entre_paredes": rnd(100 * sum(z["put_wall"] <= z["ultimo_ouro"] <= z["call_wall"] for z in par) / len(par), 0) if par else None}
     save("mi_validacao.json", [out])
