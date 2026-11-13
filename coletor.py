@@ -557,9 +557,9 @@ def b_faixa():
             row["nivel"] = {"media": rnd(media, 1), "m1": rnd(med.get(1), 1), "m3": rnd(med.get(3), 1), "m5": rnd(med.get(5), 1), "ref": ref, "razao": rnd(q, 2),
                             "txt": "bem acima do normal" if q >= 1.25 else "acima do normal" if q >= 1.1 else "bem abaixo do normal" if q <= 0.8 else "abaixo do normal" if q <= 0.9 else "normal"}
         except Exception: pass
-        if a == "XAUUSD":   # vol. implícita da CME: straddle no dinheiro (ajuste do pregão anterior) → σ ≈ straddle ÷ (0,8 × F × √T)
+        if a in ("XAUUSD", "USDJPY"):   # vol. implícita da CME: straddle no dinheiro (ajuste do pregão anterior) → σ ≈ straddle ÷ (0,8 × F × √T); iene: F e strikes em JPY/USD, a % vale igual
             try:
-                cad = [o for o in ler("ouro_cadeia.json") if o.get("settle") not in (None, "") and len(str(o.get("venc"))) == 10]
+                cad = [o for o in ler("ouro_cadeia.json" if a == "XAUUSD" else "iene_cadeia.json") if o.get("settle") not in (None, "") and len(str(o.get("venc"))) == 10]
                 melhor = None
                 for v in sorted({o["venc"] for o in cad}):
                     ln = [o for o in cad if o["venc"] == v]; pg = dt.date.fromisoformat(ln[0]["data_pregao"]); d = (dt.date.fromisoformat(v) - pg).days
@@ -575,7 +575,7 @@ def b_faixa():
                          "s1": [rnd(px * math.exp(-ivc / 100 * math.sqrt(n / 252)), casas), rnd(px * math.exp(ivc / 100 * math.sqrt(n / 252)), casas)],
                          "s2": [rnd(px * math.exp(-2 * ivc / 100 * math.sqrt(n / 252)), casas), rnd(px * math.exp(2 * ivc / 100 * math.sqrt(n / 252)), casas)]}
                         for f, n in zip(fx, (1, 5, 21))]}
-            except Exception as e: STATUS.append({"bloco": "Faixa CME (ouro)", "ok": False, "msg": str(e)[:120]})
+            except Exception as e: STATUS.append({"bloco": "Faixa CME " + a, "ok": False, "msg": str(e)[:120]})
         # aberturas do dia (17h NY) e da semana, e máxima/mínima desde então, para o mapa de probabilidades
         try:
             j = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ATIVOS[a][0])}?range=10d&interval=1h"))["chart"]["result"][0]
@@ -787,6 +787,70 @@ def b_0dte():
         ph = {h["data"]: h for h in ler("mi_pcr_hist.json")}; ph[rec["data"]] = rec
         save("mi_pcr_hist.json", sorted(ph.values(), key=lambda x: x["data"])[-2000:])
 b_0dte()
+
+@bloco("0DTE dólar/iene (CME)")
+def b_0dte_iene():
+    # opções de iene da CME (PDF do boletim) que vencem hoje (ou no próximo vencimento), convertidas para USDJPY:
+    # strike K (JPY/USD) → 1/K; call de iene = put de USDJPY e vice-versa. Vencimento das opções de câmbio: 9h de Chicago (10h NY).
+    cad = [o for o in ler("iene_cadeia.json") if o.get("settle") not in (None, "")]
+    if not cad: return
+    NY = ZoneInfo("America/New_York"); ny = NOW.astimezone(NY)
+    lim = ny.date() if ny.hour < 10 else ny.date() + dt.timedelta(days=1)
+    vs = sorted({o["venc"] for o in cad if o["venc"] >= lim.isoformat()})
+    if not vs: return
+    venc = vs[0]; ch = [o for o in cad if o["venc"] == venc]
+    F = float(ch[0]["futuro"]); pg = dt.date.fromisoformat(ch[0]["data_pregao"])
+    c = closes(P["USDJPY"]); spot = c[max(c)]
+    ref = c.get(pg) or spot; base = ref / (1 / F)   # futuro → à vista (diferença de juros EUA × Japão)
+    cv = lambda k: rnd(k * base, 3) if k is not None else None
+    uc, up, setl = {}, {}, {}   # em USDJPY: calls = puts de iene; puts = calls de iene
+    for o in ch:
+        ku = 1 / float(o["strike"]); jc = str(o["tipo"]).startswith("C")
+        (up if jc else uc)[ku] = (up if jc else uc).get(ku, 0) + (o.get("oi") or 0); setl[(float(o["strike"]), "C" if jc else "P")] = float(o["settle"])
+    ks = sorted(set(uc) | set(up)); su = spot / base   # preço à vista na escala do futuro
+    perto = lambda m, f: max((k for k in m if f(k) and m[k] > 0 and abs(k / su - 1) <= 0.03), key=lambda k: m[k], default=None)
+    dor = {k: sum(max(0, k - x) * n for x, n in uc.items()) + sum(max(0, x - k) * n for x, n in up.items()) for k in ks}
+    kj = sorted({k for k, _ in setl}); atm = min((k for k in kj if (k, "C") in setl and (k, "P") in setl), key=lambda k: abs(k - F), default=None)
+    pct = (setl[(atm, "C")] + setl[(atm, "P")]) / F if atm else None
+    faixa_ok = pct is not None and 0.0005 <= pct <= 0.05
+    fimv = dt.datetime.combine(dt.date.fromisoformat(venc), dt.time(10), NY)
+    T0 = max((fimv - dt.datetime.combine(pg, dt.time(15), NY)).total_seconds(), 3600) / (365 * 86400)
+    Nn = st.NormalDist()
+    def b76(K, cp, prem):
+        lo, hi = 0.005, 2.0
+        for _ in range(50):
+            sg = (lo + hi) / 2; d1 = (math.log(F / K) + sg * sg * T0 / 2) / (sg * math.sqrt(T0)); d2 = d1 - sg * math.sqrt(T0)
+            pr = F * Nn.cdf(d1) - K * Nn.cdf(d2) if cp == "C" else K * Nn.cdf(-d2) - F * Nn.cdf(-d1)
+            lo, hi = (sg, hi) if pr < prem else (lo, sg)
+        return sg
+    opc = []
+    for o in ch:
+        k = float(o["strike"]); cp = "C" if str(o["tipo"]).startswith("C") else "P"
+        if (o.get("oi") or 0) > 0 and setl[(k, cp)] > 0: opc.append((k, cp, o["oi"], b76(k, cp, setl[(k, cp)])))
+    Tn = max((fimv - ny).total_seconds(), 1800) / (365 * 86400)
+    def gx(x):   # x em JPY/USD; sinal na ótica do USDJPY: call de USDJPY (= put de iene) +, put de USDJPY (= call de iene) −
+        tot = 0
+        for k, cp, n, iv in opc:
+            d1 = (math.log(x / k) + iv * iv / 2 * Tn) / (iv * math.sqrt(Tn)); tot += (-1 if cp == "C" else 1) * math.exp(-d1 * d1 / 2) / (x * iv * math.sqrt(Tn)) * n
+        return tot
+    xs = 1 / su; gr = [xs * (1 + i / 1000) for i in range(-30, 31)]; gv = [gx(x) for x in gr]; flip = None
+    for i in range(1, len(gr)):
+        if (gv[i - 1] < 0) != (gv[i] < 0): flip = gr[i] if flip is None or abs(gr[i] - xs) < abs(flip - xs) else flip
+    row = {"vencimento": venc, "pregao": pg.isoformat(), "preco": rnd(spot, 3), "futuro_usdjpy": rnd(1 / F, 3), "base": rnd(base, 5),
+           "abertos": int(sum(uc.values()) + sum(up.values())), "n_strikes": len(ks),
+           "call_wall": cv(perto(uc, lambda k: k >= su)), "put_wall": cv(perto(up, lambda k: k <= su)),
+           "max_pain": cv(min(dor, key=dor.get)) if dor else None, "gamma_flip": cv(1 / flip) if flip else None,
+           "faixa_pct": rnd(pct * 100, 2) if faixa_ok else None,
+           "faixa": [rnd(spot * (1 - pct), 3), rnd(spot * (1 + pct), 3)] if faixa_ok else None,
+           "s1": [rnd(spot * (1 - 1.25 * pct), 3), rnd(spot * (1 + 1.25 * pct), 3)] if faixa_ok else None,
+           "regime": ("gamma positivo (mercado tende a segurar/voltar)" if gx(xs) > 0 else "gamma negativo (movimentos tendem a acelerar)") if opc else None,
+           "perfil": [[cv(k), int(uc.get(k, 0)), int(up.get(k, 0))] for k in ks if abs(k / su - 1) <= 0.02 and (uc.get(k, 0) or up.get(k, 0))]}
+    save("mi_0dte_iene.json", [row])
+    hist = {h["vencimento"]: h for h in ler("mi_0dte_iene_hist.json")}
+    h = hist.get(venc) or ({k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain")} if faixa_ok else None)
+    if h: h["ultimo_preco"] = row["preco"]; hist[venc] = h
+    save("mi_0dte_iene_hist.json", sorted(hist.values(), key=lambda x: x["vencimento"])[-500:])
+b_0dte_iene()
 
 @bloco("Backtest diário")
 def b_valid():

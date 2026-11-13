@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -675,6 +675,32 @@
   }
 
 
+  // 0DTE dólar/iene: contratos em aberto por strike (horizontal), com o preço e os níveis
+  function drawZ0j(z) {
+    const el = $('.z0j-chart'); if (!el) return; el.replaceChildren(); const pf = (z.perfil || []).slice().sort((a, b) => a[0] - b[0]);
+    if (!pf.length) { el.textContent = 'Sem contratos perto do preço neste vencimento.'; return; }
+    const W = Math.max(300, el.clientWidth), m = { t: 8, r: 108, b: 8, l: 58 }, bh = 16, H = m.t + m.b + pf.length * (bh + 4);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const mx = d3.max(pf, (r) => r[1] + r[2]) || 1, x = (v) => (v / mx) * (W - m.l - m.r);
+    const y = (i) => m.t + (pf.length - 1 - i) * (bh + 4);   // strike maior em cima
+    const tp = tip(el);
+    pf.forEach(([k, c, p], i) => {
+      const yy = y(i);
+      svg.append('text').attr('x', m.l - 6).attr('y', yy + bh - 4).attr('text-anchor', 'end').style('font-size', '11px').style('fill', 'var(--color-fg-muted)').text(nf(k, 2));
+      svg.append('rect').attr('x', m.l).attr('y', yy).attr('width', x(c)).attr('height', bh).style('fill', '#1f8a5b').style('opacity', 0.85);
+      svg.append('rect').attr('x', m.l + x(c)).attr('y', yy).attr('width', x(p)).attr('height', bh).style('fill', '#c8443a').style('opacity', 0.85);
+      svg.append('rect').attr('x', 0).attr('y', yy).attr('width', W).attr('height', bh + 4).attr('fill', 'transparent')
+        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, 3), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0)])).on('mouseleave', () => { tp.hidden = true; });
+    });
+    // linha do preço e etiquetas dos níveis à direita (posição interpolada entre os strikes)
+    const pos = (v) => { if (v == null) return null; let i = 0; while (i < pf.length - 1 && pf[i + 1][0] < v) i++; if (v <= pf[0][0]) return y(0) + bh / 2; if (v >= pf[pf.length - 1][0]) return y(pf.length - 1) + bh / 2;
+      const f = (v - pf[i][0]) / (pf[i + 1][0] - pf[i][0]); return y(i) + bh / 2 + f * (y(i + 1) - y(i)); };
+    const lvs = [['preço', z.preco, 'var(--color-fg)'], ['teto', z.call_wall, '#c8443a'], ['piso', z.put_wall, '#1f8a5b'], ['gamma', z.gamma_flip, '#c98a12']].map(([n, v, c]) => ({ n, v, c, y: pos(v) })).filter((e) => e.y != null).sort((a, b) => a.y - b.y);
+    const ly = lvs.map((e) => e.y + 4); for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 12) ly[i] = ly[i - 1] + 12;
+    lvs.forEach((e, i) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r + 4).attr('y1', e.y).attr('y2', e.y).style('stroke', e.c).style('stroke-width', e.n === 'preço' ? 2 : 1.4).style('stroke-dasharray', e.n === 'preço' ? null : '5 3');
+      svg.append('text').attr('x', W - m.r + 8).attr('y', ly[i]).style('font-size', '11px').style('font-weight', 700).style('fill', e.c).text(e.n + ' ' + nf(e.v, 2)); });
+  }
+
   // gráfico do 0DTE: níveis ao longo do dia (não apaga até o próximo vencimento) + perfil de volume por strike
   const z0off = new Set(['mp']); let z0arg = null, z0modo = 'vol';   // barras: 'vol' = volume do dia, 'oi' = contratos em aberto (GLD + CME)   // linhas escondidas (max pain começa escondido: costuma estar longe e achata a escala)
   function drawZ0(z, pts) {
@@ -860,6 +886,19 @@
       } else if (atv === 'XAUUSD') fonte('CME: sem PDF do boletim carregado.');
     }
     // 0DTE (só ouro)
+    // 0DTE dólar/iene (só CME)
+    const zj = atv === 'USDJPY' ? (D('mi_0dte_iene').data || [])[0] : null;
+    if (mostra('.op-card.z0j', zj && zj.vencimento)) { const t = $('.z0j-t tbody'); t.replaceChildren(); const n3 = (v) => (v == null ? '—' : nf(v, 3));
+      $('.z0j-chip').textContent = 'vence ' + br(zj.vencimento) + ' 12h · ajuste ' + br(zj.pregao).slice(0, 5);
+      const niv = [['Teto (call wall)', zj.call_wall, 'lv-cw'], ['Max pain', zj.max_pain, 'lv-mp'], ['Gamma flip', zj.gamma_flip, 'lv-gf'], ['Dólar/iene agora', zj.preco, 'lv-now'], ['Piso (put wall)', zj.put_wall, 'lv-pw']]
+        .filter((x) => x[1] != null).sort((a, b) => b[1] - a[1]);
+      const hd = document.createElement('tr'); td(hd, ''); td(hd, 'CME (ajuste ' + br(zj.pregao).slice(0, 5) + ')', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
+      for (const [nm, v, c] of niv) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, n3(v), 'num').style.fontWeight = 600; t.appendChild(tr); }
+      for (const [nm, v, c] of [['Faixa até o vencimento' + (zj.faixa_pct ? ' (±' + nf(zj.faixa_pct, 2) + '%)' : ''), zj.faixa, 'lv-rg'], ['±1σ', zj.s1, 'lv-s1']]) {
+        const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v ? n3(v[0]) + ' – ' + n3(v[1]) : 'sem par call/put no dinheiro', 'num').style.fontWeight = 600; t.appendChild(tr); }
+      const tr = document.createElement('tr'); td(tr, 'Regime: ' + (zj.regime || '—')); td(tr, nf(zj.abertos, 0) + ' em aberto · ' + zj.n_strikes + ' strikes' + (zj.n_strikes < 10 ? ' (poucos: leia com cautela)' : ''), 'num'); t.appendChild(tr);
+      drawZ0j(zj);
+    }
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
       $('.z0-chip').textContent = 'vence ' + br(z.vencimento) + ' · ' + z.atualizado;
