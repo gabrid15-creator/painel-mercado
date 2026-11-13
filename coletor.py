@@ -614,7 +614,7 @@ def b_0dte():
     for x in j["options"]:
         o = x["option"]; ops.append({"venc": dt.date(2000 + int(o[3:5]), int(o[5:7]), int(o[7:9])), "tipo": o[9], "k": int(o[10:]) / 1000,
                                      "oi": x["open_interest"] or 0, "vol": x["volume"] or 0, "iv": x["iv"] or 0,
-                                     "mid": ((x["bid"] or 0) + (x["ask"] or 0)) / 2})
+                                     "mid": ((x["bid"] or 0) + (x["ask"] or 0)) / 2, "delta": x.get("delta") or 0})
     hoje = ny.date() if ny.hour < 16 else ny.date() + dt.timedelta(days=1)
     venc = min(v for v in {o["venc"] for o in ops} if v >= hoje)
     ch = [o for o in ops if o["venc"] == venc]
@@ -689,11 +689,36 @@ def b_0dte():
                "gld_total": pc(ops), "gld_0dte": pc([o for o in ops if o["venc"] == d0]),
                "gld_7d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 7]),
                "gld_30d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 30])}
+        # skew 25-delta (vol. da put 25Δ − vol. da call 25Δ, em pontos) do vencimento mais perto de 30 dias
+        vs = [v for v in {o["venc"] for o in ops} if (v - d0).days >= 7]
+        if vs:
+            v30 = min(vs, key=lambda v: abs((v - d0).days - 30)); s30 = [o for o in ops if o["venc"] == v30 and o["iv"] > 0 and o["delta"]]
+            pc25 = min((o for o in s30 if o["tipo"] == "P"), key=lambda o: abs(abs(o["delta"]) - 0.25), default=None)
+            cc25 = min((o for o in s30 if o["tipo"] == "C"), key=lambda o: abs(o["delta"] - 0.25), default=None)
+            if pc25 and cc25: rec["gld_skew25"] = {"venc": v30.isoformat(), "skew": rnd((pc25["iv"] - cc25["iv"]) * 100, 2),
+                                                   "iv_put": rnd(pc25["iv"] * 100, 2), "iv_call": rnd(cc25["iv"] * 100, 2)}
         cad = ler("ouro_cadeia.json")
         if cad:   # CME (tarefa noturna): séries de 0–2 dias úteis + 1ª semanal, pregão anterior
             cm = [{"tipo": str(o.get("tipo", ""))[:1].upper(), "oi": float(o.get("oi") or 0),
                    "vol": float(o.get("volume") or o.get("vol") or 0)} for o in cad]
             rec["cme_curto"] = pc(cm) | {"pregao": cad[0].get("data_pregao")}
+            try:   # skew 25Δ da CME na 1ª semanal (≥ 3 dias): vol. implícita pelo settle (Black-76)
+                pg = dt.date.fromisoformat(cad[0]["data_pregao"])
+                v = min(o["venc"] for o in cad if (dt.date.fromisoformat(o["venc"]) - pg).days >= 3)
+                ln = [o for o in cad if o["venc"] == v and o.get("delta") not in (None, "") and o.get("settle") not in (None, "")]
+                T = (dt.date.fromisoformat(v) - pg).days / 365; F = float(ln[0]["futuro"])
+                def b76(K, cp, prem):
+                    lo, hi = 0.01, 3.0
+                    for _ in range(60):
+                        sg = (lo + hi) / 2; d1 = (math.log(F / K) + sg * sg * T / 2) / (sg * math.sqrt(T)); d2 = d1 - sg * math.sqrt(T); N = st.NormalDist().cdf
+                        pr = F * N(d1) - K * N(d2) if cp == "C" else K * N(-d2) - F * N(-d1)
+                        lo, hi = (sg, hi) if pr < prem else (lo, sg)
+                    return sg * 100
+                pp_ = min((o for o in ln if str(o["tipo"])[0].upper() == "P"), key=lambda o: abs(abs(float(o["delta"])) - 0.25))
+                cc_ = min((o for o in ln if str(o["tipo"])[0].upper() == "C"), key=lambda o: abs(abs(float(o["delta"])) - 0.25))
+                ip, ic = b76(float(pp_["strike"]), "P", float(pp_["settle"])), b76(float(cc_["strike"]), "C", float(cc_["settle"]))
+                rec["cme_skew25"] = {"venc": v, "skew": rnd(ip - ic, 2), "iv_put": rnd(ip, 2), "iv_call": rnd(ic, 2)}
+            except Exception: pass
         ph = {h["data"]: h for h in ler("mi_pcr_hist.json")}; ph[rec["data"]] = rec
         save("mi_pcr_hist.json", sorted(ph.values(), key=lambda x: x["data"])[-2000:])
 b_0dte()
