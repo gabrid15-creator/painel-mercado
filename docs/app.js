@@ -680,7 +680,7 @@
   function drawZ0(z, pts) {
     z0arg = [z, pts]; const el = $('.z0-chart'); if (!el) return; el.replaceChildren();
     if (pts.length < 2) { el.textContent = 'O gráfico começa a se formar com 2 coletas no pregão de NY (a cada 5 min).'; return; }
-    const W = Math.max(300, el.clientWidth), H = 280, PW = Math.min(140, W * 0.25), m = { t: 10, r: 8, b: 22, l: 52 };
+    const W = Math.max(300, el.clientWidth), H = W < 600 ? 360 : 440, PW = Math.min(140, W * 0.25), m = { t: 10, r: 8, b: 22, l: 52 };
     const hm = (s) => { const [h, mi] = s.split(':').map(Number); return h * 60 + mi; };
     const x = d3.scaleLinear(d3.extent(pts, (p) => hm(p.t)), [m.l, W - m.r - PW - 8]);
     const ser = [['p', 'var(--color-fg)', 'Ouro (linha cheia)'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
@@ -694,8 +694,7 @@
     const ult0 = pts[pts.length - 1], xr = W - m.r - PW - 8;
     if (on('cme')) for (const [k, c, n, v] of cser) { if (!on(k)) continue;
       const g = ult0[k]; if (g != null && Math.abs(g - v) <= (z.gld ? z.ouro / z.gld : z.ouro * 0.003)) svg.append('rect').attr('x', m.l).attr('width', xr - m.l).attr('y', y(Math.max(g, v)) - 4).attr('height', Math.abs(y(g) - y(v)) + 8).style('fill', c).style('opacity', 0.16);
-      svg.append('line').attr('x1', m.l).attr('x2', xr).attr('y1', y(v)).attr('y2', y(v)).style('stroke', c).style('stroke-width', 1.4).style('stroke-dasharray', '1 4').style('stroke-linecap', 'round');
-      svg.append('text').attr('x', m.l + 4).attr('y', y(v) - 3).style('font-size', '10px').style('font-weight', 700).style('fill', c).style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3).text('CME ' + n.toLowerCase() + ' ' + nf(v, 1)); }
+      svg.append('line').attr('x1', m.l).attr('x2', xr).attr('y1', y(v)).attr('y2', y(v)).style('stroke', c).style('stroke-width', 2.2).style('stroke-dasharray', '2 5').style('stroke-linecap', 'round').style('opacity', 0.9); }
     // faixa ±1σ de cada momento (sombra) e a da abertura (tracejada, fixa)
     const s1 = on('s1') ? pts.filter((p) => p.s1) : [];
     svg.append('path').datum(s1).attr('d', d3.area().x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
@@ -725,9 +724,10 @@
     }
     // etiqueta com o último valor de cada linha
     const ult = pts[pts.length - 1], xe = W - m.r - PW - 8;
-    const eti = ser.filter(([k]) => on(k) && ult[k] != null).map(([k, c]) => ({ k, c, v: ult[k], y: y(ult[k]) - 3 })).sort((p, q) => p.y - q.y);
+    const eti = ser.filter(([k]) => on(k) && ult[k] != null).map(([k, c]) => ({ k, c, v: ult[k], y: y(ult[k]) - 3 }))
+      .concat(on('cme') ? cser.filter(([k]) => on(k)).map(([k, c, , v]) => ({ k: 'cme', c, v, y: y(v) - 3, cme: true })) : []).sort((p, q) => p.y - q.y);
     for (let i = 1; i < eti.length; i++) if (eti[i].y - eti[i - 1].y < 13) eti[i].y = eti[i - 1].y + 13;   // afasta etiquetas encavaladas
-    for (const e of eti) svg.append('text').attr('x', xe - 2).attr('y', e.y).attr('text-anchor', 'end').style('font-size', '11px').style('font-weight', 700).style('fill', e.k === 'p' ? 'var(--color-fg)' : e.c).style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3).text((e.k === 'p' ? 'Ouro ' : '') + nf(e.v, 1));
+    for (const e of eti) svg.append('text').attr('x', xe - 2).attr('y', e.y).attr('text-anchor', 'end').style('font-size', '11px').style('font-weight', 700).style('fill', e.k === 'p' ? 'var(--color-fg)' : e.c).style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3).style('font-style', e.cme ? 'italic' : null).text((e.k === 'p' ? 'Ouro ' : e.cme ? 'CME ' : '') + nf(e.v, 1));
     // ao passar o mouse: horário e valor de cada nível
     const tp = tip(el);
     svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', xe - m.l).attr('height', H - m.t - m.b).attr('fill', 'transparent')
