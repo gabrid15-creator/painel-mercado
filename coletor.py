@@ -662,6 +662,7 @@ def b_0dte():
            "gamma_flip": conv(flip), "max_pain": conv(min(dor, key=dor.get)) if dor else None,
            "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(S) > 0 else "gamma negativo (movimentos tendem a acelerar)",
            "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / S - 1) <= 0.03],
+           "perfil_oi": [[conv(k), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "C")), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03],
            "perfil_vol": [[conv(k), int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "C")),
                            int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03]}
     # mesma análise com as opções de ouro da CME do mesmo vencimento (contratos em aberto do fechamento anterior, tarefa noturna)
@@ -712,7 +713,9 @@ def b_0dte():
                           "max_pain": cv(min(dor2, key=dor2.get)) if dor2 else None, "gamma_flip": cv(flip2),
                           "faixa": [cv(fut - strad), cv(fut + strad)] if strad else None, "faixa_pct": rnd(strad / fut * 100, 2) if strad else None,
                           "s1": [cv(fut - 1.25 * strad), cv(fut + 1.25 * strad)] if strad else None,
-                          "regime": ("gamma positivo" if gx(sp) > 0 else "gamma negativo") if opc else None}
+                          "regime": ("gamma positivo" if gx(sp) > 0 else "gamma negativo") if opc else None,
+                          # contratos em aberto por strike (convertido para o à vista), para as barras de "em aberto" do gráfico
+                          "perfil": [[cv(k), int(cc.get(k, 0)), int(pp.get(k, 0))] for k in kk if abs(k / fut - 1) <= 0.03 and (cc.get(k, 0) or pp.get(k, 0))]}
         except Exception as e: STATUS.append({"bloco": "0DTE CME", "ok": False, "msg": str(e)[:120]})
     save("mi_0dte.json", [row])
     # histórico do dia (um ponto por coleta) para o gráfico; zera quando muda o vencimento

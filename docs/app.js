@@ -676,7 +676,7 @@
 
 
   // gráfico do 0DTE: níveis ao longo do dia (não apaga até o próximo vencimento) + perfil de volume por strike
-  const z0off = new Set(['mp']); let z0arg = null;   // linhas escondidas (max pain começa escondido: costuma estar longe e achata a escala)
+  const z0off = new Set(['mp']); let z0arg = null, z0modo = 'vol';   // barras: 'vol' = volume do dia, 'oi' = contratos em aberto (GLD + CME)   // linhas escondidas (max pain começa escondido: costuma estar longe e achata a escala)
   function drawZ0(z, pts) {
     z0arg = [z, pts]; const el = $('.z0-chart'); if (!el) return; el.replaceChildren();
     if (pts.length < 2) { el.textContent = 'O gráfico começa a se formar com 2 coletas no pregão de NY (a cada 5 min).'; return; }
@@ -705,11 +705,21 @@
     for (const [k, c] of ord) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
       .style('fill', 'none').style('stroke', k === 'p' ? 'var(--color-fg)' : c).style('stroke-width', k === 'p' ? 2.5 : 1.6).style('stroke-dasharray', k === 'p' ? null : '6 3');
     // perfil de volume do dia (calls à direita em vermelho, puts em verde)
-    const pv = (z.perfil_vol || []).filter((r) => r[0] >= y.domain()[0] && r[0] <= y.domain()[1]);
+    // barras: volume do dia (GLD) ou contratos em aberto (GLD + CME; 1 contrato CME = 100 oz ≈ 10,9 contratos do GLD, convertido para "equivalente GLD")
+    const fat = z.gld && z.ouro ? 100 / (100 * z.gld / z.ouro) : 10.9;
+    let pvOI = null;
+    if (z0modo === 'oi') {   // soma GLD + CME no mesmo degrau (strike da CME junta no strike do GLD mais perto, se a menos de meio degrau)
+      const passo = fat, bar = (z.perfil_oi || z.perfil || []).map((r) => ({ k: r[0], c: r[1], p: r[2], g: [r[1], r[2]], m: [0, 0] }));
+      for (const r of ((z.cme && z.cme.perfil) || [])) { const c = Math.round(r[1] * fat), p = Math.round(r[2] * fat);
+        const b = bar.reduce((a, b) => (!a || Math.abs(b.k - r[0]) < Math.abs(a.k - r[0]) ? b : a), null);
+        if (b && Math.abs(b.k - r[0]) <= passo / 2) { b.c += c; b.p += p; b.m[0] += c; b.m[1] += p; } else bar.push({ k: r[0], c, p, g: [0, 0], m: [c, p] }); }
+      pvOI = bar.map((b) => [b.k, b.c, b.p, 'GLD ' + nf(b.g[1], 0) + '/' + nf(b.g[0], 0) + ' · CME ' + nf(b.m[1], 0) + '/' + nf(b.m[0], 0) + ' (puts/calls)']);
+    }
+    const pv = (pvOI || z.perfil_vol || []).filter((r) => r[0] >= y.domain()[0] && r[0] <= y.domain()[1]);
     const tpv = tip(el); const mx = d3.max(pv, (r) => r[1] + r[2]) || 1, x0 = W - m.r - PW, bw = Math.max(2, Math.min(8, (H - m.t - m.b) / Math.max(pv.length, 1) - 1));
-    for (const [k, c, p] of pv) {
+    for (const [k, c, p, fonte] of pv) {
       svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2 - 1).attr('width', PW).attr('height', bw + 2).attr('fill', 'transparent')
-        .on('mousemove', (ev) => show(el, tpv, ev, ['Strike ' + nf(k, 1), 'Puts: ' + nf(p, 0), 'Calls: ' + nf(c, 0)])).on('mouseleave', () => { tpv.hidden = true; });
+        .on('mousemove', (ev) => show(el, tpv, ev, ['Strike ' + nf(k, 1), (z0modo === 'oi' ? 'Em aberto (GLD + CME) · ' : 'Volume do dia · ') + 'Puts: ' + nf(p, 0), 'Calls: ' + nf(c, 0), ...(fonte ? [fonte, 'CME em equivalente GLD (1 contrato = 100 oz)'] : [])])).on('mouseleave', () => { tpv.hidden = true; });
       svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2).attr('width', (p / mx) * PW).attr('height', bw).style('fill', '#1f8a5b').style('opacity', 0.8).style('pointer-events', 'none');
       svg.append('rect').attr('x', x0 + (p / mx) * PW).attr('y', y(k) - bw / 2).attr('width', (c / mx) * PW).attr('height', bw).style('fill', '#c8443a').style('opacity', 0.8).style('pointer-events', 'none');
     }
@@ -733,7 +743,9 @@
       b.style.opacity = on(k) ? 1 : 0.45; b.innerHTML = `<i class="op-sw" style="background:${c}"></i>${n}`;
       b.addEventListener('click', () => { z0off.has(k) ? z0off.delete(k) : z0off.add(k); drawZ0(...z0arg); }); lg.appendChild(b);
     }
-    const nt = document.createElement('span'); nt.textContent = 'Níveis em linha tracejada; preço do ouro em linha cheia por cima. Toque para mostrar/esconder (a escala se ajusta). Barras à direita: volume do dia por strike (verde = puts, vermelho = calls).'; lg.appendChild(nt);
+    const bm = document.createElement('button'); bm.type = 'button'; bm.className = 'op-btn'; bm.textContent = 'Barras: ' + (z0modo === 'oi' ? 'contratos em aberto (GLD + CME)' : 'volume do dia (GLD)') + ' ⇄';
+    bm.addEventListener('click', () => { z0modo = z0modo === 'oi' ? 'vol' : 'oi'; drawZ0(...z0arg); }); lg.appendChild(bm);
+    const nt = document.createElement('span'); nt.textContent = 'Níveis em linha tracejada; preço do ouro em linha cheia por cima. Toque para mostrar/esconder (a escala se ajusta). Barras à direita (verde = puts, vermelho = calls): volume negociado no dia, ou contratos em aberto somando GLD e CME (a CME convertida em equivalente GLD). Strike sem barra = sem contrato listado ali. Strikes com muitos contratos em aberto podem atrair o preço perto do vencimento ("ímã"); ainda sem teste.'; lg.appendChild(nt);
     el.appendChild(lg);
   }
 
