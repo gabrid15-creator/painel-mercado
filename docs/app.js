@@ -736,35 +736,41 @@
     const lv = (txt, c) => { const s = document.createElement('span'); s.className = 'lv ' + c; s.textContent = txt; return s; };
     const leit = (p) => (p >= 50 ? 'alvo provável' : p >= 20 ? 'alvo possível' : p >= 8 ? 'difícil' : 'raro');
     const ks = [2, 1.5, 1, 0.5], ix = (x) => tb.k.indexOf(x), fx = (x) => nf(x, x % 1 ? 1 : 0);
-    const tabela = (sel, ab, s, mx, mn, cima, baixo) => {
+    // chance "agora": a partir do preço atual e do tempo que falta (curva medida em 2 anos de 1 h; ver toque_tabela.agora_*)
+    const P = m.preco || fr.preco, agoraMs = Date.now();
+    const curva = (z) => { const Z = [0].concat(tb.agora_z || []), C = [100].concat(tb.agora_p || []); if (Z.length < 2) return null;
+      if (z >= Z[Z.length - 1]) return C[C.length - 1]; let i = 0; while (Z[i + 1] < z) i++; return Math.round(C[i] + (z - Z[i]) / (Z[i + 1] - Z[i]) * (C[i + 1] - C[i])); };
+    const resta = (ini, fim) => (ini && fim ? Math.max(0, Math.min(1, (fim - agoraMs) / (fim - ini))) : 1);
+    const chAgora = (L, s, ini, fim) => { const r = resta(ini, fim); if (r <= 0) return 0; return curva(Math.abs(Math.log(L / P)) / (s * Math.sqrt(r))); };
+    const hrs = (fim) => { const h = Math.max(0, (fim - agoraMs) / 3600000); return h >= 24 ? nf(h / 24, 1) + ' dias' : nf(h, h < 10 ? 1 : 0) + ' h'; };
+    const tabela = (sel, ab, s, mx, mn, cima, baixo, ini, fim) => {
       const t = $(sel + ' tbody'); t.replaceChildren(); const lin = [];
-      for (const x of ks) lin.push(['+' + fx(x) + 'σ', x >= 1.5 ? 'lv-cw' : 'lv-gf', ab * Math.exp(x * s), cima[ix(x)], mx >= ab * Math.exp(x * s)]);
-      lin.push(['Abertura', 'lv-now', ab, null, false]);
-      for (const x of ks.slice().reverse()) lin.push(['−' + fx(x) + 'σ', x >= 1.5 ? 'lv-pw' : 'lv-s1', ab * Math.exp(-x * s), baixo[ix(x)], mn <= ab * Math.exp(-x * s)]);
-      for (const [nm, c, pr, ch, toc] of lin) {
+      for (const x of ks) { const L = ab * Math.exp(x * s); lin.push(['+' + fx(x) + 'σ', x >= 1.5 ? 'lv-cw' : 'lv-gf', L, cima[ix(x)], mx >= L, chAgora(L, s, ini, fim)]); }
+      lin.push(['Abertura', 'lv-now', ab, null, false, null]);
+      for (const x of ks.slice().reverse()) { const L = ab * Math.exp(-x * s); lin.push(['−' + fx(x) + 'σ', x >= 1.5 ? 'lv-pw' : 'lv-s1', L, baixo[ix(x)], mn <= L, chAgora(L, s, ini, fim)]); }
+      for (const [nm, c, pr, ch0, toc, ch] of lin) {
         const tr = document.createElement('tr'); const c0 = document.createElement('td'); c0.appendChild(lv(nm, c)); tr.appendChild(c0);
         td(tr, nf(pr, k), 'num').style.fontWeight = 600;
-        if (ch == null) { td(tr, ''); td(tr, 'ponto de partida'); tr.style.background = 'var(--color-bg)'; }
-        else { td(tr, ch + '%', 'num'); const l = document.createElement('td'); if (toc) l.appendChild(lv('✓ já tocou', 'lv-pw')); else l.textContent = leit(ch); tr.appendChild(l); }
+        if (ch0 == null) { td(tr, ''); td(tr, 'ponto de partida'); tr.style.background = 'var(--color-bg)'; }
+        else { const cc = td(tr, toc ? '—' : (ch == null ? ch0 : ch) + '%', 'num'); cc.style.fontWeight = 600;
+          const sm = document.createElement('div'); sm.style.fontSize = '11px'; sm.style.fontWeight = 400; sm.style.color = 'var(--color-fg-muted)'; sm.textContent = 'abertura ' + ch0 + '%'; cc.appendChild(sm);
+          const l = document.createElement('td'); if (toc) l.appendChild(lv('✓ já tocou', 'lv-pw')); else l.textContent = leit(ch == null ? ch0 : ch); tr.appendChild(l); }
         t.appendChild(tr);
       }
     };
-    tabela('.mp-dia', m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo);
-    tabela('.mp-sem', m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo);
-    $('.mp-dia-q').textContent = 'Projetado na abertura de ' + (m.dia_ini || '—') + ' · vale até ' + (m.dia_fim || '—') + (m.proj_dia ? ' (calculado ' + m.proj_dia + ')' : '');
-    $('.mp-sem-q').textContent = 'Projetado na abertura de ' + (m.sem_ini || '—') + ' · vale até ' + (m.sem_fim || '—') + (m.proj_sem ? ' (calculado ' + m.proj_sem + ')' : '');
-    const u = (x, s) => nf(m.ab_dia * Math.exp(x * s), k), d = (x, s) => nf(m.ab_dia * Math.exp(-x * s), k);
-    const pc = (x) => Math.round((tb.dia_toca_cima[ix(x)] + tb.dia_toca_baixo[ix(x)]) / 2);
-    $('.mp-resumo').innerHTML = `<b>Hoje, em resumo:</b> em ${pc(0.5)}% dos dias o preço chega a <b>${u(0.5, sd)}</b> (para cima) ou a <b>${d(0.5, sd)}</b> (para baixo), cada lado. ` +
-      `Chegar a <b>${u(1, sd)}</b> ou <b>${d(1, sd)}</b> acontece em ${pc(1)}% dos dias; passar de <b>${u(2, sd)}</b> ou <b>${d(2, sd)}</b>, só em ${pc(2)}%.`;
+    tabela('.mp-dia', m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo, m.ts_dia_ini, m.ts_dia_fim);
+    tabela('.mp-sem', m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo, m.ts_sem_ini, m.ts_sem_fim);
+    $('.mp-dia-q').textContent = 'Projetado na abertura de ' + (m.dia_ini || '—') + ' · vale até ' + (m.dia_fim || '—') + (m.ts_dia_fim ? ' · faltam ' + hrs(m.ts_dia_fim) : '') + (m.proj_dia ? ' (calculado ' + m.proj_dia + ')' : '');
+    $('.mp-sem-q').textContent = 'Projetado na abertura de ' + (m.sem_ini || '—') + ' · vale até ' + (m.sem_fim || '—') + (m.ts_sem_fim ? ' · faltam ' + hrs(m.ts_sem_fim) : '') + (m.proj_sem ? ' (calculado ' + m.proj_sem + ')' : '');
+    // resumo com a chance de agora: nível mais próximo ainda não tocado de cada lado
+    const lado = (sgn) => { for (const x of [0.5, 1, 1.5, 2]) { const L = m.ab_dia * Math.exp(sgn * x * sd); if (sgn > 0 ? m.max_dia < L : m.min_dia > L) return [x, L, chAgora(L, sd, m.ts_dia_ini, m.ts_dia_fim)]; } return null; };
+    const up = lado(1), dn = lado(-1), fr1 = (r, s) => (r ? `<b>${nf(r[1], k)}</b> (${s}${fx(r[0])}σ): <b>${r[2]}%</b>` : `todos os níveis ${s === '+' ? 'acima' : 'abaixo'} já tocados`);
+    $('.mp-resumo').innerHTML = `<b>Agora</b> (preço ${nf(P, k)}, faltam ${m.ts_dia_fim ? hrs(m.ts_dia_fim) : '—'} para fechar o dia): chance de chegar ao próximo nível acima ${fr1(up, '+')}; abaixo ${fr1(dn, '−')}.`;
     const inp = $('.mp-in'), out = $('.mp-out');
     inp.oninput = () => {
       const v = parseFloat(inp.value.replace(/\./g, '').replace(',', '.')) || parseFloat(inp.value); if (!v) { out.textContent = ''; return; }
-      const ch = (ab, s, mx, mn, cima, baixo) => { const z = Math.log(v / ab) / s; const up = z >= 0;
-        if (up ? mx >= v : mn <= v) return 'já tocou';
-        const arr = up ? cima : baixo, az = Math.abs(z); if (az <= tb.k[0]) return arr[0] + '% ou mais'; if (az >= tb.k[tb.k.length - 1]) return 'menos de ' + arr[arr.length - 1] + '%';
-        let i = 0; while (tb.k[i + 1] < az) i++; const f = (az - tb.k[i]) / (tb.k[i + 1] - tb.k[i]); return Math.round(arr[i] + f * (arr[i + 1] - arr[i])) + '%'; };
-      out.textContent = 'chance de o preço chegar a ' + nf(v, k) + ': hoje ' + ch(m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo) + ' · nesta semana ' + ch(m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo);
+      const ch = (s, mx, mn, ini, fim) => { if (v >= P ? mx >= v : mn <= v) return 'já tocou'; return chAgora(v, s, ini, fim) + '%'; };
+      out.textContent = 'chance de o preço chegar a ' + nf(v, k) + ' a partir de agora: hoje ' + ch(sd, m.max_dia, m.min_dia, m.ts_dia_ini, m.ts_dia_fim) + ' · nesta semana ' + ch(sw, m.max_sem, m.min_sem, m.ts_sem_ini, m.ts_sem_fim);
     };
     inp.oninput();
     // backtest diário: o que o painel projetou x o que aconteceu (dias e semanas já fechados, desde 13/11/2026)

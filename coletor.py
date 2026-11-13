@@ -596,7 +596,13 @@ def b_faixa():
                            "sem_ini": hb(seg - dt.timedelta(days=1)),
                            "sem_fim": dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).astimezone(BRT).strftime("sex %d/%m %Hh"),   # fechamento de sexta (17h NY) para todos
                            "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
-                           "ab_sem": rnd(sem[0][1], casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas)}
+                           "ab_sem": rnd(sem[0][1], casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas),
+                           # horários (ms) de início e fim, para a chance "agora" (preço atual e tempo que falta)
+                           "ts_dia_ini": int(dt.datetime.combine(hoje_s - dt.timedelta(days=3 if hoje_s.weekday() == 0 else 1), dt.time(hab), NYz).timestamp() * 1000),
+                           "ts_dia_fim": int(dt.datetime.combine(hoje_s, dt.time(hab), NYz).timestamp() * 1000),
+                           "ts_sem_ini": int(dt.datetime.combine(seg - dt.timedelta(days=1), dt.time(hab), NYz).timestamp() * 1000),
+                           "ts_sem_fim": int(dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).timestamp() * 1000),
+                           "preco": rnd(px, casas)}
             mp = row["mapa"]
             MH[f"{a}|dia|{hoje_s}"] = {"ativo": a, "tipo": "dia", "ini": str(hoje_s), "ab": mp["ab_dia"], "sd": mp["sd_dia"], "max": mp["max_dia"], "min": mp["min_dia"]}
             MH[f"{a}|sem|{seg}"] = {"ativo": a, "tipo": "sem", "ini": str(seg), "ab": mp["ab_sem"], "sd": mp["sd_sem"], "max": mp["max_sem"], "min": mp["min_sem"]}
@@ -736,7 +742,7 @@ def b_valid():
     tb = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "toque_tabela.json")))
     hoje = NOW.astimezone(ZoneInfo("America/New_York")); hs = (hoje + dt.timedelta(hours=7)).date(); seg = hs - dt.timedelta(days=hs.weekday())
     mh = ler("mi_mapa_hist.json"); out = {"atualizado": NOW.strftime("%d/%m %H:%M"), "mapa": [], "faixa": [], "zdte": None}
-    for a in tb:
+    for a in [x for x in tb if not x.startswith("_")]:
         for tp in ("dia", "sem"):
             fe = [h for h in mh if h["ativo"] == a and h["tipo"] == tp and h["sd"] and dt.date.fromisoformat(h["ini"]) < (hs if tp == "dia" else seg)]
             if not fe: continue
