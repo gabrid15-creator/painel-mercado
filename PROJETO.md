@@ -66,6 +66,7 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 
 - A CME bloqueia servidores do GitHub; a leitura é feita pela **tarefa agendada do Claude "Opções de ouro CME (noite) → Drive → painel-mercado"** (Sonnet 5.5, ter–sáb 03:37).
 - Só ouro: séries que vencem em 0–2 dias úteis (0DTE) + primeira semanal a partir de 3 dias (vol. implícita). Euro e ETFs removidos em 12/11/2026 para economizar a cota.
+- **13/11/2026:** o Drive parou em 05/11 porque o ambiente da tarefa bloqueia `www.cmegroup.com`. Liberado no ambiente "painel-mercado"; falta a tarefa rodar nesse ambiente (trocar em claude.ai → rotina → Ambiente). Criar a tarefa por aqui não serve: sai sem o conector do Google Drive.
 - Grava `opcoes_<data>_<hora>.json` (ouro_cadeia com settle, ouro_boletim) na pasta do Drive **painel-mercado-opcoes** (id `1GTHAZCrqQe_LYxf8OuR3zwqncQmHUunx`); `opcoes_drive.py` importa.
 
 ---
