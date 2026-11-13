@@ -675,30 +675,47 @@
   }
 
 
-  // 0DTE dólar/iene: contratos em aberto por strike (horizontal), com o preço e os níveis
+  // 0DTE dólar/iene: contratos em aberto por strike em "borboleta" (puts à esquerda, calls à direita do eixo central),
+  // com faixa até o vencimento (sombra azul), preço (linha cheia) e níveis (tracejados) com etiqueta à direita
   function drawZ0j(z) {
     const el = $('.z0j-chart'); if (!el) return; el.replaceChildren(); const pf = (z.perfil || []).slice().sort((a, b) => a[0] - b[0]);
     if (!pf.length) { el.textContent = 'Sem contratos perto do preço neste vencimento.'; return; }
-    const W = Math.max(300, el.clientWidth), m = { t: 8, r: 108, b: 8, l: 58 }, bh = 16, H = m.t + m.b + pf.length * (bh + 4);
+    const W = Math.max(300, el.clientWidth), cel = W < 600, bh = cel ? 16 : 18, gap = 5;
+    const m = { t: 22, r: cel ? 92 : 118, b: 6, l: cel ? 46 : 54 }, H = m.t + m.b + pf.length * (bh + gap) - gap;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
-    const mx = d3.max(pf, (r) => r[1] + r[2]) || 1, x = (v) => (v / mx) * (W - m.l - m.r);
-    const y = (i) => m.t + (pf.length - 1 - i) * (bh + 4);   // strike maior em cima
-    const tp = tip(el);
+    const x0 = m.l, x1 = W - m.r, xm = (x0 + x1) / 2, half = (x1 - x0) / 2 - (cel ? 34 : 38);   // sobra para o número na ponta
+    const mx = d3.max(pf, (r) => Math.max(r[1], r[2])) || 1, w = (v) => (v / mx) * half;
+    const y = (i) => m.t + (pf.length - 1 - i) * (bh + gap);   // strike maior em cima
+    const pos = (v) => { if (v == null) return null; if (v <= pf[0][0]) return y(0) + bh / 2; if (v >= pf[pf.length - 1][0]) return y(pf.length - 1) + bh / 2;
+      let i = 0; while (i < pf.length - 1 && pf[i + 1][0] < v) i++; const f = (v - pf[i][0]) / (pf[i + 1][0] - pf[i][0]); return y(i) + bh / 2 + f * (y(i + 1) - y(i)); };
+    const fs = cel ? '10px' : '11px', mu = 'var(--color-fg-muted)';
+    // cabeçalho das colunas
+    svg.append('text').attr('x', xm - 6).attr('y', 12).attr('text-anchor', 'end').style('font-size', fs).style('font-weight', 700).style('fill', '#c8443a').text('◀ puts (apostam na queda)');
+    svg.append('text').attr('x', xm + 6).attr('y', 12).style('font-size', fs).style('font-weight', 700).style('fill', '#1f8a5b').text('calls (apostam na alta) ▶');
+    // faixa até o vencimento
+    if (z.faixa) { const ya = pos(z.faixa[1]), yb = pos(z.faixa[0]); svg.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', ya).attr('height', Math.max(2, yb - ya)).style('fill', '#3b7dd8').style('opacity', 0.1); }
+    // níveis: linhas atrás das barras e etiquetas à direita sem sobrepor
+    const lvs = [['preço', z.preco, 'var(--color-fg)'], ['teto', z.call_wall, '#c8443a'], ['piso', z.put_wall, '#1f8a5b'], ['gamma', z.gamma_flip, '#c98a12'], ['max pain', z.max_pain, '#7b5cc4']]
+      .map(([n, v, c]) => ({ n, v, c, y: pos(v) })).filter((e) => e.y != null).sort((a, b) => a.y - b.y);
+    const ly = lvs.map((e) => e.y + 4); for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 13) ly[i] = ly[i - 1] + 13;
+    const sob = ly.length ? ly[ly.length - 1] - (H - 2) : 0; if (sob > 0) for (let i = ly.length - 1; i >= 0; i--) { ly[i] -= sob; if (i && ly[i] - ly[i - 1] >= 13) break; }
+    lvs.forEach((e, i) => { const pr = e.n === 'preço';
+      svg.append('line').attr('x1', x0).attr('x2', x1 + 4).attr('y1', e.y).attr('y2', e.y).style('stroke', e.c).style('stroke-width', pr ? 2 : 1.3).style('stroke-dasharray', pr ? null : '5 3').style('opacity', pr ? 1 : 0.9);
+      svg.append('path').attr('d', `M${x1 + 4},${e.y} L${x1 + 9},${ly[i] - 4}`).style('stroke', e.c).style('fill', 'none');
+      svg.append('text').attr('x', x1 + 11).attr('y', ly[i]).style('font-size', fs).style('font-weight', 700).style('fill', e.c).text(e.n + ' ' + nf(e.v, 2)); });
+    const tp = tip(el), big = d3.max(pf, (r) => r[1] + r[2]);
     pf.forEach(([k, c, p], i) => {
-      const yy = y(i);
-      svg.append('text').attr('x', m.l - 6).attr('y', yy + bh - 4).attr('text-anchor', 'end').style('font-size', '11px').style('fill', 'var(--color-fg-muted)').text(nf(k, 2));
-      svg.append('rect').attr('x', m.l).attr('y', yy).attr('width', x(c)).attr('height', bh).style('fill', '#1f8a5b').style('opacity', 0.85);
-      svg.append('rect').attr('x', m.l + x(c)).attr('y', yy).attr('width', x(p)).attr('height', bh).style('fill', '#c8443a').style('opacity', 0.85);
-      svg.append('rect').attr('x', 0).attr('y', yy).attr('width', W).attr('height', bh + 4).attr('fill', 'transparent')
-        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, 3), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0)])).on('mouseleave', () => { tp.hidden = true; });
+      const yy = y(i), tot = c + p;
+      svg.append('text').attr('x', x0 - 6).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).style('font-weight', tot === big ? 700 : 400).text(nf(k, 2));
+      svg.append('rect').attr('x', xm - w(p)).attr('y', yy).attr('width', w(p)).attr('height', bh).attr('rx', 2).style('fill', '#c8443a').style('opacity', 0.9);
+      svg.append('rect').attr('x', xm).attr('y', yy).attr('width', w(c)).attr('height', bh).attr('rx', 2).style('fill', '#1f8a5b').style('opacity', 0.9);
+      if (p) svg.append('text').attr('x', xm - w(p) - 4).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).attr('class', 'z0j-n').text(nf(p, 0));
+      if (c) svg.append('text').attr('x', xm + w(c) + 4).attr('y', yy + bh / 2 + 4).style('font-size', fs).style('fill', mu).attr('class', 'z0j-n').text(nf(c, 0));
+      svg.append('rect').attr('x', 0).attr('y', yy - gap / 2).attr('width', W).attr('height', bh + gap).attr('fill', 'transparent')
+        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, 3), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), 'Total: ' + nf(tot, 0)])).on('mouseleave', () => { tp.hidden = true; });
     });
-    // linha do preço e etiquetas dos níveis à direita (posição interpolada entre os strikes)
-    const pos = (v) => { if (v == null) return null; let i = 0; while (i < pf.length - 1 && pf[i + 1][0] < v) i++; if (v <= pf[0][0]) return y(0) + bh / 2; if (v >= pf[pf.length - 1][0]) return y(pf.length - 1) + bh / 2;
-      const f = (v - pf[i][0]) / (pf[i + 1][0] - pf[i][0]); return y(i) + bh / 2 + f * (y(i + 1) - y(i)); };
-    const lvs = [['preço', z.preco, 'var(--color-fg)'], ['teto', z.call_wall, '#c8443a'], ['piso', z.put_wall, '#1f8a5b'], ['gamma', z.gamma_flip, '#c98a12']].map(([n, v, c]) => ({ n, v, c, y: pos(v) })).filter((e) => e.y != null).sort((a, b) => a.y - b.y);
-    const ly = lvs.map((e) => e.y + 4); for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 12) ly[i] = ly[i - 1] + 12;
-    lvs.forEach((e, i) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r + 4).attr('y1', e.y).attr('y2', e.y).style('stroke', e.c).style('stroke-width', e.n === 'preço' ? 2 : 1.4).style('stroke-dasharray', e.n === 'preço' ? null : '5 3');
-      svg.append('text').attr('x', W - m.r + 8).attr('y', ly[i]).style('font-size', '11px').style('font-weight', 700).style('fill', e.c).text(e.n + ' ' + nf(e.v, 2)); });
+    svg.selectAll('.z0j-n').each(function () { const bb = this.getBBox(); svg.insert('rect', () => this).attr('x', bb.x - 2).attr('y', bb.y).attr('width', bb.width + 4).attr('height', bb.height).attr('rx', 2).style('fill', 'var(--color-panel)'); });   // fundo: linha do nível não corta o número
+    svg.append('line').attr('x1', xm).attr('x2', xm).attr('y1', m.t - 4).attr('y2', H - m.b).style('stroke', mu).style('stroke-width', 1);
   }
 
   // gráfico do 0DTE: níveis ao longo do dia (não apaga até o próximo vencimento) + perfil de volume por strike
