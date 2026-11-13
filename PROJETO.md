@@ -15,7 +15,7 @@
 | **Dados** | JSON ficam na branch `dados`; o site lê via `raw.githubusercontent.com` | branch `dados` |
 | **Site** | HTML/JS estático, publicado no GitHub Pages **só em push** (código) | `docs/index.html`, `docs/app.js` |
 | **Leitura da IA** | Haiku 5.5 escreve o texto geral e de cada ativo (sem viés: faixas, regime, eventos) | `ia.py`, segredo `ANTHROPIC_API_KEY` |
-| **Opções de ouro (CME)** | Tarefa agendada do Claude lê a CME e grava no Google Drive; a coleta importa (0DTE e vol. CME) | ver seção 4 |
+| **Opções da CME (ouro e iene)** | A usuária manda os PDFs do boletim na conversa; o Claude lê (`cme_pdf.py`, `cme_pdf_iene.py`), grava em `cme/` e faz push; a coleta carrega (`cme_local.py`) | ver seção 4 |
 
 **Frequência da IA:** 6h–18h de hora em hora · à noite só 20h e 0h · sempre após red folder · parada sex 18h → dom 18h. Custo real ≈ US$ 0,003/leitura (~R$ 5–6/mês).
 
@@ -65,16 +65,16 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 
 ## 4. Opções de ouro da CME (fluxo especial)
 
-- A CME bloqueia servidores do GitHub; a leitura é feita pela **tarefa agendada do Claude "Opções de ouro CME (noite) → Drive → painel-mercado"** (Sonnet 5.5, ter–sáb 03:37).
-- Só ouro: séries que vencem em 0–2 dias úteis (0DTE) + primeira semanal a partir de 3 dias (vol. implícita). Euro e ETFs removidos em 12/11/2026 para economizar a cota.
+- **Rotina atual (desde 13/11/2026):** seg–sex ~8h a usuária manda 3 PDFs na conversa: ouro (Section64), iene calls (Section33) e iene puts (Section34). O Claude roda `python3 cme_pdf.py <pdf ouro>` e `python3 cme_pdf_iene.py <calls> <puts>`, confere os números, faz commit dos arquivos em `cme/` e push na main. Lembrete .ics na agenda dela (8h, com os 3 links).
+- A tarefa agendada antiga ("Opções de ouro CME (noite)") está DESLIGADA: a CME bloqueia robôs.
 - **13/11/2026: a CME passou a bloquear robôs (detecção de bot) desde ~06/11** — vale para GitHub, Claude e outros servidores. Tarefa noturna DESLIGADA (gastava cota sem trazer nada). Burlar o bloqueio: descartado. Fonte paga (Databento): recusada. **Horário da CME (página do boletim, 13/11):** preliminar sai ~00h CT = ~03h BRT do dia seguinte ao pregão; final ~10h CT = ~13h BRT. Lembrete da usuária: seg–sex 8h BRT. **Fluxo novo (grátis):** a usuária baixa de manhã o PDF "Metals Option Products" do boletim diário (https://www.cmegroup.com/daily_bulletin/current/Section64_Metals_Option_Products.pdf) e manda na conversa com o Claude; o Claude roda `python3 cme_pdf.py <pdf>` (séries de sexta OG/OG1–OG5 que vencem em até 2 dias úteis + a 1ª com ≥ 3 dias; futuro por paridade call−put) → grava `cme/opcoes_<pregão>.json` → commit e push na main; `cme_local.py` (passo do workflow) carrega em `ouro_cadeia`/`ouro_boletim`. Semanais de seg–qui ignoradas (no PDF vêm vários vencimentos misturados). 1º pregão carregado: 12/11/2026.
 - **Automação planejada (adiada, 13/11/2026):** celular Android da usuária, ~03h30: MacroDroid baixa os PDFs da CME (internet de casa/4G não é bloqueada) → Autosync for Google Drive envia para a pasta "painel-mercado-opcoes" → GitHub Actions lê o PDF do Drive (pdfplumber) e atualiza sozinho. Alternativa: computador Ubuntu com timer que acorda o PC. Falta: confirmar Android, montar a leitura do PDF no Actions, passo a passo dos apps.
 - **Iene na CME (13/11/2026):** PDFs separados: `Section33_Japanese_Yen_Call_Options.pdf` (PG 33) e, pelo padrão, `Section34_Japanese_Yen_Put_Options.pdf` (PG 34), em https://www.cmegroup.com/daily_bulletin/current/. Opções de iene contra dólar → converter strike 1/K para USDJPY e call de iene = put de USDJPY.
-- Grava `opcoes_<data>_<hora>.json` (ouro_cadeia com settle, ouro_boletim) na pasta do Drive **painel-mercado-opcoes** (id `1GTHAZCrqQe_LYxf8OuR3zwqncQmHUunx`); `opcoes_drive.py` importa.
+- Fluxo antigo pelo Drive (pasta **painel-mercado-opcoes**, id `1GTHAZCrqQe_LYxf8OuR3zwqncQmHUunx`, `opcoes_drive.py`) segue no workflow, sem uso; será reaproveitado na automação pelo celular.
 
 ---
 
-## 5. Foco atual (atualizado 12/11/2026)
+## 5. Foco atual (atualizado 13/11/2026)
 
 **Prioridade: dólar e juros.** É o que move os pares operados: **XAU/USD, USD/JPY, USD/CHF, EUR/USD**. O euro fica em segundo plano (opções do euro só mantidas, sem evolução).
 
@@ -160,8 +160,15 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 | GitHub | repositório, Actions, Pages |
 | cron-job.org | dispara a coleta a cada 5 min |
 | Anthropic Console | chave da API (leitura da IA) — limite de gasto recomendado |
-| Google Drive (gabridemes15@gmail.com) | ponte das opções |
-| Claude (tarefa agendada) | leitura noturna da CME |
+| Google Drive (gabridemes15@gmail.com) | ponte das opções (fluxo antigo / futura automação) |
+| Claude (tarefas agendadas) | teste put/call+skew (17/05/2027); CME noturna desligada |
+
+## 6.1 Próximos passos (13/11/2026)
+1. **Automação dos PDFs da CME pelo celular** (Android: MacroDroid 03h30 → Autosync Drive → Actions lê o PDF). Montar a leitura do PDF no Actions + passo a passo dos apps.
+2. **Euro e franco na CME** (mesmo esquema do iene; achar as seções no boletim).
+3. Validações que rodam sozinhas: 0DTE GLD × CME e iene (~30 vencimentos, fim de dez.), mapa/faixa (Conferência diária), SMT (fev/2027), surpresas EUA e put/call+skew (mai/2027).
+4. Pedido em aberto: suavizar o gamma flip do GLD (média 15 min)? A usuária não respondeu.
+5. CME reorganiza o boletim em 01/01/2027: conferir nomes/formatos das seções.
 
 ## 7. Preferências
-Português · respostas curtas e econômicas · "Como ler" em todo indicador novo · horário de Brasília · **opções: sempre incluir a CME (mercado muito maior) junto com o GLD, em qualquer análise ou teste**; só entra no painel o que passar em teste estatístico (previsão; retrato não serve).
+Português · respostas curtas e econômicas · capricho visual: nada sobreposto (rodar varredura de sobreposição no PC e no celular antes de publicar) · "Como ler" em todo indicador novo · horário de Brasília · **opções: sempre incluir a CME (mercado muito maior) junto com o GLD, em qualquer análise ou teste**; só entra no painel o que passar em teste estatístico (previsão; retrato não serve).
