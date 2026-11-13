@@ -471,7 +471,10 @@
   setInterval(blsTick, 1000);
   const blsDe = (r) => { const c = BLS.res[r.quando + r.evento]; if (!c) return null; const [, , un, cs] = BLS_RT[r.evento];
     return { id: 'bls:' + r.quando + r.evento, actual: Math.round(c[1] * 1000) / 1000, forecast: null, previous: null, digits: cs, multiplier: un === 'K' ? 'thousands' : 'none', unit: un === '%' ? 'percent' : 'none' }; };
-  const surpresa = (r, e) => { if (!e || e.actual == null) return null; const f = prevNum(r, e); if (f == null) return 0; const d = e.actual - f; return Math.abs(d) < 1e-9 ? 0 : d > 0 ? 1 : -1; };
+  // compara com o mesmo número de casas que aparece na tela (ex.: 0,33% oficial vs. previsão 0,3% = em linha, não "acima")
+  const surpresa = (r, e) => { if (!e || e.actual == null) return null; const f = prevNum(r, e); if (f == null) return 0;
+    const dp = String(r.previsao || '').match(/[.,](\d+)/); const cs = dp ? dp[1].length : (e.digits != null ? e.digits : 2), p = Math.pow(10, cs);
+    const d = Math.round(e.actual * p) - Math.round(f * p); return d === 0 ? 0 : d > 0 ? 1 : -1; };
   function drawAgenda() {
     const AG = D('mi_agenda'); const at = $('.mi-ag-t tbody'); if (!at) return; at.replaceChildren(); const hj = hojeISO(); const agora = Date.now();
     let ultimo = null, primHoje = false;
