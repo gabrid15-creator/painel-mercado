@@ -852,6 +852,32 @@ def b_eua():
     save("mi_eua.json", list(rows.values()))
 b_eua()
 
+@bloco("Histórico de surpresas (EUA)")
+def b_surpresa():
+    # grava previsão, anterior e resultado de cada dado americano de alto impacto, para testar depois se dá para
+    # prever o lado da surpresa (acima/abaixo da previsão). Não aparece no painel.
+    h = {(r["data"], r["evento"]): r for r in ler("mi_surpresa_hist.json")}
+    eua = {r["evento"]: r for r in ler("mi_eua.json")}
+    for r in ler("mi_agenda.json"):
+        if r["moeda"] != "USD" or r["impacto"] != "Alto": continue
+        k = (r["data"], r["evento"]); x = h.setdefault(k, {"data": r["data"], "hora": r["hora"], "evento": r["evento"]})
+        if r.get("previsao"): x["previsao"] = r["previsao"]
+        if r.get("anterior"): x["anterior"] = r["anterior"]
+        quando = dt.datetime.fromisoformat(r["quando"] + ":00-03:00")
+        if "atual" not in x and NOW >= quando + dt.timedelta(minutes=10) and r["evento"] in eua:   # resultado oficial (BLS/FRED)
+            e = eua[r["evento"]]; x.update({"atual": e.get("valor"), "periodo": e.get("periodo"), "fonte": e.get("fonte"), "gravado": NOW.strftime("%Y-%m-%d %H:%M")})
+    # nowcast de inflação do Fed de Cleveland (CPI/PCE): guarda o bruto 1× por dia para os eventos de inflação
+    cl = ler("cleveland_nowcast.json"); hoje = NOW.date().isoformat()
+    if not cl or cl[-1].get("data") != hoje:
+        for u in ("https://www.clevelandfed.org/-/media/files/webcharts/inflationnowcasting/nowcast_month.json",
+                  "https://www.clevelandfed.org/-/media/files/webcharts/inflationnowcasting/nowcast_quarter.json"):
+            try: cl.append({"data": hoje, "url": u, "bruto": json.loads(get(u))}); break
+            except Exception as e: erro = (u[-25:] + " " + str(e))[:120]
+        else: cl.append({"data": hoje, "erro": erro}); STATUS.append({"bloco": "Nowcast Cleveland", "ok": False, "msg": erro})   # tenta de novo só amanhã
+        save("cleveland_nowcast.json", cl[-30:])   # bruto: só 30 dias até definir o formato
+    save("mi_surpresa_hist.json", sorted(h.values(), key=lambda x: (x["data"], x["hora"]))[-3000:])
+b_surpresa()
+
 # ---------------------------------------------------------------- notícias
 @bloco("Notícias (RSS)")
 def b_news():
