@@ -722,12 +722,13 @@
       pvOI = bar.map((b) => [b.k, b.c, b.p, 'GLD ' + nf(b.g[1], 0) + '/' + nf(b.g[0], 0) + ' · CME ' + nf(b.m[1], 0) + '/' + nf(b.m[0], 0) + ' (puts/calls)']);
     }
     const pv = (pvOI || z.perfil_vol || []).filter((r) => r[0] >= y.domain()[0] && r[0] <= y.domain()[1]);
+    svg.append('text').attr('x', W - m.r - PW / 2).attr('y', m.t + 8).attr('text-anchor', 'middle').style('font-size', '10px').style('font-weight', 700).style('fill', 'var(--color-fg-muted)').text(z0modo === 'oi' ? 'Em aberto (GLD+CME)' : 'Volume hoje (GLD)');
     const tpv = tip(el); const mx = d3.max(pv, (r) => r[1] + r[2]) || 1, x0 = W - m.r - PW, bw = Math.max(2, Math.min(8, (H - m.t - m.b) / Math.max(pv.length, 1) - 1));
     for (const [k, c, p, fonte] of pv) {
       svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2 - 1).attr('width', PW).attr('height', bw + 2).attr('fill', 'transparent')
-        .on('mousemove', (ev) => show(el, tpv, ev, ['Strike ' + nf(k, 1), (z0modo === 'oi' ? 'Em aberto (GLD + CME) · ' : 'Volume do dia · ') + 'Puts: ' + nf(p, 0), 'Calls: ' + nf(c, 0), ...(fonte ? [fonte, 'CME em equivalente GLD (1 contrato = 100 oz)'] : [])])).on('mouseleave', () => { tpv.hidden = true; });
-      svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2).attr('width', (p / mx) * PW).attr('height', bw).style('fill', '#1f8a5b').style('opacity', 0.8).style('pointer-events', 'none');
-      svg.append('rect').attr('x', x0 + (p / mx) * PW).attr('y', y(k) - bw / 2).attr('width', (c / mx) * PW).attr('height', bw).style('fill', '#c8443a').style('opacity', 0.8).style('pointer-events', 'none');
+        .on('mousemove', (ev) => show(el, tpv, ev, ['Strike ' + nf(k, 1), (z0modo === 'oi' ? 'Contratos em aberto (GLD + CME)' : 'Volume negociado hoje (GLD)'), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), ...(fonte ? [fonte, 'CME em equivalente GLD (1 contrato = 100 oz)'] : [])])).on('mouseleave', () => { tpv.hidden = true; });
+      svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2).attr('width', (c / mx) * PW).attr('height', bw).style('fill', '#1f8a5b').style('opacity', 0.8).style('pointer-events', 'none');   // calls = verde
+      svg.append('rect').attr('x', x0 + (c / mx) * PW).attr('y', y(k) - bw / 2).attr('width', (p / mx) * PW).attr('height', bw).style('fill', '#c8443a').style('opacity', 0.8).style('pointer-events', 'none');   // puts = vermelho
     }
     // etiqueta com o último valor de cada linha
     const ult = pts[pts.length - 1], xe = W - m.r - PW - CW - 8;
@@ -750,9 +751,13 @@
       b.style.opacity = on(k) ? 1 : 0.45; b.innerHTML = `<i class="op-sw" style="background:${c}"></i>${n}`;
       b.addEventListener('click', () => { z0off.has(k) ? z0off.delete(k) : z0off.add(k); drawZ0(...z0arg); }); lg.appendChild(b);
     }
-    const bm = document.createElement('button'); bm.type = 'button'; bm.className = 'op-btn'; bm.textContent = 'Barras: ' + (z0modo === 'oi' ? 'contratos em aberto (GLD + CME)' : 'volume do dia (GLD)') + ' ⇄';
-    bm.addEventListener('click', () => { z0modo = z0modo === 'oi' ? 'vol' : 'oi'; drawZ0(...z0arg); }); lg.appendChild(bm);
-    const nt = document.createElement('span'); nt.textContent = 'Níveis em linha tracejada; preço do ouro em linha cheia por cima. Toque para mostrar/esconder (a escala se ajusta). Barras à direita (verde = puts, vermelho = calls): volume negociado no dia, ou contratos em aberto somando GLD e CME (a CME convertida em equivalente GLD). Strike sem barra = sem contrato listado ali. Strikes com muitos contratos em aberto podem atrair o preço perto do vencimento ("ímã"); ainda sem teste.'; lg.appendChild(nt);
+    const sg2 = document.createElement('span'); sg2.style.display = 'inline-flex'; sg2.style.alignItems = 'center'; sg2.style.gap = '4px'; sg2.append('Barras: ');
+    for (const [md, nm] of [['vol', 'Volume do dia'], ['oi', 'Contratos em aberto']]) {
+      const bm = document.createElement('button'); bm.type = 'button'; bm.className = 'op-btn'; bm.textContent = (z0modo === md ? '● ' : '○ ') + nm; bm.setAttribute('aria-pressed', String(z0modo === md));
+      bm.style.opacity = z0modo === md ? 1 : 0.5; bm.style.fontWeight = z0modo === md ? 700 : 400;
+      bm.addEventListener('click', () => { z0modo = md; drawZ0(...z0arg); }); sg2.appendChild(bm); }
+    lg.appendChild(sg2);
+    const nt = document.createElement('div'); nt.style.cssText = 'display:block;flex-basis:100%;width:100%'; nt.innerHTML = 'Níveis em linha tracejada; preço do ouro em linha cheia por cima. Toque para mostrar/esconder (a escala se ajusta). Barras à direita (verde = calls, vermelho = puts): escolha o que mostram. <b>Volume do dia</b> = quantos contratos foram negociados hoje em cada strike (onde está a briga agora, só GLD). <b>Contratos em aberto</b> = posições abertas que vencem hoje (GLD + CME somadas; a CME convertida em equivalente GLD): onde o dinheiro está parado. Strike sem barra = sem contrato listado ali. Strikes com muitos contratos em aberto podem atrair o preço perto do vencimento ("ímã"); ainda sem teste.'; lg.appendChild(nt);
     el.appendChild(lg);
   }
 
