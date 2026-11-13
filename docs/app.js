@@ -677,57 +677,74 @@
 
   // hora de Brasília de um horário de NY numa data (horário de verão americano muda a diferença: 1 ou 2 h)
   const nyBR = (iso, h) => { const d = new Date(iso + 'T12:00:00Z'); const ed = /EDT/.test(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', timeZoneName: 'short' }).format(d)); return (h + (ed ? 1 : 2)) + 'h'; };
-  // gráfico padrão de opções por strike em "borboleta" (puts à esquerda, calls à direita do eixo central), igual para todos os ativos:
-  // rows = [[strike, calls, puts, linhas extras do tooltip]]; lv = {preco, teto, piso, gamma, mp, faixa}; o = {casas, rotulo}
+  // gráfico padrão de opções por strike em "borboleta" (puts à esquerda, calls à direita do eixo central), igual para todos os ativos.
+  // rows = [[strike, calls, puts, linhas extras do tooltip, volume calls?, volume puts?]] — com volume: barra clara = em aberto, barra escura por dentro = volume do dia (perfil)
+  // lv = níveis principais {preco, teto, piso, gamma, mp, faixa, s1}; o.lv2 = níveis de outra fonte (pontilhados, ex.: CME) e o.tol = distância para "concordam"
   function drawBorb(el, rows, lv, o = {}) {
     el.replaceChildren(); const pf = rows.slice().sort((a, b) => a[0] - b[0]), cs = o.casas ?? 2;
     if (!pf.length) { el.textContent = 'Sem contratos perto do preço neste vencimento.'; return; }
-    const W = Math.max(300, el.clientWidth), cel = W < 600, bh = cel ? 16 : 18, gap = 5;
-    const m = { t: 22, r: cel ? 92 : 118, b: 6, l: cel ? 46 : 54 }, H = m.t + m.b + pf.length * (bh + gap) - gap;
+    const temVol = pf.some((r) => r[4] != null), W = Math.max(300, el.clientWidth), cel = W < 600, bh = cel ? 16 : 18, gap = 5;
+    const m = { t: temVol ? 38 : 22, r: cel ? (o.lv2 ? 116 : 100) : 132, b: 6, l: cel ? 46 : 54 }, H = m.t + m.b + pf.length * (bh + gap) - gap;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
-    const x0 = m.l, x1 = W - m.r, xm = (x0 + x1) / 2, half = (x1 - x0) / 2 - (cel ? 38 : 44);   // sobra para o número na ponta
-    const mx = d3.max(pf, (r) => Math.max(r[1], r[2])) || 1, w = (v) => (v / mx) * half;
+    const tx = (v, vv) => nf(v, 0) + (temVol && !cel ? ' | ' + nf(vv || 0, 0) : '');   // no celular só o em aberto (volume no toque)
+    const cw = (cel ? 5.8 : 6.4), lmax = d3.max(pf, (r) => Math.max(tx(r[1], r[4]).length, tx(r[2], r[5]).length)) || 4;
+    const x0 = m.l, x1 = W - m.r, xm = (x0 + x1) / 2, half = Math.max(30, (x1 - x0) / 2 - lmax * cw - 10);   // sobra para o número na ponta (mede o maior)
+    const mx = d3.max(pf, (r) => Math.max(r[1], r[2], r[4] || 0, r[5] || 0)) || 1, w = (v) => (v / mx) * half;
     const y = (i) => m.t + (pf.length - 1 - i) * (bh + gap);   // strike maior em cima
-    const pos = (v) => { if (v == null) return null; if (v <= pf[0][0]) return y(0) + bh / 2; if (v >= pf[pf.length - 1][0]) return y(pf.length - 1) + bh / 2;
+    const passo = pf.length > 1 ? (pf[pf.length - 1][0] - pf[0][0]) / (pf.length - 1) : 1;
+    const dentro = (v) => v != null && v >= pf[0][0] - passo / 2 && v <= pf[pf.length - 1][0] + passo / 2;
+    const pos = (v) => { if (!dentro(v)) return null; if (v <= pf[0][0]) return y(0) + bh / 2; if (v >= pf[pf.length - 1][0]) return y(pf.length - 1) + bh / 2;
       let i = 0; while (i < pf.length - 1 && pf[i + 1][0] < v) i++; const f = (v - pf[i][0]) / (pf[i + 1][0] - pf[i][0]); return y(i) + bh / 2 + f * (y(i + 1) - y(i)); };
     const fs = cel ? '10px' : '11px', mu = 'var(--color-fg-muted)';
     svg.append('text').attr('x', xm - 6).attr('y', 12).attr('text-anchor', 'end').style('font-size', fs).style('font-weight', 700).style('fill', '#c8443a').text('◀ puts (apostam na queda)');
     svg.append('text').attr('x', xm + 6).attr('y', 12).style('font-size', fs).style('font-weight', 700).style('fill', '#1f8a5b').text('calls (apostam na alta) ▶');
-    if (lv.faixa) { const ya = pos(lv.faixa[1]), yb = pos(lv.faixa[0]); svg.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', ya).attr('height', Math.max(2, yb - ya)).style('fill', '#3b7dd8').style('opacity', 0.1); }
-    // níveis: linhas atrás das barras e etiquetas à direita sem sobrepor
-    const lvs = [['preço', lv.preco, 'var(--color-fg)'], ['teto', lv.teto, '#c8443a'], ['piso', lv.piso, '#1f8a5b'], ['gamma', lv.gamma, '#c98a12'], ['max pain', lv.mp, '#7b5cc4']]
-      .map(([n, v, c]) => ({ n, v, c, y: pos(v) })).filter((e) => e.y != null).sort((a, b) => a.y - b.y);
-    const ly = lvs.map((e) => e.y + 4); for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 13) ly[i] = ly[i - 1] + 13;
-    const sob = ly.length ? ly[ly.length - 1] - (H - 2) : 0; if (sob > 0) for (let i = ly.length - 1; i >= 0; i--) { ly[i] -= sob; if (i && ly[i] - ly[i - 1] >= 13) break; }
-    lvs.forEach((e, i) => { const pr = e.n === 'preço';
-      svg.append('line').attr('x1', x0).attr('x2', x1 + 4).attr('y1', e.y).attr('y2', e.y).style('stroke', e.c).style('stroke-width', pr ? 2 : 1.3).style('stroke-dasharray', pr ? null : '5 3').style('opacity', pr ? 1 : 0.9);
+    if (temVol) svg.append('text').attr('x', xm).attr('y', 28).attr('text-anchor', 'middle').style('font-size', fs).style('fill', mu).text(cel ? 'clara = em aberto · escura = volume (toque p/ números)' : 'barra clara = em aberto · escura = volume do dia · número: em aberto | volume');
+    if (lv.faixa && dentro(lv.faixa[0]) && dentro(lv.faixa[1])) { const ya = pos(lv.faixa[1]), yb = pos(lv.faixa[0]); svg.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', ya).attr('height', Math.max(2, yb - ya)).style('fill', '#3b7dd8').style('opacity', 0.1); }
+    // níveis (linhas atrás das barras); outra fonte (CME) pontilhada; onde as duas concordam, faixa dourada
+    const L = [['preço', lv.preco, 'var(--color-fg)', 'cheia'], ['teto', lv.teto, '#c8443a'], ['piso', lv.piso, '#1f8a5b'], ['gamma', lv.gamma, '#c98a12'], ['max pain', lv.mp, '#7b5cc4']];
+    if (lv.s1) L.push(['−1σ', lv.s1[0], '#2a9d8f'], ['+1σ', lv.s1[1], '#2a9d8f']);
+    const l2 = o.lv2 || {}, n2 = o.lv2nome || 'CME';
+    for (const [n, k, c] of [['teto', 'teto', '#c8443a'], ['piso', 'piso', '#1f8a5b'], ['gamma', 'gamma', '#c98a12'], ['max pain', 'mp', '#7b5cc4']]) if (l2[k] != null) {
+      const ok = o.tol && lv[k] != null && Math.abs(lv[k] - l2[k]) <= o.tol; L.push([n2 + ' ' + n + (ok ? ' ✓' : ''), l2[k], c, 'ponto']);
+      if (ok && dentro(lv[k]) && dentro(l2[k])) { const ya = pos(Math.max(lv[k], l2[k])), yb = pos(Math.min(lv[k], l2[k])); svg.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', ya - 5).attr('height', yb - ya + 10).style('fill', '#c98a12').style('opacity', 0.16); } }
+    const lvs = L.map(([n, v, c, t]) => ({ n, v, c, t, y: pos(v) })).filter((e) => e.v != null), fora = lvs.filter((e) => e.y == null), vis = lvs.filter((e) => e.y != null).sort((a, b) => a.y - b.y);
+    const ly = vis.map((e) => e.y + 4); for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 14) ly[i] = ly[i - 1] + 14;
+    const sob = ly.length ? ly[ly.length - 1] - (H - 2) : 0; if (sob > 0) for (let i = ly.length - 1; i >= 0; i--) { ly[i] -= sob; if (i && ly[i] - ly[i - 1] >= 14) break; }
+    vis.forEach((e, i) => { const pr = e.t === 'cheia', pt = e.t === 'ponto';
+      svg.append('line').attr('x1', x0).attr('x2', x1 + 4).attr('y1', e.y).attr('y2', e.y).style('stroke', e.c).style('stroke-width', pr ? 2 : pt ? 2 : 1.3).style('stroke-dasharray', pr ? null : pt ? '1.5 3' : '5 3').style('stroke-linecap', pt ? 'round' : null);
       svg.append('path').attr('d', `M${x1 + 4},${e.y} L${x1 + 9},${ly[i] - 4}`).style('stroke', e.c).style('fill', 'none');
-      svg.append('text').attr('x', x1 + 11).attr('y', ly[i]).style('font-size', fs).style('font-weight', 700).style('fill', e.c).text(e.n + ' ' + nf(e.v, cs)); });
+      svg.append('text').attr('x', x1 + 11).attr('y', ly[i]).style('font-size', fs).style('font-weight', 700).style('font-style', pt ? 'italic' : null).style('fill', e.c).text(e.n + ' ' + nf(e.v, cs)); });
     const tp = tip(el), big = d3.max(pf, (r) => r[1] + r[2]);
-    pf.forEach(([k, c, p, ex], i) => {
-      const yy = y(i), tot = c + p;
+    pf.forEach(([k, c, p, ex, vc, vp], i) => {
+      const yy = y(i), tot = c + p, op = temVol ? 0.35 : 0.9;
       svg.append('text').attr('x', x0 - 6).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).style('font-weight', tot === big ? 700 : 400).text(nf(k, cs));
-      svg.append('rect').attr('x', xm - w(p)).attr('y', yy).attr('width', w(p)).attr('height', bh).attr('rx', 2).style('fill', '#c8443a').style('opacity', 0.9);
-      svg.append('rect').attr('x', xm).attr('y', yy).attr('width', w(c)).attr('height', bh).attr('rx', 2).style('fill', '#1f8a5b').style('opacity', 0.9);
-      if (p) svg.append('text').attr('x', xm - w(p) - 4).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(nf(p, 0));
-      if (c) svg.append('text').attr('x', xm + w(c) + 4).attr('y', yy + bh / 2 + 4).style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(nf(c, 0));
+      svg.append('rect').attr('x', xm - w(p)).attr('y', yy).attr('width', w(p)).attr('height', bh).attr('rx', 2).style('fill', '#c8443a').style('opacity', op);
+      svg.append('rect').attr('x', xm).attr('y', yy).attr('width', w(c)).attr('height', bh).attr('rx', 2).style('fill', '#1f8a5b').style('opacity', op);
+      if (temVol) { svg.append('rect').attr('x', xm - w(vp || 0)).attr('y', yy + bh * 0.25).attr('width', w(vp || 0)).attr('height', bh * 0.5).style('fill', '#c8443a');
+        svg.append('rect').attr('x', xm).attr('y', yy + bh * 0.25).attr('width', w(vc || 0)).attr('height', bh * 0.5).style('fill', '#1f8a5b'); }
+      if (p || vp) svg.append('text').attr('x', xm - Math.max(w(p), w(vp || 0)) - 4).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(tx(p, vp));
+      if (c || vc) svg.append('text').attr('x', xm + Math.max(w(c), w(vc || 0)) + 4).attr('y', yy + bh / 2 + 4).style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(tx(c, vc));
       svg.append('rect').attr('x', 0).attr('y', yy - gap / 2).attr('width', W).attr('height', bh + gap).attr('fill', 'transparent')
-        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, cs + 1), ...(o.rotulo ? [o.rotulo] : []), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), 'Total: ' + nf(tot, 0), ...(ex || [])])).on('mouseleave', () => { tp.hidden = true; });
+        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, cs + 1), ...(o.rotulo ? [o.rotulo] : []), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), 'Total: ' + nf(tot, 0),
+          ...(temVol ? ['Volume do dia (GLD): ' + nf(vc || 0, 0) + ' calls / ' + nf(vp || 0, 0) + ' puts'] : []), ...(ex || [])])).on('mouseleave', () => { tp.hidden = true; });
     });
     svg.selectAll('.bb-n').each(function () { const bb = this.getBBox(); svg.insert('rect', () => this).attr('x', bb.x - 2).attr('y', bb.y).attr('width', bb.width + 4).attr('height', bb.height).attr('rx', 2).style('fill', 'var(--color-panel)'); });   // fundo: linha do nível não corta o número
     svg.append('line').attr('x1', xm).attr('x2', xm).attr('y1', m.t - 4).attr('y2', H - m.b).style('stroke', mu).style('stroke-width', 1);
+    if (fora.length) { const f = document.createElement('div'); f.style.cssText = 'font-size:12px;color:var(--color-fg-muted);margin-top:4px';
+      f.innerHTML = 'Fora do gráfico: ' + fora.map((e) => `<b style="color:${e.c}">${e.v > pf[pf.length - 1][0] ? '↑' : '↓'} ${e.n} ${nf(e.v, cs)}</b>`).join(' · '); el.appendChild(f); }
     // PCR (puts ÷ calls) em destaque logo abaixo: acima de 1 = mais puts (vermelho), abaixo de 1 = mais calls (verde)
-    const [tp_, tc_] = o.pcr || [d3.sum(pf, (r) => r[2]), d3.sum(pf, (r) => r[1])];
-    if (tc_ > 0 || tp_ > 0) {
+    const pcrs = o.pcrs || [[o.pcrRot, ...(o.pcr || [d3.sum(pf, (r) => r[2]), d3.sum(pf, (r) => r[1])])]];
+    const bx = document.createElement('div'); bx.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-top:10px';
+    for (const [rot, tp_, tc_] of pcrs) { if (!(tc_ > 0 || tp_ > 0)) continue;
       const pcr = tc_ > 0 ? tp_ / tc_ : null, mais = pcr == null || pcr > 1.05 ? 'p' : pcr < 0.95 ? 'c' : '=';
       const cor = mais === 'p' ? '#c8443a' : mais === 'c' ? '#1f8a5b' : 'var(--color-fg-muted)';
-      const bx = document.createElement('div'); bx.style.cssText = 'display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-top:10px;padding:10px 12px;border:1px solid var(--color-border-line);border-radius:10px';
-      bx.innerHTML = `<span style="font-size:13px;color:var(--color-fg-muted);font-weight:600">PCR${o.pcrRot ? ' · ' + o.pcrRot : ''}</span>`
+      const it = document.createElement('div'); it.style.cssText = 'flex:1 1 240px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 12px;border:1px solid var(--color-border-line);border-radius:10px';
+      it.innerHTML = `<span style="flex-basis:100%;font-size:12px;color:var(--color-fg-muted);font-weight:600">PCR${rot ? ' · ' + rot : ''}</span>`
         + `<span style="font-size:30px;font-weight:800;line-height:1;color:${cor}">${pcr == null ? '—' : nf(pcr, 2)}</span>`
         + `<span style="font-size:16px;font-weight:800;color:${cor}">${mais === 'p' ? '+Puts' : mais === 'c' ? '+Calls' : 'equilibrado'}</span>`
         + `<span style="font-size:12px;color:var(--color-fg-muted)"><b style="color:#c8443a">${nf(tp_, 0)} puts</b> · <b style="color:#1f8a5b">${nf(tc_, 0)} calls</b></span>`;
-      el.appendChild(bx);
-    }
+      bx.appendChild(it); }
+    if (bx.children.length) el.appendChild(bx);
   }
 
   // 0DTE dólar/iene: contratos em aberto por strike (só CME)
@@ -736,86 +753,27 @@
     drawBorb(el, z.perfil || [], { preco: z.preco, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 2, rotulo: 'Contratos em aberto (CME)', pcrRot: 'em aberto, CME (±2% do preço)' });
   }
 
-  // 0DTE ouro: por strike, GLD + CME juntos na grade de strikes do GLD (1 degrau ≈ US$ 11); botão alterna volume do dia e contratos em aberto
-  let z0bModo = 'oi';
+  // 0DTE ouro: borboleta única, GLD (ao vivo) + CME juntos na grade de strikes do GLD (1 degrau ≈ US$ 11).
+  // Barra clara = contratos em aberto (GLD + CME em equivalente GLD); barra escura = volume do dia (GLD). Níveis do GLD tracejados, da CME pontilhados.
   function drawZ0b(z) {
-    const el = $('.z0b-chart'), bt = $('.z0b-bt'); if (!el) return;
+    const el = $('.z0b-chart'); if (!el) return;
     const rat = z.gld && z.ouro ? z.ouro / z.gld : 10.9, fat = rat;   // 1 contrato CME (100 oz) ≈ ouro ÷ GLD contratos do GLD
-    const g0 = Math.round(z.ouro / rat), ini = Math.floor(g0 * 0.987), fim = Math.ceil(g0 * 1.013), grid = new Map();
-    for (let g = ini; g <= fim; g++) grid.set(g, { k: g * rat, c: 0, p: 0, gc: 0, gp: 0, mc: 0, mp: 0 });
-    const soma = (lst, f, src) => { for (const [k, c, p] of lst || []) { const b = grid.get(Math.round(k / rat)); if (!b) continue; const cc = Math.round(c * f), pp = Math.round(p * f); b.c += cc; b.p += pp; b[src + 'c'] += cc; b[src + 'p'] += pp; } };
-    if (z0bModo === 'oi') { soma(z.perfil_oi || z.perfil, 1, 'g'); soma(z.cme && z.cme.perfil, fat, 'm'); } else soma(z.perfil_vol || z.perfil, 1, 'g');
-    let bs = [...grid.values()]; const nz = bs.filter((b) => b.c || b.p); if (nz.length) { const lo = Math.min(...nz.map((b) => b.k)), hi = Math.max(...nz.map((b) => b.k)); bs = bs.filter((b) => b.k >= lo - 0.1 && b.k <= hi + 0.1); }
-    const rows = bs.map((b) => [b.k, b.c, b.p, z0bModo === 'oi' ? ['GLD: ' + nf(b.gc, 0) + ' calls / ' + nf(b.gp, 0) + ' puts', 'CME: ' + nf(b.mc, 0) + ' calls / ' + nf(b.mp, 0) + ' puts (em equivalente GLD)'] : ['Só GLD (a CME não tem volume do dia no PDF)']]);
-    const tot = (lst, f, i) => d3.sum(lst || [], (r) => Math.round(r[i] * f));
-    const pcr = z0bModo === 'oi' ? [tot(z.perfil_oi || z.perfil, 1, 2) + tot(z.cme && z.cme.perfil, fat, 2), tot(z.perfil_oi || z.perfil, 1, 1) + tot(z.cme && z.cme.perfil, fat, 1)]
-      : [tot(z.perfil_vol || z.perfil, 1, 2), tot(z.perfil_vol || z.perfil, 1, 1)];
-    drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 0, rotulo: z0bModo === 'oi' ? 'Contratos em aberto (GLD + CME)' : 'Volume negociado hoje (GLD)', pcr, pcrRot: z0bModo === 'oi' ? 'em aberto, GLD + CME (equivalente GLD)' : 'volume do dia, GLD' });
-    if (bt) { bt.replaceChildren(); bt.append('Barras: ');
-      for (const [md, nm] of [['oi', 'Em aberto (GLD + CME)'], ['vol', 'Volume do dia (GLD)']]) {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.textContent = (z0bModo === md ? '● ' : '○ ') + nm; b.setAttribute('aria-pressed', String(z0bModo === md));
-        b.style.opacity = z0bModo === md ? 1 : 0.5; b.style.fontWeight = z0bModo === md ? 700 : 400; b.addEventListener('click', () => { z0bModo = md; drawZ0b(z); }); bt.appendChild(b); } }
+    const g0 = Math.round(z.ouro / rat), sig = z.s1 ? Math.max(z.ouro - z.s1[0], z.s1[1] - z.ouro) : z.ouro * 0.01;
+    const meia = Math.max(z.ouro * 0.013, sig * 1.15), ini = Math.floor((z.ouro - meia) / rat), fim = Math.ceil((z.ouro + meia) / rat), grid = new Map();   // ±1σ cabe no gráfico
+    for (let g = ini; g <= fim; g++) grid.set(g, { k: g * rat, c: 0, p: 0, gc: 0, gp: 0, mc: 0, mp: 0, vc: 0, vp: 0 });
+    const soma = (lst, f, cb) => { for (const [k, c, p] of lst || []) { const b = grid.get(Math.round(k / rat)); if (b) cb(b, Math.round(c * f), Math.round(p * f)); } };
+    soma(z.perfil_oi || z.perfil, 1, (b, c, p) => { b.c += c; b.p += p; b.gc += c; b.gp += p; });
+    soma(z.cme && z.cme.perfil, fat, (b, c, p) => { b.c += c; b.p += p; b.mc += c; b.mp += p; });
+    soma(z.perfil_vol, 1, (b, c, p) => { b.vc += c; b.vp += p; });
+    const rows = [...grid.values()].map((b) => [b.k, b.c, b.p, ['Em aberto GLD: ' + nf(b.gc, 0) + ' calls / ' + nf(b.gp, 0) + ' puts', 'Em aberto CME: ' + nf(b.mc, 0) + ' calls / ' + nf(b.mp, 0) + ' puts (equivalente GLD)'], b.vc, b.vp]);
+    const tot = (lst, f, i) => d3.sum(lst || [], (r) => Math.round(r[i] * f)), cm = z.cme || {};
+    drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa, s1: z.s1 }, {
+      casas: 0, rotulo: 'Contratos em aberto (GLD + CME)', tol: rat, lv2: { teto: cm.call_wall, piso: cm.put_wall, gamma: cm.gamma_flip, mp: cm.max_pain },
+      pcrs: [['em aberto, GLD + CME', tot(z.perfil_oi || z.perfil, 1, 2) + tot(cm.perfil, fat, 2), tot(z.perfil_oi || z.perfil, 1, 1) + tot(cm.perfil, fat, 1)],
+             ['volume do dia, GLD (ao vivo)', tot(z.perfil_vol, 1, 2), tot(z.perfil_vol, 1, 1)]] });
   }
 
-  // gráfico do 0DTE: níveis ao longo do dia (não apaga até o próximo vencimento)
-  const z0off = new Set(['mp']); let z0arg = null;   // linhas escondidas (max pain começa escondido: costuma estar longe e achata a escala)
-  function drawZ0(z, pts) {
-    z0arg = [z, pts]; const el = $('.z0-chart'); if (!el) return; el.replaceChildren();
-    if (pts.length < 2) { el.textContent = 'O gráfico começa a se formar com 2 coletas no pregão de NY (a cada 5 min).'; return; }
-    const W = Math.max(300, el.clientWidth), H = W < 600 ? 360 : 440, PW = 0, CW = (z.cme ? Math.min(96, W * 0.2) : 0), m = { t: 26, r: 8, b: 22, l: 52 };
-    const hm = (s) => { const [h, mi] = s.split(':').map(Number); return h * 60 + mi; };
-    const x = d3.scaleLinear(d3.extent(pts, (p) => hm(p.t)), [m.l, W - m.r - PW - CW - 8]);
-    const ser = [['p', 'var(--color-fg)', 'Ouro (linha cheia)'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
-    const on = (k) => !z0off.has(k); const vals = []; pts.forEach((p) => { ser.forEach(([k]) => { if (on(k) && p[k] != null) vals.push(p[k]); }); if (on('s1') && p.s1 && p.s1[1] - p.s1[0] > p.p * 0.002) vals.push(...p.s1); });
-    if (!vals.length) pts.forEach((p) => vals.push(p.p));
-    const cm = z.cme || {}, cser = ser.filter(([k]) => k !== 'p' && cm[{ cw: 'call_wall', pw: 'put_wall', gf: 'gamma_flip', mp: 'max_pain' }[k]] != null).map(([k, c, n]) => [k, c, n, cm[{ cw: 'call_wall', pw: 'put_wall', gf: 'gamma_flip', mp: 'max_pain' }[k]]]);
-    if (on('cme')) cser.forEach(([k, , , v]) => { if (on(k)) vals.push(v); });
-    const y = d3.scaleLinear(d3.extent(vals), [H - m.b, m.t]).nice();
-    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
-    // CME: níveis fixos do dia (pontilhado) e zona forte onde GLD (último valor) e CME concordam (até 0,3%)
-    const ult0 = pts[pts.length - 1], xr = W - m.r - PW - CW - 8, xc = xr + 6;
-    if (on('cme') && CW) {   // coluna própria da CME (fora do gráfico, sem passar por cima das linhas do GLD)
-      svg.append('text').attr('x', xc).attr('y', 14).style('font-size', '10px').style('font-weight', 700).style('fill', 'var(--color-fg-muted)').text('CME');
-      svg.append('line').attr('x1', xc - 2).attr('x2', xc - 2).attr('y1', m.t).attr('y2', H - m.b).style('stroke', 'var(--color-border-line)');
-      const ce = cser.filter(([k]) => on(k)).map(([k, c, n, v]) => ({ c, n, v, y: y(v) })).sort((a, b) => a.y - b.y), ly = ce.map((e) => e.y + 3);
-      for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 12) ly[i] = ly[i - 1] + 12;
-      ce.forEach((e, i) => { svg.append('line').attr('x1', xc).attr('x2', xc + 12).attr('y1', e.y).attr('y2', e.y).style('stroke', e.c).style('stroke-width', 3);
-        svg.append('text').attr('x', xc + 15).attr('y', ly[i]).style('font-size', '10px').style('font-weight', 700).style('fill', e.c).text(nf(e.v, 0) + ' ' + e.n.split(' ')[0].toLowerCase()); });
-    }
-    if (on('cme')) for (const [k, c, n, v] of cser) { if (!on(k)) continue;   // zona forte: GLD (agora) e CME concordam
-      const g = ult0[k]; if (g != null && Math.abs(g - v) <= (z.gld ? z.ouro / z.gld : z.ouro * 0.003)) svg.append('rect').attr('x', m.l).attr('width', xr - m.l).attr('y', y(Math.max(g, v)) - 4).attr('height', Math.abs(y(g) - y(v)) + 8).style('fill', c).style('opacity', 0.16); }
-    // faixa ±1σ de cada momento (sombra) e a da abertura (tracejada, fixa)
-    const s1 = on('s1') ? pts.filter((p) => p.s1 && p.s1[1] - p.s1[0] > p.p * 0.002) : [];   // ignora faixa zerada (erro da fonte)
-    svg.append('path').datum(s1).attr('d', d3.area().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
-    if (s1.length) for (const v of s1[0].s1) svg.append('line').attr('x1', m.l).attr('x2', W - m.r - PW - CW - 8).attr('y1', y(v)).attr('y2', y(v)).style('stroke', '#2a9d8f').style('stroke-dasharray', '4 3');
-    const ord = ser.filter(([k]) => on(k) && k !== 'p').concat(on('p') ? ser.filter(([k]) => k === 'p') : []);
-    if (on('p')) svg.append('path').datum(pts).attr('d', d3.line().curve(d3.curveMonotoneX).x((p) => x(hm(p.t))).y((p) => y(p.p))).style('fill', 'none').style('stroke', 'var(--color-panel)').style('stroke-width', 6);
-    for (const [k, c] of ord) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(k === 'p' ? d3.curveMonotoneX : d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
-      .style('fill', 'none').style('stroke', k === 'p' ? 'var(--color-fg)' : c).style('stroke-width', k === 'p' ? 2.5 : 1.6).style('stroke-dasharray', k === 'p' ? null : '6 3');
-    // etiqueta com o último valor de cada linha
-    const ult = pts[pts.length - 1], xe = W - m.r - PW - CW - 8;
-    const eti = ser.filter(([k]) => on(k) && ult[k] != null).map(([k, c]) => ({ k, c, v: ult[k], y: y(ult[k]) - 3 }))
-.sort((p, q) => p.y - q.y);
-    for (let i = 1; i < eti.length; i++) if (eti[i].y - eti[i - 1].y < 13) eti[i].y = eti[i - 1].y + 13;   // afasta etiquetas encavaladas
-    for (const e of eti) svg.append('text').attr('x', xe - 2).attr('y', e.y).attr('text-anchor', 'end').style('font-size', '11px').style('font-weight', 700).style('fill', e.k === 'p' ? 'var(--color-fg)' : e.c).style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3).style('font-style', e.cme ? 'italic' : null).text((e.k === 'p' ? 'Ouro ' : e.cme ? 'CME ' : '') + nf(e.v, 1));
-    // ao passar o mouse: horário e valor de cada nível
-    const tp = tip(el);
-    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', xe - m.l).attr('height', H - m.t - m.b).attr('fill', 'transparent')
-      .on('mousemove', (ev) => { const xv = x.invert(d3.pointer(ev, svg.node())[0]); const p = pts.reduce((a, b) => (Math.abs(hm(b.t) - xv) < Math.abs(hm(a.t) - xv) ? b : a));
-        show(el, tp, ev, [p.t + ' NY', ...ser.filter(([k]) => on(k) && p[k] != null).map(([k, , n]) => n + ': ' + nf(p[k], 1)), ...(p.s1 ? ['±1σ: ' + nf(p.s1[0], 1) + ' – ' + nf(p.s1[1], 1)] : [])]); })
-      .on('mouseleave', () => { tp.hidden = true; });
-    // barras do perfil: valor ao passar o mouse
-    const ax = svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 500 ? 3 : 5).tickFormat((v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'))); axisStyle(ax);
-    const ay = svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => nf(v, 0))); axisStyle(ay);
-    const lg = document.createElement('div'); lg.className = 'op-legend';
-    for (const [k, c, n] of [...ser, ['s1', '#2a9d8f', '±1σ'], ...(cser.length ? [['cme', '#888', 'CME']] : [])]) {
-      const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.setAttribute('aria-pressed', String(on(k)));
-      b.style.opacity = on(k) ? 1 : 0.45; b.innerHTML = `<i class="op-sw" style="background:${c}"></i>${n}`;
-      b.addEventListener('click', () => { z0off.has(k) ? z0off.delete(k) : z0off.add(k); drawZ0(...z0arg); }); lg.appendChild(b);
-    }
-    const nt = document.createElement('div'); nt.style.cssText = 'display:block;flex-basis:100%;width:100%'; nt.innerHTML = 'Toque nos botões para mostrar/esconder cada linha (a escala se ajusta). Faixa colorida no gráfico = GLD e CME concordam.'; lg.appendChild(nt);
-    el.appendChild(lg);
-  }
+
 
   // mapa de probabilidades: níveis em σ a partir da abertura do dia/semana, com a frequência real de toque (2 anos, 1 h)
   function drawMapa() {
@@ -952,7 +910,6 @@
         t.appendChild(tr); }
       const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' + (z.cme.regime ? ' · ' + z.cme.regime : '') : '', 'num'); t.appendChild(tr);
       drawZ0b(z);
-      drawZ0(z, (D('mi_0dte_dia').data || []).filter((d) => d.v === z.vencimento && d.p != null && (d.d ? d.d === z.vencimento : d.t < '16:00')).sort((a, b) => (a.t < b.t ? -1 : 1)));   // só o dia do vencimento, em ordem
     }
   }
 
