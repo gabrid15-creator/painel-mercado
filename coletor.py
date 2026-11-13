@@ -518,6 +518,7 @@ def b_faixa():
     FONTE = {"XAUUSD": ("GLD", "^GVZ"), "USDJPY": ("FXY", None), "USDCHF": ("FXF", None), "EURUSD": ("FXE", None), "GBPUSD": (None, None)}
     rows = []; hist = {(h["ativo"], h["data"]): h for h in ler("mi_faixa_hist.json")}
     fx0 = ler("mapa_fixo.json"); FIXO = fx0[0] if fx0 else {}
+    MH = {f"{h['ativo']}|{h['tipo']}|{h['ini']}": h for h in ler("mi_mapa_hist.json")}   # histórico do mapa (backtest diário)
     for a, (etf, idx) in FONTE.items():
         if a not in P: continue
         iv = None; fonte = ""
@@ -594,11 +595,15 @@ def b_faixa():
                            "sem_fim": dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).astimezone(BRT).strftime("sex %d/%m %Hh"),   # fechamento de sexta (17h NY) para todos
                            "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
                            "ab_sem": rnd(sem[0][1], casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas)}
+            mp = row["mapa"]
+            MH[f"{a}|dia|{hoje_s}"] = {"ativo": a, "tipo": "dia", "ini": str(hoje_s), "ab": mp["ab_dia"], "sd": mp["sd_dia"], "max": mp["max_dia"], "min": mp["min_dia"]}
+            MH[f"{a}|sem|{seg}"] = {"ativo": a, "tipo": "sem", "ini": str(seg), "ab": mp["ab_sem"], "sd": mp["sd_sem"], "max": mp["max_sem"], "min": mp["min_sem"]}
         except Exception as e: STATUS.append({"bloco": "Mapa " + a, "ok": False, "msg": str(e)[:120]})
         rows.append(row)
         hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
     if not rows: raise ValueError("sem volatilidade")
     save("mapa_fixo.json", [dict(sorted(FIXO.items())[-200:])])
+    save("mi_mapa_hist.json", sorted(MH.values(), key=lambda h: (h["ini"], h["ativo"], h["tipo"]))[-6000:])
     save("mi_faixa.json", rows)
     save("mi_faixa_hist.json", sorted(hist.values(), key=lambda h: (h["ativo"], h["data"]))[-4000:])
 b_faixa()
@@ -683,7 +688,7 @@ def b_0dte():
         cv, pv, co, po = f("C", "vol"), f("P", "vol"), f("C", "oi"), f("P", "oi")
         return {"c_vol": int(cv), "p_vol": int(pv), "c_oi": int(co), "p_oi": int(po),
                 "pcr_vol": rnd(pv / cv, 3) if cv else None, "pcr_oi": rnd(po / co, 3) if co else None}
-    if ny.weekday() < 5 and ny.hour * 60 + ny.minute >= 9 * 60 + 30:
+    if ny.weekday() < 5 and 9 * 60 + 30 <= ny.hour * 60 + ny.minute <= 16 * 60 + 15:   # até o fechamento: preço = fechamento
         d0 = ny.date()
         rec = {"data": d0.isoformat(), "hora": ny.strftime("%H:%M"), "gld": rnd(S, 2), "ouro": rnd(ouro, 1),
                "gld_total": pc(ops), "gld_0dte": pc([o for o in ops if o["venc"] == d0]),
@@ -722,6 +727,39 @@ def b_0dte():
         ph = {h["data"]: h for h in ler("mi_pcr_hist.json")}; ph[rec["data"]] = rec
         save("mi_pcr_hist.json", sorted(ph.values(), key=lambda x: x["data"])[-2000:])
 b_0dte()
+
+@bloco("Backtest diário")
+def b_valid():
+    # confere o que o painel projetou contra o que aconteceu: toque dos níveis do mapa, faixa das opções e 0DTE
+    tb = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "toque_tabela.json")))
+    hoje = NOW.astimezone(ZoneInfo("America/New_York")); hs = (hoje + dt.timedelta(hours=7)).date(); seg = hs - dt.timedelta(days=hs.weekday())
+    mh = ler("mi_mapa_hist.json"); out = {"atualizado": NOW.strftime("%d/%m %H:%M"), "mapa": [], "faixa": [], "zdte": None}
+    for a in tb:
+        for tp in ("dia", "sem"):
+            fe = [h for h in mh if h["ativo"] == a and h["tipo"] == tp and h["sd"] and dt.date.fromisoformat(h["ini"]) < (hs if tp == "dia" else seg)]
+            if not fe: continue
+            nv = []
+            for x in (0.5, 1, 1.5, 2):
+                i = tb[a]["k"].index(x)
+                nv.append({"k": x, "prev_cima": tb[a][tp + "_toca_cima"][i], "prev_baixo": tb[a][tp + "_toca_baixo"][i],
+                           "real_cima": rnd(100 * sum(h["max"] >= h["ab"] * math.exp(x * h["sd"]) for h in fe) / len(fe), 0),
+                           "real_baixo": rnd(100 * sum(h["min"] <= h["ab"] * math.exp(-x * h["sd"]) for h in fe) / len(fe), 0)})
+            out["mapa"].append({"ativo": a, "tipo": tp, "n": len(fe), "desde": min(h["ini"] for h in fe), "niveis": nv})
+    fh = ler("mi_faixa_hist.json")
+    for a in sorted({h["ativo"] for h in fh}):
+        h = [x for x in fh if x["ativo"] == a and x.get("iv")]; d1 = d2 = n = 0
+        for p, q in zip(h, h[1:]):
+            if (dt.date.fromisoformat(q["data"]) - dt.date.fromisoformat(p["data"])).days > 4: continue
+            z = abs(math.log(q["preco"] / p["preco"])) / (p["iv"] / 100 / math.sqrt(252)); n += 1; d1 += z <= 1; d2 += z <= 2
+        if n: out["faixa"].append({"ativo": a, "n": n, "dentro_1s": rnd(100 * d1 / n, 0), "dentro_2s": rnd(100 * d2 / n, 0), "teorico": [68, 95]})
+    zh = [z for z in ler("mi_0dte_hist.json") if z["vencimento"] < hoje.date().isoformat() and z.get("ultimo_ouro") and z.get("faixa")]
+    if zh:
+        dentro = sum(z["faixa"][0] <= z["ultimo_ouro"] <= z["faixa"][1] for z in zh)
+        par = [z for z in zh if z.get("put_wall") and z.get("call_wall")]
+        out["zdte"] = {"n": len(zh), "dentro_faixa": rnd(100 * dentro / len(zh), 0),
+                       "entre_paredes": rnd(100 * sum(z["put_wall"] <= z["ultimo_ouro"] <= z["call_wall"] for z in par) / len(par), 0) if par else None}
+    save("mi_validacao.json", [out])
+b_valid()
 
 # ---------------------------------------------------------------- Fear & Greed (CNN)
 @bloco("Fear & Greed (CNN)")

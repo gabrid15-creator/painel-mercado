@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -746,6 +746,14 @@
       out.textContent = 'chance de o preço chegar a ' + nf(v, k) + ': hoje ' + ch(m.ab_dia, sd, m.max_dia, m.min_dia, tb.dia_toca_cima, tb.dia_toca_baixo) + ' · nesta semana ' + ch(m.ab_sem, sw, m.max_sem, m.min_sem, tb.sem_toca_cima, tb.sem_toca_baixo);
     };
     inp.oninput();
+    // backtest diário: o que o painel projetou x o que aconteceu (dias e semanas já fechados, desde 13/11/2026)
+    const vd = ((D('mi_validacao').data || [])[0]) || {}, vm = (vd.mapa || []).filter((r) => r.ativo === atv), vf = (vd.faixa || []).find((r) => r.ativo === atv);
+    const lin = (r) => { if (!r) return ''; const n = r.niveis.filter((x) => x.k === 0.5 || x.k === 1);
+      return `<b>${r.tipo === 'dia' ? 'Dias' : 'Semanas'}</b> (${r.n}): ` + n.map((x) => `±${nf(x.k, x.k % 1 ? 1 : 0)}σ previsto ${x.prev_cima}%/${x.prev_baixo}% · real ${nf(x.real_cima, 0)}%/${nf(x.real_baixo, 0)}%`).join(' — '); };
+    const tx = [lin(vm.find((r) => r.tipo === 'dia')), lin(vm.find((r) => r.tipo === 'sem'))].filter(Boolean);
+    if (vf) tx.push(`<b>Faixa das opções</b> (${vf.n} dias): fechou dentro de ±1σ em ${nf(vf.dentro_1s, 0)}% (esperado ~68%) e de ±2σ em ${nf(vf.dentro_2s, 0)}% (~95%)`);
+    if (atv === 'XAUUSD' && vd.zdte) tx.push(`<b>0DTE</b> (${vd.zdte.n} vencimentos): fechou dentro da faixa do dia em ${nf(vd.zdte.dentro_faixa, 0)}%` + (vd.zdte.entre_paredes != null ? ` e entre as paredes em ${nf(vd.zdte.entre_paredes, 0)}%` : ''));
+    $('.mp-val').innerHTML = tx.length ? `<b>Conferência diária</b> (cima/baixo; atualizado ${vd.atualizado}): ` + tx.join('. ') + '. <b>Como ler:</b> compara a chance que o painel mostrou com o que de fato aconteceu nos dias e semanas já fechados. Real perto do previsto = mapa confiável; muito acima = o preço anda mais que o esperado (níveis largos ficam mais alcançáveis); muito abaixo = mercado mais parado. Com menos de ~30 dias, ainda é amostra pequena.' : '<b>Conferência diária:</b> acumulando (começa a mostrar depois do primeiro dia fechado).';
   }
 
 
