@@ -57,6 +57,15 @@ jobs:
           git commit -qm "dados $(date -u +%Y-%m-%dT%H:%MZ)"
           # um commit só (força): o histórico de dados não incha o repositório
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" dados
+      - name: Candles de 1 min (1×/dia, ~01h UTC) na branch "minutos", para os testes de SMT
+        if: always()
+        run: |
+          [ "$(date -u +%H)" = "01" ] || exit 0
+          if git fetch -q --depth=1 origin minutos 2>/dev/null; then git worktree add -q min FETCH_HEAD; else mkdir min && git -C min init -q -b minutos; fi
+          python3 minutos.py min || true
+          cd min && git add -A && { git diff --cached --quiet && exit 0; }
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "minutos $(date -u +%F)"
+          git push -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:minutos
   site:
     # site só quando o código muda (push) ou em execução manual marcando "site"; o cron-job.org só coleta
     if: github.event_name == 'push' || inputs.site == true
