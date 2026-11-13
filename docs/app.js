@@ -680,7 +680,7 @@
   function drawZ0(z, pts) {
     z0arg = [z, pts]; const el = $('.z0-chart'); if (!el) return; el.replaceChildren();
     if (pts.length < 2) { el.textContent = 'O gráfico começa a se formar com 2 coletas no pregão de NY (a cada 5 min).'; return; }
-    const W = Math.max(300, el.clientWidth), H = W < 600 ? 360 : 440, PW = Math.min(140, W * 0.22), CW = (z.cme ? Math.min(96, W * 0.2) : 0), m = { t: 10, r: 8, b: 22, l: 52 };
+    const W = Math.max(300, el.clientWidth), H = W < 600 ? 360 : 440, PW = Math.min(140, W * 0.22), CW = (z.cme ? Math.min(96, W * 0.2) : 0), m = { t: 26, r: 8, b: 22, l: 52 };
     const hm = (s) => { const [h, mi] = s.split(':').map(Number); return h * 60 + mi; };
     const x = d3.scaleLinear(d3.extent(pts, (p) => hm(p.t)), [m.l, W - m.r - PW - CW - 8]);
     const ser = [['p', 'var(--color-fg)', 'Ouro (linha cheia)'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
@@ -693,7 +693,7 @@
     // CME: níveis fixos do dia (pontilhado) e zona forte onde GLD (último valor) e CME concordam (até 0,3%)
     const ult0 = pts[pts.length - 1], xr = W - m.r - PW - CW - 8, xc = xr + 6;
     if (on('cme') && CW) {   // coluna própria da CME (fora do gráfico, sem passar por cima das linhas do GLD)
-      svg.append('text').attr('x', xc + CW / 2 - 4).attr('y', m.t + 8).attr('text-anchor', 'middle').style('font-size', '10px').style('font-weight', 700).style('fill', 'var(--color-fg-muted)').text('CME (fixo)');
+      svg.append('text').attr('x', xc).attr('y', 14).style('font-size', '10px').style('font-weight', 700).style('fill', 'var(--color-fg-muted)').text('CME');
       svg.append('line').attr('x1', xc - 2).attr('x2', xc - 2).attr('y1', m.t).attr('y2', H - m.b).style('stroke', 'var(--color-border-line)');
       const ce = cser.filter(([k]) => on(k)).map(([k, c, n, v]) => ({ c, n, v, y: y(v) })).sort((a, b) => a.y - b.y), ly = ce.map((e) => e.y + 3);
       for (let i = 1; i < ly.length; i++) if (ly[i] - ly[i - 1] < 12) ly[i] = ly[i - 1] + 12;
@@ -722,7 +722,7 @@
       pvOI = bar.map((b) => [b.k, b.c, b.p, 'GLD ' + nf(b.g[1], 0) + '/' + nf(b.g[0], 0) + ' · CME ' + nf(b.m[1], 0) + '/' + nf(b.m[0], 0) + ' (puts/calls)']);
     }
     const pv = (pvOI || z.perfil_vol || []).filter((r) => r[0] >= y.domain()[0] && r[0] <= y.domain()[1]);
-    svg.append('text').attr('x', W - m.r - PW / 2).attr('y', m.t + 8).attr('text-anchor', 'middle').style('font-size', '10px').style('font-weight', 700).style('fill', 'var(--color-fg-muted)').text(z0modo === 'oi' ? 'Em aberto (GLD+CME)' : 'Volume hoje (GLD)');
+    svg.append('text').attr('x', W - m.r - PW).attr('y', 14).style('font-size', '10px').style('font-weight', 700).style('fill', 'var(--color-fg-muted)').text(z0modo === 'oi' ? 'Em aberto' : 'Volume hoje');
     const tpv = tip(el); const mx = d3.max(pv, (r) => r[1] + r[2]) || 1, x0 = W - m.r - PW, bw = Math.max(2, Math.min(8, (H - m.t - m.b) / Math.max(pv.length, 1) - 1));
     for (const [k, c, p, fonte] of pv) {
       svg.append('rect').attr('x', x0).attr('y', y(k) - bw / 2 - 1).attr('width', PW).attr('height', bw + 2).attr('fill', 'transparent')
@@ -743,10 +743,10 @@
         show(el, tp, ev, [p.t + ' NY', ...ser.filter(([k]) => on(k) && p[k] != null).map(([k, , n]) => n + ': ' + nf(p[k], 1)), ...(p.s1 ? ['±1σ: ' + nf(p.s1[0], 1) + ' – ' + nf(p.s1[1], 1)] : [])]); })
       .on('mouseleave', () => { tp.hidden = true; });
     // barras do perfil: valor ao passar o mouse
-    const ax = svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat((v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'))); axisStyle(ax);
+    const ax = svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 500 ? 3 : 5).tickFormat((v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'))); axisStyle(ax);
     const ay = svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => nf(v, 0))); axisStyle(ay);
     const lg = document.createElement('div'); lg.className = 'op-legend';
-    for (const [k, c, n] of [...ser, ['s1', '#2a9d8f', '±1σ: sombra verde = faixa de cada momento · tracejado = faixa da abertura'], ...(cser.length ? [['cme', '#888', 'CME: coluna à direita (fixa no dia) · faixa colorida = GLD e CME concordam']] : [])]) {
+    for (const [k, c, n] of [...ser, ['s1', '#2a9d8f', '±1σ'], ...(cser.length ? [['cme', '#888', 'CME']] : [])]) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.setAttribute('aria-pressed', String(on(k)));
       b.style.opacity = on(k) ? 1 : 0.45; b.innerHTML = `<i class="op-sw" style="background:${c}"></i>${n}`;
       b.addEventListener('click', () => { z0off.has(k) ? z0off.delete(k) : z0off.add(k); drawZ0(...z0arg); }); lg.appendChild(b);
@@ -757,7 +757,7 @@
       bm.style.opacity = z0modo === md ? 1 : 0.5; bm.style.fontWeight = z0modo === md ? 700 : 400;
       bm.addEventListener('click', () => { z0modo = md; drawZ0(...z0arg); }); sg2.appendChild(bm); }
     lg.appendChild(sg2);
-    const nt = document.createElement('div'); nt.style.cssText = 'display:block;flex-basis:100%;width:100%'; nt.innerHTML = 'Níveis em linha tracejada; preço do ouro em linha cheia por cima. Toque para mostrar/esconder (a escala se ajusta). Barras à direita (verde = calls, vermelho = puts): escolha o que mostram. <b>Volume do dia</b> = quantos contratos foram negociados hoje em cada strike (onde está a briga agora, só GLD). <b>Contratos em aberto</b> = posições abertas que vencem hoje (GLD + CME somadas; a CME convertida em equivalente GLD): onde o dinheiro está parado. Strike sem barra = sem contrato listado ali. Strikes com muitos contratos em aberto podem atrair o preço perto do vencimento ("ímã"); ainda sem teste.'; lg.appendChild(nt);
+    const nt = document.createElement('div'); nt.style.cssText = 'display:block;flex-basis:100%;width:100%'; nt.innerHTML = 'Toque nos botões para mostrar/esconder cada linha (a escala se ajusta). <b>Barras</b> (verde = calls, vermelho = puts): <b>volume do dia</b> = negociado hoje no GLD (onde está a briga agora); <b>contratos em aberto</b> = posições que vencem hoje, GLD + CME (onde o dinheiro está parado; podem atrair o preço perto do vencimento, "ímã", ainda sem teste). Faixa colorida no gráfico = GLD e CME concordam. Strike sem barra = sem contrato listado.'; lg.appendChild(nt);
     el.appendChild(lg);
   }
 
@@ -869,7 +869,7 @@
       const lin = [...niv.map(([nm, v, c, k]) => [nm, n1(v), c, k == null ? '—' : n1(k)]),
         ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%' + (m.faixa_pct ? ' · CME ±' + nf(m.faixa_pct, 2) + '%' : '') + ')', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', m.faixa ? n1(m.faixa[0]) + ' – ' + n1(m.faixa[1]) : '—']];
       if (z.s1) lin.push(['±1σ do dia', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
-      const hd = document.createElement('tr'); td(hd, ''); td(hd, 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao) + ', no preço à vista)' : 'CME (sem PDF para este vencimento)', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
+      const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? (cel0 ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : 'CME (ajuste ' + br(z.cme.pregao) + ', no preço à vista)') : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       const tol = z.gld ? z.ouro / z.gld : z.ouro * 0.003;   // 1 strike do GLD em preço de ouro (~US$ 11): GLD e CME "concordam" se ficam a até 1 degrau
       const par = { 'Teto (call wall)': [z.call_wall, m.call_wall], 'Piso (put wall)': [z.put_wall, m.put_wall], 'Gamma flip': [z.gamma_flip, m.gamma_flip], 'Max pain': [z.max_pain, m.max_pain] };
       for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; const ck = td(tr, k, 'num'); ck.style.fontWeight = 600;
