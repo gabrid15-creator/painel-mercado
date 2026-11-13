@@ -847,16 +847,17 @@
     // Faixa das opções
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv);
     if (mostra('.op-card.fx', fr)) { const t = $('.fx-t tbody'); t.replaceChildren(); const k = casas(fr.preco);
-      const faixas = (f) => { const tdc = document.createElement('td'); tdc.className = 'num'; const d = document.createElement('div'); d.className = 'fx-cel';
-        d.append(lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2')); tdc.appendChild(d); return tdc; };
-      const linha = (f) => { const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600; tr.appendChild(faixas(f)); t.appendChild(tr); };
-      const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 2; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; t.appendChild(tr); return e; };
-      // linha da fonte com a volatilidade e a etiqueta (antes era uma coluna, que estourava a largura no celular)
-      const f0 = fonte(fr.fonte + ' · vol. ' + nf(fr.iv, 1) + '% '); const nv = fr.nivel;
-      if (nv) { const b = lv(nv.txt, /bem acima/.test(nv.txt) ? 'lv-cw' : /acima/.test(nv.txt) ? 'lv-gf' : /abaixo/.test(nv.txt) ? 'lv-rg' : 'lv-now'); f0.append(b, ' média 1a ' + nf(nv.m1, 1) + ' · 3a ' + nf(nv.m3, 1) + ' · 5a ' + nf(nv.m5, 1) + '%'); }
+      const linha = (f) => { const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
+        cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr); };
+      const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 3; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; t.appendChild(tr); return e; };
+      // linha da fonte: vol. de hoje contra a média, com a etiqueta e o que ela significa
+      const f0 = fonte(fr.fonte + ' · vol. hoje ' + nf(fr.iv, 1) + '%'); const nv = fr.nivel;
+      if (nv) { const cl = /bem acima/.test(nv.txt) ? 'lv-cw' : /acima/.test(nv.txt) ? 'lv-gf' : /abaixo/.test(nv.txt) ? 'lv-rg' : 'lv-now';
+        const sig = /bem acima/.test(nv.txt) ? 'faixas largas' : /acima/.test(nv.txt) ? 'um pouco largas' : /bem abaixo/.test(nv.txt) ? 'faixas bem estreitas' : /abaixo/.test(nv.txt) ? 'faixas estreitas' : 'tamanho de sempre';
+        f0.append(' contra a média ' + nf(nv.media, 1) + '% → ', lv(nv.txt, cl), ' ' + sig + ' (média 1a ' + nf(nv.m1, 1) + ' · 3a ' + nf(nv.m3, 1) + ' · 5a ' + nf(nv.m5, 1) + '%)'); }
       fr.faixas.forEach(linha);
       if (fr.cme) { fonte('CME · opções de ouro (pregão ' + br(fr.cme.pregao) + ', vencimento ' + br(fr.cme.venc) + ') · vol. ' + nf(fr.cme.iv, 1) + '%'); fr.cme.faixas.forEach(linha);
-      } else if (atv === 'XAUUSD') fonte('CME: aguardando a tarefa noturna trazer os preços de ajuste das opções.');
+      } else if (atv === 'XAUUSD') fonte('CME: sem PDF do boletim carregado.');
     }
     // 0DTE (só ouro)
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
