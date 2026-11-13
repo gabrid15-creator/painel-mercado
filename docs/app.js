@@ -686,8 +686,16 @@
     const ser = [['p', 'var(--color-fg)', 'Ouro (linha cheia)'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
     const on = (k) => !z0off.has(k); const vals = []; pts.forEach((p) => { ser.forEach(([k]) => { if (on(k) && p[k] != null) vals.push(p[k]); }); if (on('s1') && p.s1) vals.push(...p.s1); });
     if (!vals.length) pts.forEach((p) => vals.push(p.p));
+    const cm = z.cme || {}, cser = ser.filter(([k]) => k !== 'p' && cm[{ cw: 'call_wall', pw: 'put_wall', gf: 'gamma_flip', mp: 'max_pain' }[k]] != null).map(([k, c, n]) => [k, c, n, cm[{ cw: 'call_wall', pw: 'put_wall', gf: 'gamma_flip', mp: 'max_pain' }[k]]]);
+    if (on('cme')) cser.forEach(([k, , , v]) => { if (on(k)) vals.push(v); });
     const y = d3.scaleLinear(d3.extent(vals), [H - m.b, m.t]).nice();
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    // CME: níveis fixos do dia (pontilhado) e zona forte onde GLD (último valor) e CME concordam (até 0,3%)
+    const ult0 = pts[pts.length - 1], xr = W - m.r - PW - 8;
+    if (on('cme')) for (const [k, c, n, v] of cser) { if (!on(k)) continue;
+      const g = ult0[k]; if (g != null && Math.abs(g - v) <= (z.gld ? z.ouro / z.gld : z.ouro * 0.003)) svg.append('rect').attr('x', m.l).attr('width', xr - m.l).attr('y', y(Math.max(g, v)) - 4).attr('height', Math.abs(y(g) - y(v)) + 8).style('fill', c).style('opacity', 0.16);
+      svg.append('line').attr('x1', m.l).attr('x2', xr).attr('y1', y(v)).attr('y2', y(v)).style('stroke', c).style('stroke-width', 1.4).style('stroke-dasharray', '1 4').style('stroke-linecap', 'round');
+      svg.append('text').attr('x', m.l + 4).attr('y', y(v) - 3).style('font-size', '10px').style('font-weight', 700).style('fill', c).style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3).text('CME ' + n.toLowerCase() + ' ' + nf(v, 1)); }
     // faixa ±1σ de cada momento (sombra) e a da abertura (tracejada, fixa)
     const s1 = on('s1') ? pts.filter((p) => p.s1) : [];
     svg.append('path').datum(s1).attr('d', d3.area().x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
@@ -720,7 +728,7 @@
     const ax = svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(5).tickFormat((v) => String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'))); axisStyle(ax);
     const ay = svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => nf(v, 0))); axisStyle(ay);
     const lg = document.createElement('div'); lg.className = 'op-legend';
-    for (const [k, c, n] of [...ser, ['s1', '#2a9d8f', '±1σ: sombra verde = faixa de cada momento · tracejado = faixa da abertura']]) {
+    for (const [k, c, n] of [...ser, ['s1', '#2a9d8f', '±1σ: sombra verde = faixa de cada momento · tracejado = faixa da abertura'], ...(cser.length ? [['cme', '#888', 'CME: pontilhado (fixo do dia) · faixa colorida = GLD e CME concordam']] : [])]) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.setAttribute('aria-pressed', String(on(k)));
       b.style.opacity = on(k) ? 1 : 0.45; b.innerHTML = `<i class="op-sw" style="background:${c}"></i>${n}`;
       b.addEventListener('click', () => { z0off.has(k) ? z0off.delete(k) : z0off.add(k); drawZ0(...z0arg); }); lg.appendChild(b);
@@ -838,7 +846,14 @@
         ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%' + (m.faixa_pct ? ' · CME ±' + nf(m.faixa_pct, 2) + '%' : '') + ')', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', m.faixa ? n1(m.faixa[0]) + ' – ' + n1(m.faixa[1]) : '—']];
       if (z.s1) lin.push(['±1σ do dia', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
       const hd = document.createElement('tr'); td(hd, ''); td(hd, 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao) + ', no preço à vista)' : 'CME (sem PDF para este vencimento)', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
-      for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; td(tr, k, 'num').style.fontWeight = 600; t.appendChild(tr); }
+      const tol = z.gld ? z.ouro / z.gld : z.ouro * 0.003;   // 1 strike do GLD em preço de ouro (~US$ 11): GLD e CME "concordam" se ficam a até 1 degrau
+      const par = { 'Teto (call wall)': [z.call_wall, m.call_wall], 'Piso (put wall)': [z.put_wall, m.put_wall], 'Gamma flip': [z.gamma_flip, m.gamma_flip], 'Max pain': [z.max_pain, m.max_pain] };
+      for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; const ck = td(tr, k, 'num'); ck.style.fontWeight = 600;
+        const pr = par[nm]; if (pr && pr[0] != null && pr[1] != null) { const dif = Math.abs(pr[0] - pr[1]); const s = document.createElement('div'); s.style.fontSize = '11px'; s.style.fontWeight = 400;
+          if (dif <= tol) { s.innerHTML = '<span class="lv lv-gf" style="font-size:11px">✓ concordam</span>'; tr.style.background = 'color-mix(in srgb, #c98a12 14%, transparent)'; }
+          else { s.style.color = 'var(--color-fg-muted)'; s.textContent = 'dif. US$ ' + nf(dif, 0); }
+          ck.appendChild(s); }
+        t.appendChild(tr); }
       const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' + (z.cme.regime ? ' · ' + z.cme.regime : '') : '', 'num'); t.appendChild(tr);
       drawZ0(z, (D('mi_0dte_dia').data || []).filter((d) => d.v === z.vencimento && d.p != null));
     }
