@@ -627,7 +627,8 @@ def b_0dte():
     for x in j["options"]:
         o = x["option"]; ops.append({"venc": dt.date(2000 + int(o[3:5]), int(o[5:7]), int(o[7:9])), "tipo": o[9], "k": int(o[10:]) / 1000,
                                      "oi": x["open_interest"] or 0, "vol": x["volume"] or 0, "iv": x["iv"] or 0,
-                                     "mid": ((x["bid"] or 0) + (x["ask"] or 0)) / 2, "delta": x.get("delta") or 0})
+                                     "mid": ((x["bid"] or 0) + (x["ask"] or 0)) / 2 if (x["bid"] or 0) > 0 and (x["ask"] or 0) > 0 else (x.get("last_trade_price") or 0),   # sem compra/venda: último negócio
+                                     "delta": x.get("delta") or 0})
     hoje = ny.date() if ny.hour < 16 else ny.date() + dt.timedelta(days=1)
     venc = min(v for v in {o["venc"] for o in ops} if v >= hoje)
     ch = [o for o in ops if o["venc"] == venc]
@@ -643,7 +644,12 @@ def b_0dte():
     for i in range(1, len(grade)):
         if (g[i - 1] < 0) != (g[i] < 0): flip = grade[i] if flip is None or abs(grade[i] - S) < abs(flip - S) else flip
     ks = sorted({o["k"] for o in ch}); atm = min(ks, key=lambda k: abs(k - S))
-    strad = sum(o["mid"] for o in ch if o["k"] == atm)
+    # straddle no dinheiro; se faltar preço no strike mais perto, usa o próximo strike que tenha call e put com preço
+    strad = 0
+    for kx in sorted(ks, key=lambda k: abs(k - S))[:4]:
+        c_ = [o["mid"] for o in ch if o["k"] == kx and o["tipo"] == "C" and o["mid"] > 0]; p_ = [o["mid"] for o in ch if o["k"] == kx and o["tipo"] == "P" and o["mid"] > 0]
+        if c_ and p_: strad = c_[0] + p_[0]; break
+    faixa_ok = 0.001 <= strad / S <= 0.05   # faixa absurda (sem preço ou erro da fonte) não entra no gráfico nem no retrato
     def peso(tp): 
         m = {}
         for o in ch:
@@ -723,11 +729,13 @@ def b_0dte():
     dia = [d for d in ler("mi_0dte_dia.json") if d.get("v") == row["vencimento"] and d.get("d", row["vencimento"]) == row["vencimento"] and (d.get("d") or d.get("t", "") < "16:00")]
     if ny.date().isoformat() == row["vencimento"] and 9 * 60 + 30 <= ny.hour * 60 + ny.minute <= 16 * 60 + 15 and ny.weekday() < 5 and not any(d.get("t") == ny.strftime("%H:%M") for d in dia):
         dia.append({"v": row["vencimento"], "d": ny.date().isoformat(), "t": ny.strftime("%H:%M"), "p": row["ouro"], "cw": row["call_wall"], "pw": row["put_wall"],
-                    "gf": row["gamma_flip"], "mp": row["max_pain"], "s1": row["s1"]})
+                    "gf": row["gamma_flip"], "mp": row["max_pain"], "s1": row["s1"] if faixa_ok else None})
     dia.sort(key=lambda d: d.get("t", ""))
     save("mi_0dte_dia.json", dia[-200:] or [{"v": row["vencimento"]}])
     hist = {h["vencimento"]: h for h in ler("mi_0dte_hist.json")}
-    h = hist.get(row["vencimento"]) or {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")}
+    h = hist.get(row["vencimento"]) or ({k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")} if faixa_ok else None)
+    if h is None: h = {"vencimento": row["vencimento"], "pendente": True}   # 1º retrato só com faixa válida
+    if h.get("pendente") and faixa_ok: h = {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")}
     h["ultimo_ouro"] = row["ouro"]   # o primeiro retrato do dia fica; o preço vai sendo atualizado até o vencimento
     if row.get("cme") and "cme" not in h:   # retrato da CME do mesmo vencimento, para comparar qual fonte acerta mais
         h["cme"] = {k: row["cme"].get(k) for k in ("faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "pregao")}

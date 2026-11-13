@@ -684,7 +684,7 @@
     const hm = (s) => { const [h, mi] = s.split(':').map(Number); return h * 60 + mi; };
     const x = d3.scaleLinear(d3.extent(pts, (p) => hm(p.t)), [m.l, W - m.r - PW - CW - 8]);
     const ser = [['p', 'var(--color-fg)', 'Ouro (linha cheia)'], ['cw', '#c8443a', 'Teto'], ['pw', '#1f8a5b', 'Piso'], ['gf', '#c98a12', 'Gamma flip'], ['mp', '#7b5cc4', 'Max pain']];
-    const on = (k) => !z0off.has(k); const vals = []; pts.forEach((p) => { ser.forEach(([k]) => { if (on(k) && p[k] != null) vals.push(p[k]); }); if (on('s1') && p.s1) vals.push(...p.s1); });
+    const on = (k) => !z0off.has(k); const vals = []; pts.forEach((p) => { ser.forEach(([k]) => { if (on(k) && p[k] != null) vals.push(p[k]); }); if (on('s1') && p.s1 && p.s1[1] - p.s1[0] > p.p * 0.002) vals.push(...p.s1); });
     if (!vals.length) pts.forEach((p) => vals.push(p.p));
     const cm = z.cme || {}, cser = ser.filter(([k]) => k !== 'p' && cm[{ cw: 'call_wall', pw: 'put_wall', gf: 'gamma_flip', mp: 'max_pain' }[k]] != null).map(([k, c, n]) => [k, c, n, cm[{ cw: 'call_wall', pw: 'put_wall', gf: 'gamma_flip', mp: 'max_pain' }[k]]]);
     if (on('cme')) cser.forEach(([k, , , v]) => { if (on(k)) vals.push(v); });
@@ -703,8 +703,8 @@
     if (on('cme')) for (const [k, c, n, v] of cser) { if (!on(k)) continue;   // zona forte: GLD (agora) e CME concordam
       const g = ult0[k]; if (g != null && Math.abs(g - v) <= (z.gld ? z.ouro / z.gld : z.ouro * 0.003)) svg.append('rect').attr('x', m.l).attr('width', xr - m.l).attr('y', y(Math.max(g, v)) - 4).attr('height', Math.abs(y(g) - y(v)) + 8).style('fill', c).style('opacity', 0.16); }
     // faixa ±1σ de cada momento (sombra) e a da abertura (tracejada, fixa)
-    const s1 = on('s1') ? pts.filter((p) => p.s1) : [];
-    svg.append('path').datum(s1).attr('d', d3.area().x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
+    const s1 = on('s1') ? pts.filter((p) => p.s1 && p.s1[1] - p.s1[0] > p.p * 0.002) : [];   // ignora faixa zerada (erro da fonte)
+    svg.append('path').datum(s1).attr('d', d3.area().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
     if (s1.length) for (const v of s1[0].s1) svg.append('line').attr('x1', m.l).attr('x2', W - m.r - PW - CW - 8).attr('y1', y(v)).attr('y2', y(v)).style('stroke', '#2a9d8f').style('stroke-dasharray', '4 3');
     const ord = ser.filter(([k]) => on(k) && k !== 'p').concat(on('p') ? ser.filter(([k]) => k === 'p') : []);
     if (on('p')) svg.append('path').datum(pts).attr('d', d3.line().curve(d3.curveMonotoneX).x((p) => x(hm(p.t))).y((p) => y(p.p))).style('fill', 'none').style('stroke', 'var(--color-panel)').style('stroke-width', 6);
