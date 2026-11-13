@@ -676,6 +676,26 @@ def b_0dte():
     h["ultimo_ouro"] = row["ouro"]   # o primeiro retrato do dia fica; o preço vai sendo atualizado até o vencimento
     hist[row["vencimento"]] = h
     save("mi_0dte_hist.json", sorted(hist.values(), key=lambda x: x["vencimento"])[-500:])
+    # put/call diário (volume e contratos em aberto, total e de curto prazo) do GLD e da CME, para testar se antecipa direção.
+    # Um registro por pregão; a última coleta do dia sobrescreve (volume do dia completo). Teste após ~6 meses.
+    def pc(lst):
+        f = lambda tp, k: sum(o[k] for o in lst if o["tipo"] == tp)
+        cv, pv, co, po = f("C", "vol"), f("P", "vol"), f("C", "oi"), f("P", "oi")
+        return {"c_vol": int(cv), "p_vol": int(pv), "c_oi": int(co), "p_oi": int(po),
+                "pcr_vol": rnd(pv / cv, 3) if cv else None, "pcr_oi": rnd(po / co, 3) if co else None}
+    if ny.weekday() < 5 and ny.hour * 60 + ny.minute >= 9 * 60 + 30:
+        d0 = ny.date()
+        rec = {"data": d0.isoformat(), "hora": ny.strftime("%H:%M"), "gld": rnd(S, 2), "ouro": rnd(ouro, 1),
+               "gld_total": pc(ops), "gld_0dte": pc([o for o in ops if o["venc"] == d0]),
+               "gld_7d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 7]),
+               "gld_30d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 30])}
+        cad = ler("ouro_cadeia.json")
+        if cad:   # CME (tarefa noturna): séries de 0–2 dias úteis + 1ª semanal, pregão anterior
+            cm = [{"tipo": str(o.get("tipo", ""))[:1].upper(), "oi": float(o.get("oi") or 0),
+                   "vol": float(o.get("volume") or o.get("vol") or 0)} for o in cad]
+            rec["cme_curto"] = pc(cm) | {"pregao": cad[0].get("data_pregao")}
+        ph = {h["data"]: h for h in ler("mi_pcr_hist.json")}; ph[rec["data"]] = rec
+        save("mi_pcr_hist.json", sorted(ph.values(), key=lambda x: x["data"])[-2000:])
 b_0dte()
 
 # ---------------------------------------------------------------- Fear & Greed (CNN)
