@@ -40,7 +40,7 @@ jobs:
           [ -f out/mi_ia.json ] || cp docs/data/mi_ia.json out/mi_ia.json
           cat out/mi_status.json || true
       - name: Opções (arquivo da tarefa noturna no Google Drive)
-        run: python3 opcoes_drive.py out || true
+        run: python3 opcoes_drive.py out || true; python3 cme_local.py out || true
       - name: Leitura da IA (de hora em hora ou depois de red folder)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

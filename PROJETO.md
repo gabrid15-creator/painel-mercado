@@ -54,7 +54,8 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 |---|---|
 | `coletor.py` | Coleta tudo (Yahoo, Tesouro EUA, Fed NY, Bundesbank, FRED, Fed Chicago, MOF Japão, CFTC, CNN, Forex Factory, BLS, RSS) e calcula score, sazonalidade, correlações, COT, sweeps, CTA |
 | `ia.py` | Leitura da IA (Anthropic, Haiku 5.5) |
-| `opcoes_drive.py` | Importa o arquivo de opções mais recente da pasta do Drive |
+| `opcoes_drive.py` | Importa o arquivo de opções mais recente da pasta do Drive (fluxo antigo) |
+| `cme_pdf.py` / `cme_local.py` | Lê o PDF do boletim da CME enviado pela usuária → `cme/opcoes_<pregão>.json` → carregado pela coleta |
 | `goldbach_gen.py` | Gera `docs/data/goldbach_dias.json` |
 | `docs/index.html` / `app.js` | Site (abas Mercado e Dias de alto impacto) |
 | `docs/data/*.json` | Cópia de reserva dos dados (o site prefere a branch `dados`) |
@@ -66,7 +67,7 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 
 - A CME bloqueia servidores do GitHub; a leitura é feita pela **tarefa agendada do Claude "Opções de ouro CME (noite) → Drive → painel-mercado"** (Sonnet 5.5, ter–sáb 03:37).
 - Só ouro: séries que vencem em 0–2 dias úteis (0DTE) + primeira semanal a partir de 3 dias (vol. implícita). Euro e ETFs removidos em 12/11/2026 para economizar a cota.
-- **13/11/2026: a CME passou a bloquear robôs (detecção de bot) desde ~06/11** — vale para GitHub, Claude e outros servidores. Tarefa noturna DESLIGADA (gastava cota sem trazer nada). Burlar o bloqueio: descartado. Fonte paga (Databento): recusada. **Fluxo novo (grátis):** a usuária baixa de manhã o PDF "Metals Option Products" do boletim diário (https://www.cmegroup.com/daily_bulletin/current/Section64_Metals_Option_Products.pdf) e manda na conversa com o Claude; o Claude extrai o ouro (séries de 0–2 dias úteis + 1ª semanal: strike, settle, delta, OI, futuro) e grava `opcoes_<pregão>_<HHMM>.json` no Drive; `opcoes_drive.py` importa.
+- **13/11/2026: a CME passou a bloquear robôs (detecção de bot) desde ~06/11** — vale para GitHub, Claude e outros servidores. Tarefa noturna DESLIGADA (gastava cota sem trazer nada). Burlar o bloqueio: descartado. Fonte paga (Databento): recusada. **Fluxo novo (grátis):** a usuária baixa de manhã o PDF "Metals Option Products" do boletim diário (https://www.cmegroup.com/daily_bulletin/current/Section64_Metals_Option_Products.pdf) e manda na conversa com o Claude; o Claude roda `python3 cme_pdf.py <pdf>` (séries de sexta OG/OG1–OG5 que vencem em até 2 dias úteis + a 1ª com ≥ 3 dias; futuro por paridade call−put) → grava `cme/opcoes_<pregão>.json` → commit e push na main; `cme_local.py` (passo do workflow) carrega em `ouro_cadeia`/`ouro_boletim`. Semanais de seg–qui ignoradas (no PDF vêm vários vencimentos misturados). 1º pregão carregado: 12/11/2026.
 - Grava `opcoes_<data>_<hora>.json` (ouro_cadeia com settle, ouro_boletim) na pasta do Drive **painel-mercado-opcoes** (id `1GTHAZCrqQe_LYxf8OuR3zwqncQmHUunx`); `opcoes_drive.py` importa.
 
 ---
