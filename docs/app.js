@@ -707,8 +707,8 @@
     svg.append('path').datum(s1).attr('d', d3.area().x((p) => x(hm(p.t))).y0((p) => y(p.s1[0])).y1((p) => y(p.s1[1]))).style('fill', '#2a9d8f').style('opacity', 0.12);
     if (s1.length) for (const v of s1[0].s1) svg.append('line').attr('x1', m.l).attr('x2', W - m.r - PW - CW - 8).attr('y1', y(v)).attr('y2', y(v)).style('stroke', '#2a9d8f').style('stroke-dasharray', '4 3');
     const ord = ser.filter(([k]) => on(k) && k !== 'p').concat(on('p') ? ser.filter(([k]) => k === 'p') : []);
-    if (on('p')) svg.append('path').datum(pts).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p.p))).style('fill', 'none').style('stroke', 'var(--color-panel)').style('stroke-width', 6);
-    for (const [k, c] of ord) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
+    if (on('p')) svg.append('path').datum(pts).attr('d', d3.line().curve(d3.curveMonotoneX).x((p) => x(hm(p.t))).y((p) => y(p.p))).style('fill', 'none').style('stroke', 'var(--color-panel)').style('stroke-width', 6);
+    for (const [k, c] of ord) svg.append('path').datum(pts.filter((p) => p[k] != null)).attr('d', d3.line().curve(k === 'p' ? d3.curveMonotoneX : d3.curveStepAfter).x((p) => x(hm(p.t))).y((p) => y(p[k])))
       .style('fill', 'none').style('stroke', k === 'p' ? 'var(--color-fg)' : c).style('stroke-width', k === 'p' ? 2.5 : 1.6).style('stroke-dasharray', k === 'p' ? null : '6 3');
     // perfil de volume do dia (calls à direita em vermelho, puts em verde)
     // barras: volume do dia (GLD) ou contratos em aberto (GLD + CME; 1 contrato CME = 100 oz ≈ 10,9 contratos do GLD, convertido para "equivalente GLD")
@@ -879,7 +879,7 @@
           ck.appendChild(s); }
         t.appendChild(tr); }
       const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' + (z.cme.regime ? ' · ' + z.cme.regime : '') : '', 'num'); t.appendChild(tr);
-      drawZ0(z, (D('mi_0dte_dia').data || []).filter((d) => d.v === z.vencimento && d.p != null));
+      drawZ0(z, (D('mi_0dte_dia').data || []).filter((d) => d.v === z.vencimento && d.p != null && (d.d ? d.d === z.vencimento : d.t < '16:00')).sort((a, b) => (a.t < b.t ? -1 : 1)));   // só o dia do vencimento, em ordem
     }
   }
 

@@ -719,10 +719,12 @@ def b_0dte():
         except Exception as e: STATUS.append({"bloco": "0DTE CME", "ok": False, "msg": str(e)[:120]})
     save("mi_0dte.json", [row])
     # histórico do dia (um ponto por coleta) para o gráfico; zera quando muda o vencimento
-    dia = [d for d in ler("mi_0dte_dia.json") if d.get("v") == row["vencimento"]]
-    if 9 * 60 + 30 <= ny.hour * 60 + ny.minute <= 16 * 60 + 15 and ny.weekday() < 5:
-        dia.append({"v": row["vencimento"], "t": ny.strftime("%H:%M"), "p": row["ouro"], "cw": row["call_wall"], "pw": row["put_wall"],
+    # só pontos do PRÓPRIO dia do vencimento (antes, depois das 16h o vencimento seguinte recebia pontos da tarde anterior)
+    dia = [d for d in ler("mi_0dte_dia.json") if d.get("v") == row["vencimento"] and d.get("d", row["vencimento"]) == row["vencimento"] and (d.get("d") or d.get("t", "") < "16:00")]
+    if ny.date().isoformat() == row["vencimento"] and 9 * 60 + 30 <= ny.hour * 60 + ny.minute <= 16 * 60 + 15 and ny.weekday() < 5 and not any(d.get("t") == ny.strftime("%H:%M") for d in dia):
+        dia.append({"v": row["vencimento"], "d": ny.date().isoformat(), "t": ny.strftime("%H:%M"), "p": row["ouro"], "cw": row["call_wall"], "pw": row["put_wall"],
                     "gf": row["gamma_flip"], "mp": row["max_pain"], "s1": row["s1"]})
+    dia.sort(key=lambda d: d.get("t", ""))
     save("mi_0dte_dia.json", dia[-200:] or [{"v": row["vencimento"]}])
     hist = {h["vencimento"]: h for h in ler("mi_0dte_hist.json")}
     h = hist.get(row["vencimento"]) or {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")}
