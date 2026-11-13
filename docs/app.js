@@ -890,6 +890,8 @@
     const zj = atv === 'USDJPY' ? (D('mi_0dte_iene').data || [])[0] : null;
     if (mostra('.op-card.z0j', zj && zj.vencimento)) { const t = $('.z0j-t tbody'); t.replaceChildren(); const n3 = (v) => (v == null ? '—' : nf(v, 3));
       $('.z0j-chip').textContent = 'vence ' + br(zj.vencimento) + ' 12h · ajuste ' + br(zj.pregao).slice(0, 5);
+      const avs = (zj.pulou || []).length ? 'Usando o vencimento de ' + br(zj.vencimento) + ': ' + (zj.pulou.length > 1 ? 'os vencimentos de ' : 'o vencimento de ') + zj.pulou.map((v) => br(v).slice(0, 5)).join(', ') + (zj.pulou.length > 1 ? ' têm' : ' tem') + ' poucos contratos para dar níveis confiáveis.' : '';
+      let av = $('.z0j-aviso'); if (!av) { av = document.createElement('p'); av.className = 'op-note z0j-aviso'; av.style.fontWeight = 600; $('.z0j-t').before(av); } av.textContent = avs; av.hidden = !avs;
       const niv = [['Teto (call wall)', zj.call_wall, 'lv-cw'], ['Max pain', zj.max_pain, 'lv-mp'], ['Gamma flip', zj.gamma_flip, 'lv-gf'], ['Dólar/iene agora', zj.preco, 'lv-now'], ['Piso (put wall)', zj.put_wall, 'lv-pw']]
         .filter((x) => x[1] != null).sort((a, b) => b[1] - a[1]);
       const hd = document.createElement('tr'); td(hd, ''); td(hd, 'CME (ajuste ' + br(zj.pregao).slice(0, 5) + ')', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);

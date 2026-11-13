@@ -798,7 +798,11 @@ def b_0dte_iene():
     lim = ny.date() if ny.hour < 10 else ny.date() + dt.timedelta(days=1)
     vs = sorted({o["venc"] for o in cad if o["venc"] >= lim.isoformat()})
     if not vs: return
-    venc = vs[0]; ch = [o for o in cad if o["venc"] == venc]
+    def bom(v):   # série com contratos suficientes: ≥ 10 strikes e par call/put perto do futuro
+        lv = [o for o in cad if o["venc"] == v]; kz = {float(o["strike"]) for o in lv}
+        cpz = {float(o["strike"]) for o in lv if str(o["tipo"]).startswith("C")} & {float(o["strike"]) for o in lv if str(o["tipo"]).startswith("P")}
+        F_ = float(lv[0]["futuro"]); return len(kz) >= 10 and any(abs(k / F_ - 1) < 0.006 for k in cpz)
+    venc = next((v for v in vs if bom(v)), vs[0]); pulou = [v for v in vs if v < venc]; ch = [o for o in cad if o["venc"] == venc]
     F = float(ch[0]["futuro"]); pg = dt.date.fromisoformat(ch[0]["data_pregao"])
     c = closes(P["USDJPY"]); spot = c[max(c)]
     ref = c.get(pg) or spot; base = ref / (1 / F)   # futuro → à vista (diferença de juros EUA × Japão)
@@ -836,7 +840,7 @@ def b_0dte_iene():
     xs = 1 / su; gr = [xs * (1 + i / 1000) for i in range(-30, 31)]; gv = [gx(x) for x in gr]; flip = None
     for i in range(1, len(gr)):
         if (gv[i - 1] < 0) != (gv[i] < 0): flip = gr[i] if flip is None or abs(gr[i] - xs) < abs(flip - xs) else flip
-    row = {"vencimento": venc, "pregao": pg.isoformat(), "preco": rnd(spot, 3), "futuro_usdjpy": rnd(1 / F, 3), "base": rnd(base, 5),
+    row = {"vencimento": venc, "pulou": pulou, "pregao": pg.isoformat(), "preco": rnd(spot, 3), "futuro_usdjpy": rnd(1 / F, 3), "base": rnd(base, 5),
            "abertos": int(sum(uc.values()) + sum(up.values())), "n_strikes": len(ks),
            "call_wall": cv(perto(uc, lambda k: k >= su)), "put_wall": cv(perto(up, lambda k: k <= su)),
            "max_pain": cv(min(dor, key=dor.get)) if dor else None, "gamma_flip": cv(1 / flip) if flip else None,
