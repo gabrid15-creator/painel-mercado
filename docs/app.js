@@ -714,12 +714,24 @@
     });
     svg.selectAll('.bb-n').each(function () { const bb = this.getBBox(); svg.insert('rect', () => this).attr('x', bb.x - 2).attr('y', bb.y).attr('width', bb.width + 4).attr('height', bb.height).attr('rx', 2).style('fill', 'var(--color-panel)'); });   // fundo: linha do nível não corta o número
     svg.append('line').attr('x1', xm).attr('x2', xm).attr('y1', m.t - 4).attr('y2', H - m.b).style('stroke', mu).style('stroke-width', 1);
+    // PCR (puts ÷ calls) em destaque logo abaixo: acima de 1 = mais puts (vermelho), abaixo de 1 = mais calls (verde)
+    const [tp_, tc_] = o.pcr || [d3.sum(pf, (r) => r[2]), d3.sum(pf, (r) => r[1])];
+    if (tc_ > 0 || tp_ > 0) {
+      const pcr = tc_ > 0 ? tp_ / tc_ : null, mais = pcr == null || pcr > 1.05 ? 'p' : pcr < 0.95 ? 'c' : '=';
+      const cor = mais === 'p' ? '#c8443a' : mais === 'c' ? '#1f8a5b' : 'var(--color-fg-muted)';
+      const bx = document.createElement('div'); bx.style.cssText = 'display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-top:10px;padding:10px 12px;border:1px solid var(--color-border-line);border-radius:10px';
+      bx.innerHTML = `<span style="font-size:13px;color:var(--color-fg-muted);font-weight:600">PCR${o.pcrRot ? ' · ' + o.pcrRot : ''}</span>`
+        + `<span style="font-size:30px;font-weight:800;line-height:1;color:${cor}">${pcr == null ? '—' : nf(pcr, 2)}</span>`
+        + `<span style="font-size:16px;font-weight:800;color:${cor}">${mais === 'p' ? '+Puts' : mais === 'c' ? '+Calls' : 'equilibrado'}</span>`
+        + `<span style="font-size:12px;color:var(--color-fg-muted)"><b style="color:#c8443a">${nf(tp_, 0)} puts</b> · <b style="color:#1f8a5b">${nf(tc_, 0)} calls</b></span>`;
+      el.appendChild(bx);
+    }
   }
 
   // 0DTE dólar/iene: contratos em aberto por strike (só CME)
   function drawZ0j(z) {
     const el = $('.z0j-chart'); if (!el) return;
-    drawBorb(el, z.perfil || [], { preco: z.preco, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 2, rotulo: 'Contratos em aberto (CME)' });
+    drawBorb(el, z.perfil || [], { preco: z.preco, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 2, rotulo: 'Contratos em aberto (CME)', pcrRot: 'em aberto, CME (±2% do preço)' });
   }
 
   // 0DTE ouro: por strike, GLD + CME juntos na grade de strikes do GLD (1 degrau ≈ US$ 11); botão alterna volume do dia e contratos em aberto
@@ -733,7 +745,10 @@
     if (z0bModo === 'oi') { soma(z.perfil_oi || z.perfil, 1, 'g'); soma(z.cme && z.cme.perfil, fat, 'm'); } else soma(z.perfil_vol || z.perfil, 1, 'g');
     let bs = [...grid.values()]; const nz = bs.filter((b) => b.c || b.p); if (nz.length) { const lo = Math.min(...nz.map((b) => b.k)), hi = Math.max(...nz.map((b) => b.k)); bs = bs.filter((b) => b.k >= lo - 0.1 && b.k <= hi + 0.1); }
     const rows = bs.map((b) => [b.k, b.c, b.p, z0bModo === 'oi' ? ['GLD: ' + nf(b.gc, 0) + ' calls / ' + nf(b.gp, 0) + ' puts', 'CME: ' + nf(b.mc, 0) + ' calls / ' + nf(b.mp, 0) + ' puts (em equivalente GLD)'] : ['Só GLD (a CME não tem volume do dia no PDF)']]);
-    drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 0, rotulo: z0bModo === 'oi' ? 'Contratos em aberto (GLD + CME)' : 'Volume negociado hoje (GLD)' });
+    const tot = (lst, f, i) => d3.sum(lst || [], (r) => Math.round(r[i] * f));
+    const pcr = z0bModo === 'oi' ? [tot(z.perfil_oi || z.perfil, 1, 2) + tot(z.cme && z.cme.perfil, fat, 2), tot(z.perfil_oi || z.perfil, 1, 1) + tot(z.cme && z.cme.perfil, fat, 1)]
+      : [tot(z.perfil_vol || z.perfil, 1, 2), tot(z.perfil_vol || z.perfil, 1, 1)];
+    drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa }, { casas: 0, rotulo: z0bModo === 'oi' ? 'Contratos em aberto (GLD + CME)' : 'Volume negociado hoje (GLD)', pcr, pcrRot: z0bModo === 'oi' ? 'em aberto, GLD + CME (equivalente GLD)' : 'volume do dia, GLD' });
     if (bt) { bt.replaceChildren(); bt.append('Barras: ');
       for (const [md, nm] of [['oi', 'Em aberto (GLD + CME)'], ['vol', 'Volume do dia (GLD)']]) {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; b.textContent = (z0bModo === md ? '● ' : '○ ') + nm; b.setAttribute('aria-pressed', String(z0bModo === md));
