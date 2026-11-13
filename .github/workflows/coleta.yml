@@ -70,6 +70,8 @@ jobs:
           mkdir -p site && cp -r docs/* site/
           if git fetch -q --depth=1 origin dados 2>/dev/null; then git archive FETCH_HEAD | tar -x -C site/data; fi
           rm -f site/data/digest.txt
+          # versão do app.js = commit: o navegador sempre baixa o código novo após cada publicação
+          sed -i "s/app.js?v=[^\"]*/app.js?v=${GITHUB_SHA::8}/" site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
