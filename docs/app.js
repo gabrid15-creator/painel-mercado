@@ -828,14 +828,14 @@
       $('.z0-chip').textContent = 'vence ' + br(z.vencimento) + ' · ' + z.atualizado;
       const n1 = (v) => (v == null ? '—' : nf(v, 1));
       const m = z.cme || {};
-      const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', null],
+      const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],
         ['Max pain', z.max_pain, 'lv-mp', m.max_pain], ['Piso (put wall)', z.put_wall, 'lv-pw', m.put_wall]].filter((x) => x[1] != null).sort((x, y) => y[1] - x[1]);   // escada: do mais alto ao mais baixo
       const lin = [...niv.map(([nm, v, c, k]) => [nm, n1(v), c, k == null ? '—' : n1(k)]),
-        ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%)', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', '—']];
-      if (z.s1) lin.push(['±1σ do dia', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', '—']);
-      const hd = document.createElement('tr'); td(hd, ''); td(hd, 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (pregão ' + br(z.cme.pregao) + ')' : 'CME (sem dado hoje)', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
+        ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%' + (m.faixa_pct ? ' · CME ±' + nf(m.faixa_pct, 2) + '%' : '') + ')', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', m.faixa ? n1(m.faixa[0]) + ' – ' + n1(m.faixa[1]) : '—']];
+      if (z.s1) lin.push(['±1σ do dia', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
+      const hd = document.createElement('tr'); td(hd, ''); td(hd, 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao) + ', no preço à vista)' : 'CME (sem PDF para este vencimento)', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; td(tr, k, 'num').style.fontWeight = 600; t.appendChild(tr); }
-      const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' : '', 'num'); t.appendChild(tr);
+      const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' + (z.cme.regime ? ' · ' + z.cme.regime : '') : '', 'num'); t.appendChild(tr);
       drawZ0(z, (D('mi_0dte_dia').data || []).filter((d) => d.v === z.vencimento && d.p != null));
     }
   }

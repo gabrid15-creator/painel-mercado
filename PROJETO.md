@@ -97,7 +97,7 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 - **Estoque do GLD (toneladas, diário desde 2004):** acompanha o preço na mesma semana (0,39), mas **não antecipa** (t < 2). Não entrou.
 - **Put/call dos ETFs de moeda:** pouquíssimos contratos, não representa institucional. Não entrou.
 - **0DTE ouro (GLD, vence todo dia):** faixa do dia (straddle), call/put wall, gamma flip, max pain → no painel (`mi_0dte.json`); validação após ~30 pregões (`mi_0dte_hist.json`). Moedas: sem 0DTE gratuito (ETFs ilíquidos; CME só pela tarefa noturna).
-- **0DTE CME:** card mostra GLD (ao vivo) ao lado da CME (pregão anterior, vencimento do dia) quando a tarefa noturna traz `ouro_cadeia` com venc = data.
+- **0DTE CME:** card mostra GLD (ao vivo) ao lado da CME (ajuste do pregão anterior, do PDF). Desde 13/11/2026 a coluna CME tem teto, piso, max pain, **gamma flip** (vol. de cada opção pelo ajuste, Black-76; exposição com contratos em aberto, recalculada com o tempo restante), **faixa do dia** (straddle no dinheiro) e **±1σ**, todos **convertidos para o ouro à vista** (futuro de dez. ÷ (1 + juro 13 sem × prazo até o venc. do futuro), ~US$ 20). Só vencimentos de sexta por enquanto.
 - Tarefa noturna renomeada "Opções ouro e euro (noite)": ouro primeiro, inclui séries que vencem em 0–2 dias úteis. Falhou em 12/11 por limite de uso da conta.
 - **0DTE gráfico do dia:** caminho de cada nível (teto, piso, flip, max pain, ±1σ) a cada 5 min + perfil de volume por strike; zera no vencimento seguinte (`mi_0dte_dia.json`).
 - **Faixa do ouro com duas fontes:** GVZ (Cboe/GLD) e CME (straddle no dinheiro do pregão anterior; tarefa noturna agora grava `settle`).

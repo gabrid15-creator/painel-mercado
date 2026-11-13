@@ -665,18 +665,55 @@ def b_0dte():
            "perfil_vol": [[conv(k), int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "C")),
                            int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03]}
     # mesma análise com as opções de ouro da CME do mesmo vencimento (contratos em aberto do fechamento anterior, tarefa noturna)
-    cme = [o for o in ler("ouro_cadeia.json") if str(o.get("venc")) == venc.isoformat() and o.get("oi")]
+    # mesma análise com as opções de ouro da CME do mesmo vencimento (ajuste e contratos em aberto do pregão anterior, PDF do boletim)
+    cme = [o for o in ler("ouro_cadeia.json") if str(o.get("venc")) == venc.isoformat() and o.get("settle") not in (None, "")]
     if cme:
-        fut = cme[0].get("futuro") or ouro
-        cc, pp = {}, {}
-        for o in cme:
-            (cc if str(o["tipo"]).startswith("C") else pp)[float(o["strike"])] = (cc if str(o["tipo"]).startswith("C") else pp).get(float(o["strike"]), 0) + o["oi"]
-        kk = sorted(set(cc) | set(pp))
-        dor2 = {k: sum(max(0, k - x) * n for x, n in cc.items()) + sum(max(0, x - k) * n for x, n in pp.items()) for k in kk}
-        perto = lambda m, f: max((k for k in m if f(k) and abs(k / fut - 1) <= 0.03), key=lambda k: m[k], default=None)
-        row["cme"] = {"pregao": cme[0].get("data_pregao"), "abertos": int(sum(o["oi"] for o in cme)),
-                      "call_wall": perto(cc, lambda k: k >= ouro), "put_wall": perto(pp, lambda k: k <= ouro),
-                      "max_pain": min(dor2, key=dor2.get) if dor2 else None}
+        try:
+            fut = float(cme[0].get("futuro") or ouro); pg = dt.date.fromisoformat(cme[0]["data_pregao"])
+            # strikes da CME estão no preço do futuro de dezembro: converte para o ouro à vista pelo custo de carregar até o vencimento do futuro
+            try: r13 = next(x["valor"] for x in ler("mi_dolar.json") if x["serie"].startswith("EUA 13")) / 100
+            except Exception: r13 = 0.04
+            vf = dt.date(pg.year + (pg.month == 12), 12, 29) if pg.month < 12 or pg.day < 26 else dt.date(pg.year + 1, 2, 24)
+            base = 1 / (1 + r13 * max((vf - pg).days, 1) / 365)
+            cv = lambda k: rnd(k * base, 1) if k is not None else None
+            cc, pp, setl = {}, {}, {}
+            for o in cme:
+                k = float(o["strike"]); c = str(o["tipo"]).startswith("C")
+                (cc if c else pp)[k] = (cc if c else pp).get(k, 0) + (o.get("oi") or 0); setl[(k, "C" if c else "P")] = float(o["settle"])
+            kk = sorted(set(cc) | set(pp))
+            dor2 = {k: sum(max(0, k - x) * n for x, n in cc.items()) + sum(max(0, x - k) * n for x, n in pp.items()) for k in kk}
+            sp = ouro / base   # ouro à vista levado para a escala do futuro
+            perto = lambda m, f: max((k for k in m if f(k) and m[k] > 0 and abs(k / fut - 1) <= 0.03), key=lambda k: m[k], default=None)
+            # faixa do dia: straddle no dinheiro do ajuste anterior (vale para o dia inteiro do vencimento)
+            atm = min((k for k in kk if (k, "C") in setl and (k, "P") in setl), key=lambda k: abs(k - fut), default=None)
+            strad = setl[(atm, "C")] + setl[(atm, "P")] if atm else None
+            # gamma flip: vol. implícita de cada opção pelo ajuste (Black-76) e exposição dos bancos com os contratos em aberto
+            fimv = dt.datetime.combine(venc, dt.time(13, 30), NY); T0 = max((fimv - dt.datetime.combine(pg, dt.time(13, 30), NY)).total_seconds(), 3600) / (365 * 86400)
+            Nn = st.NormalDist()
+            def b76(K, cp, prem):
+                lo, hi = 0.01, 3.0
+                for _ in range(50):
+                    sg = (lo + hi) / 2; d1 = (math.log(fut / K) + sg * sg * T0 / 2) / (sg * math.sqrt(T0)); d2 = d1 - sg * math.sqrt(T0)
+                    pr = fut * Nn.cdf(d1) - K * Nn.cdf(d2) if cp == "C" else K * Nn.cdf(-d2) - fut * Nn.cdf(-d1)
+                    lo, hi = (sg, hi) if pr < prem else (lo, sg)
+                return sg
+            opc = [(k, cp, n, b76(k, cp, setl[(k, cp)])) for cp, m in (("C", cc), ("P", pp)) for k, n in m.items() if n > 0 and (k, cp) in setl and setl[(k, cp)] > 0.1]
+            Tn = max((fimv - ny).total_seconds(), 1800) / (365 * 86400)
+            def gx(S):
+                tot = 0
+                for k, cp, n, iv in opc:
+                    d1 = (math.log(S / k) + iv * iv / 2 * Tn) / (iv * math.sqrt(Tn)); tot += (1 if cp == "C" else -1) * math.exp(-d1 * d1 / 2) / (S * iv * math.sqrt(Tn)) * n
+                return tot
+            gr = [sp * (1 + i / 1000) for i in range(-40, 41)]; gv = [gx(x) for x in gr]; flip2 = None
+            for i in range(1, len(gr)):
+                if (gv[i - 1] < 0) != (gv[i] < 0): flip2 = gr[i] if flip2 is None or abs(gr[i] - sp) < abs(flip2 - sp) else flip2
+            row["cme"] = {"pregao": pg.isoformat(), "abertos": int(sum(cc.values()) + sum(pp.values())), "futuro": fut, "base": rnd(fut - fut * base, 1),
+                          "call_wall": cv(perto(cc, lambda k: k >= sp)), "put_wall": cv(perto(pp, lambda k: k <= sp)),
+                          "max_pain": cv(min(dor2, key=dor2.get)) if dor2 else None, "gamma_flip": cv(flip2),
+                          "faixa": [cv(fut - strad), cv(fut + strad)] if strad else None, "faixa_pct": rnd(strad / fut * 100, 2) if strad else None,
+                          "s1": [cv(fut - 1.25 * strad), cv(fut + 1.25 * strad)] if strad else None,
+                          "regime": ("gamma positivo" if gx(sp) > 0 else "gamma negativo") if opc else None}
+        except Exception as e: STATUS.append({"bloco": "0DTE CME", "ok": False, "msg": str(e)[:120]})
     save("mi_0dte.json", [row])
     # histórico do dia (um ponto por coleta) para o gráfico; zera quando muda o vencimento
     dia = [d for d in ler("mi_0dte_dia.json") if d.get("v") == row["vencimento"]]
