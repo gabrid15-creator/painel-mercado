@@ -675,6 +675,8 @@
   }
 
 
+  // hora de Brasília de um horário de NY numa data (horário de verão americano muda a diferença: 1 ou 2 h)
+  const nyBR = (iso, h) => { const d = new Date(iso + 'T12:00:00Z'); const ed = /EDT/.test(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', timeZoneName: 'short' }).format(d)); return (h + (ed ? 1 : 2)) + 'h'; };
   // gráfico padrão de opções por strike em "borboleta" (puts à esquerda, calls à direita do eixo central), igual para todos os ativos:
   // rows = [[strike, calls, puts, linhas extras do tooltip]]; lv = {preco, teto, piso, gamma, mp, faixa}; o = {casas, rotulo}
   function drawBorb(el, rows, lv, o = {}) {
@@ -917,7 +919,7 @@
     // 0DTE dólar/iene (só CME)
     const zj = atv === 'USDJPY' ? (D('mi_0dte_iene').data || [])[0] : null;
     if (mostra('.op-card.z0j', zj && zj.vencimento)) { const t = $('.z0j-t tbody'); t.replaceChildren(); const n3 = (v) => (v == null ? '—' : nf(v, 3));
-      $('.z0j-chip').textContent = 'vence ' + br(zj.vencimento) + ' 12h · ajuste ' + br(zj.pregao).slice(0, 5);
+      $('.z0j-chip').textContent = 'vence ' + br(zj.vencimento).slice(0, 5) + ' 12h · CME ajuste ' + br(zj.pregao).slice(0, 5);
       const avs = (zj.pulou || []).length ? 'Usando o vencimento de ' + br(zj.vencimento) + ': ' + (zj.pulou.length > 1 ? 'os vencimentos de ' : 'o vencimento de ') + zj.pulou.map((v) => br(v).slice(0, 5)).join(', ') + (zj.pulou.length > 1 ? ' têm' : ' tem') + ' poucos contratos para dar níveis confiáveis.' : '';
       let av = $('.z0j-aviso'); if (!av) { av = document.createElement('p'); av.className = 'op-note z0j-aviso'; av.style.fontWeight = 600; $('.z0j-t').before(av); } av.textContent = avs; av.hidden = !avs;
       const niv = [['Teto (call wall)', zj.call_wall, 'lv-cw'], ['Max pain', zj.max_pain, 'lv-mp'], ['Gamma flip', zj.gamma_flip, 'lv-gf'], ['Dólar/iene agora', zj.preco, 'lv-now'], ['Piso (put wall)', zj.put_wall, 'lv-pw']]
@@ -931,15 +933,15 @@
     }
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
-      $('.z0-chip').textContent = 'vence ' + br(z.vencimento) + ' · ' + z.atualizado;
+      $('.z0-chip').textContent = 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + z.atualizado + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
       const n1 = (v) => (v == null ? '—' : nf(v, 1));
       const m = z.cme || {};
       const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],
         ['Max pain', z.max_pain, 'lv-mp', m.max_pain], ['Piso (put wall)', z.put_wall, 'lv-pw', m.put_wall]].filter((x) => x[1] != null).sort((x, y) => y[1] - x[1]);   // escada: do mais alto ao mais baixo
       const lin = [...niv.map(([nm, v, c, k]) => [nm, n1(v), c, k == null ? '—' : n1(k)]),
-        ['Faixa do dia (±' + nf(z.faixa_pct, 2) + '%' + (m.faixa_pct ? ' · CME ±' + nf(m.faixa_pct, 2) + '%' : '') + ')', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', m.faixa ? n1(m.faixa[0]) + ' – ' + n1(m.faixa[1]) : '—']];
-      if (z.s1) lin.push(['±1σ do dia', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
-      const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? (cel0 ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : 'CME (ajuste ' + br(z.cme.pregao) + ', no preço à vista)') : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
+        ['Faixa até o vencimento (±' + nf(z.faixa_pct, 2) + '%' + (m.faixa_pct ? ' · CME ±' + nf(m.faixa_pct, 2) + '%' : '') + ')', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', m.faixa ? n1(m.faixa[0]) + ' – ' + n1(m.faixa[1]) : '—']];
+      if (z.s1) lin.push(['±1σ', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
+      const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       const tol = z.gld ? z.ouro / z.gld : z.ouro * 0.003;   // 1 strike do GLD em preço de ouro (~US$ 11): GLD e CME "concordam" se ficam a até 1 degrau
       const par = { 'Teto (call wall)': [z.call_wall, m.call_wall], 'Piso (put wall)': [z.put_wall, m.put_wall], 'Gamma flip': [z.gamma_flip, m.gamma_flip], 'Max pain': [z.max_pain, m.max_pain] };
       for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; const ck = td(tr, k, 'num'); ck.style.fontWeight = 600;
