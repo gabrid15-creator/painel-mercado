@@ -1,0 +1,64 @@
+Data 14/11/2026 17:05 BRT. F&G 39.0, VIX pctil 75.0, DXY 20d 1.542%
+
+EURUSD: preço 1.10502 (1d -0.41%, 5d -1.59%, 20d -1.45%)
+  vol. implícita/esperada 6.07% (normal); dia ±1σ 1.1008–1.10926, ±2σ 1.0966–1.11351; semana ±1σ 1.09561–1.11451, ±2σ 1.08628–1.12408; mês ±1σ 1.08583–1.12456, ±2σ 1.06696–1.14444
+  regime 26 semanas: DXY corr -0.81; EUA 2a corr -0.23; EUA 10a corr -0.14; Juro real 10a corr -0.3
+
+GBPUSD: preço 1.32314 (1d -0.34%, 5d -1.67%, 20d -0.31%)
+  vol. implícita/esperada 6.65% (normal); dia ±1σ 1.31761–1.32869, ±2σ 1.3121–1.33427; semana ±1σ 1.3108–1.33558, ±2σ 1.29859–1.34815; mês ±1σ 1.29799–1.34877, ±2σ 1.27331–1.37491
+
+USDJPY: preço 159.875 (1d 0.09%, 5d 1.51%, 20d 1.1%)
+  vol. implícita/esperada 6.74% (bem abaixo do normal); dia ±1σ 159.198–160.555, ±2σ 158.524–161.238; semana ±1σ 158.365–161.399, ±2σ 156.87–162.938; mês ±1σ 156.796–163.014, ±2σ 153.777–166.215
+  regime 26 semanas: DXY corr 0.67; EUA 2a corr 0.21; EUA 10a corr 0.15; Juro real 10a corr 0.26
+
+USDCHF: preço 0.8382 (1d 0.27%, 5d 2.28%, 20d 1.75%)
+  vol. implícita/esperada 7.64% (normal); dia ±1σ 0.83418–0.84224, ±2σ 0.83017–0.8463; semana ±1σ 0.82923–0.84727, ±2σ 0.82036–0.85643; mês ±1σ 0.81992–0.85688, ±2σ 0.80205–0.87598
+  regime 26 semanas: DXY corr 0.65; EUA 2a corr 0.31; EUA 10a corr 0.16; Juro real 10a corr 0.31
+
+XAUUSD: preço 3886.3 (1d 0.03%, 5d -4.63%, 20d -7.05%)
+  vol. implícita/esperada 25.35% (normal); dia ±1σ 3824.73–3948.86, ±2σ 3764.14–4012.42; semana ±1σ 3749.98–4027.58, ±2σ 3618.44–4173.99; mês ±1σ 3612.06–4181.36, ±2σ 3357.17–4498.82
+  regime 26 semanas: DXY corr -0.39; EUA 2a corr -0.18; EUA 10a corr -0.2; Juro real 10a corr -0.22
+  0DTE GLD (2026-11-16): teto 3892.3, piso 3826.7, gamma flip 3874.6, faixa do dia [3836.6, 3936.0], gamma positivo (mercado tende a segurar/voltar)
+
+NAS100: preço 27943.7 (1d -1.22%, 5d 3.53%, 20d -4.26%)
+
+Radar institucional e juros: Liquidez líquida Fed 5846.483 (20d 0.193%, pctil 1a 73.0); VIX ÷ VIX 3 meses 0.936 (20d -0.039p.p., pctil 1a 80.0); MOVE (vol. de Treasuries) 98.79 (20d -3.61%, pctil 1a 89.0); Condições financeiras (NFCI) -0.462 (20d 0.047p.p., pctil 1a 98.0); US2Y 4.88 (20d 0.11p.p., pctil 1a 99.0); US10Y 5.15 (20d 0.05p.p., pctil 1a 94.0); Juro real 10a 2.91 (20d 0.13p.p., pctil 1a 98.0); Spread 2a EUA−Alemanha 1.75 (20d 0.05p.p., pctil 1a 99.0)
+Últimos dados oficiais dos EUA (período de referência): Non-Farm Employment Change 2026-10 = 165.0K; Unemployment Rate 2026-10 = 4.1%; Average Hourly Earnings m/m 2026-10 = 0.37%; CPI m/m 2026-10 = 0.35%; Core CPI m/m 2026-10 = 0.296%; CPI y/y 2026-10 = 3.913%; PPI m/m 2026-10 = 0.348%; Core PPI m/m 2026-10 = 0.326%; Unemployment Claims 2026-11-07 = 200.0K; Retail Sales m/m 2026-09 = 0.771%; Core Retail Sales m/m 2026-09 = 0.899%; Core PCE Price Index m/m 2026-09 = 0.317%; JOLTS Job Openings 2026-09 = 7.523M; Advance GDP q/q 2026-07 = 3.4%
+
+Red folder da semana (BRT):
+  2026-11-10 10:30 USD Core CPI m/m prev 0.2% ant 0.3%
+  2026-11-10 10:30 USD CPI m/m prev 0.3% ant 0.6%
+  2026-11-12 04:00 GBP GDP m/m prev 0.0% ant 0.1%
+  2026-11-13 10:30 USD Core PPI m/m prev 0.3% ant 0.7%
+  2026-11-13 10:30 USD PPI m/m prev 0.4% ant 1.3%
+Manchetes:
+  [Foreign Policy Journal] Fundstrat's Tom Lee Points To 10x Forward PE As Nvidia (NASDAQ: NVDA) Offers "Best Risk/Reward In AI" After Huang Exit
+  [Investor's Business Daily] New Rally Shaky, But Many Stocks Set Up. Nvidia, Anthropic Ahead.
+  [Foreign Policy Journal] Palantir's (NASDAQ: PLTR) P/E Of 219 And Nvidia's (NASDAQ: NVDA) Supply Crunch Define A High-Stakes Race To 2030
+  [The Independent] Bank of England’s chief economist issues stark warning
+  [Seeking Alpha] Celsius: Alani Nu Leads The Way - Consolidation Is A Gift (NASDAQ:CELH)
+  [StoneX] Nasdaq volatility shock warns against buying too early
+  [Seeking Alpha] PTH: Caution Merited Given Weak Risk-Adjusted Returns (NASDAQ:PTH)
+  [Forex Factory] Fed's Collins says gradual rate hikes best to manage economic risks
+  [Traders Union] Solana falls as Federal Reserve rate hike signals weigh on crypto risk appetite
+  [The Motley Fool] A Larger-Than-Normal Fed Rate Hike in December Now Looks More Likely. Here's Why.
+  [The Independent] Further interest rate rises needed to tackle inflation, Bank of England’s chief economist says
+  [BigGo Finance] Bank of England's Pill Signals December Hike and More in 2027, With Borrowers Set to Bear the Cost
+  [ECB Publishing, Inc.] Keep your car festive through all the holidays
+  [GlobeNewswire] NASDAQ: AUR Investigation: Kessler Topaz Meltzer & Check,
+  [Foreign Policy Journal] AST SpaceMobile (NASDAQ: ASTS) Carries A $10.4 Billion Valuation While Its Biggest New Contract Is Worth Just 1% Of That
+  [TradingView] Innovative Immunology Biotech Windward Bio Lists on Nasdaq
+  [BigGo Finance] Evernorth's Nasdaq-Linked XRP Bet Sinks 83% From Debut Peak as XRPN Slides Below $9
+  [Foreign Policy Journal] MSCI Index Overhaul Threatens $2.8 Billion In Forced Outflows For Strategy (NASDAQ: MSTR) As Bitcoin Slides
+  [Benzinga] Gold Price Slips to Key Support as Fed Rate Risks and GLD ETF Outflows Build
+  [Seeking Alpha] Cerebras: Timely Buying Opportunity After The Collapse (Rating Upgrade) (NASDAQ:CBRS)
+  [Foreign Policy Journal] Singapore Authorities Contradict Super Micro's (NASDAQ: SMCI) Cooperation Claims Amid Megaspeed Spy Scandal Fallout
+  [Simply Wall St] Taboola.com's (NASDAQ:TBLA) Solid Profits Have Weak Fundamentals
+  [Simply Wall St] We Like Shoals Technologies Group's (NASDAQ:SHLS) Earnings For More Than Just Statutory Profit
+  [Foreign Policy Journal] Qualcomm (NASDAQ: QCOM) Beats Micron (NASDAQ: MU) On Durability As Investors Weigh 2027 Semiconductor Bets
+  [Seeking Alpha] Apple: The Business Got Better, The Stock Got Much More Expensive (NASDAQ:AAPL)
+  [Seeking Alpha] Zoom Communications: Eyes On The Anthropic IPO (NASDAQ:ZM)
+  [Simply Wall St] Analysts Have Been Trimming Their Mobile Infrastructure Corporation (NASDAQ:BEEP) Price Target After Its Latest Report
+  [Kitco] Gold Price Today | Price of Gold Per Ounce | 24 Hour Spot Chart
+  [ChartMill] Analog Devices (NASDAQ:ADI): Strong Growth Meets Technical Setup Quality
+  [Coinpaper] Anthropic IPO Sparks 2X Leveraged ETF Filing as Wall Street Prepares for Nasdaq Debut
