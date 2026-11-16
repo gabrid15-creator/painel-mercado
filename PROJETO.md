@@ -176,6 +176,7 @@
 | Ping-pong × tendência (eficiência = \|fech − abert\| ÷ caminho percorrido; ping-pong ≤ 0,12, tendência ≥ 0,30) | Nada antecipa com dado grátis: eficiência da véspera, GVZ (nível, variação, prêmio), gap, dia da semana, Ásia + Londres até 10h BRT → todos ~33%. |
 | σ como ponto de reversão | 40–53% em todos os níveis; o 1σ não é especial. |
 | "Defesa" (passou e voltou) | Nos futuros: 44–52% (acaso = 50%). Os 70% eram sujeira do Yahoo FX. |
+| Momentum do fim do dia no ouro, sem gamma (Baltussen; `testes/momentum_fim.py`, GC 1 h 2 anos + 5 min 60 dias) | Retorno 18h→13h/15h/16h25 NY não prevê o trecho final (melhor t −2,3, metades instáveis; 4 testes). Com gamma: esperar o diário. |
 | "Sambou e voltou" | Depois de passar do 1σ: 1/3 só samba (≤ 0,25σ além) e fecha dentro 82–90%; 2/3 seguem e fecham dentro só ~30%. Igual em 0,8σ e 1,2σ → é geometria, não defesa. |
 | Paredes do balcão DTCC (2 anos, 1.192 vencimentos; e só ≤ 2 dias, 921) | Ímã, range e parada = acaso (atração 42,3% × 46,3%, t −2,3). |
 | Direção por opções (210 testes: PCR da Cboe, GVZ, SKEW, VIX/VIX3M) | Melhor t = 3,0, abaixo do corte de 3,7; instável. |
@@ -196,7 +197,7 @@
 
 | O quê | Arquivo | Quando testar |
 |---|---|---|
-| **Diário do ouro** (desde 16/11). De manhã (9h30–10h30 NY): regime de gamma GLD/CME, flip, teto/piso, faixa %, PCR 0DTE. Depois das 17h NY: abertura, fechamento, máx., mín., eficiência, se cruzou a abertura, retorno. | `mi_diario_ouro.json` | **~60 dias (meados de fev/2027)**, pré-registrado: gamma +/−, distância ao flip, faixa 0DTE e PCR/skew preveem (1) ping-pong × tendência e (2) o lado do dia? Corte \|t\| ≥ 2,5. Dias até agora: 12/11 negativo (eficiência 0,45), 13/11 negativo (0,02), 16/11 positivo (0,10). |
+| **Diário do ouro** (desde 16/11). De manhã (9h30–10h30 NY): regime de gamma GLD/CME, flip, teto/piso, faixa %, PCR 0DTE. Depois das 17h NY: abertura, fechamento, máx., mín., eficiência, se cruzou a abertura, retorno. | `mi_diario_ouro.json` | **~60 dias (meados de fev/2027)**, pré-registrado: gamma +/−, distância ao flip, faixa 0DTE e PCR/skew preveem (1) ping-pong × tendência e (2) o lado do dia? Corte \|t\| ≥ 2,5. Desde 16/11 também grava (sem tela, pedido dela, 1ª contagem com 30 dias ~fim de dez.): **gregas D+0** GLD e CME (GEX por +1%, charm até o vencimento, vanna por −1 ponto de vol., em US$ mi; função `gregas()`; só contratos em aberto do vencimento do dia), strike mais carregado (`pin_*`, para ímã), PCR OI da CME D+0, e preços GC às 9h30, 10h30, 13h, 13h30, 15h30, 16h NY (1ª hora, ajuste CME, fim do GLD). Obs.: `regime` do GLD usa OI+volume; `greg_gld.gex` só OI — podem divergir (16/11: regime + , gex −6,5). Dias até agora: 12/11 negativo (eficiência 0,45), 13/11 negativo (0,02), 16/11 positivo (0,10). |
 | 0DTE GLD × CME e iene | `mi_0dte_hist`, `mi_0dte_iene_hist` | ~30 vencimentos (~fim de dez.) |
 | Put/call + skew 25Δ GLD e CME (desde 13/11) | `mi_pcr_hist` | 17/05/2027 (tarefa agendada no Claude, Sonnet) |
 | Candles de 1 min | branch `minutos` | fev/2027, 4 hipóteses de SMT pré-registradas |

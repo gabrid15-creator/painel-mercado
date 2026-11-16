@@ -1,0 +1,4 @@
+1h 2 anos, 18h→13h prevê 13h→14h: n=583 beta=-0.0166 t=-2.29 | metades t=-0.24/-2.17 | placebo (dia seguinte) t=-0.38 | mesmo sinal 47.5%
+1h 2 anos, 18h→15h prevê 15h→17h: n=576 beta=0.0136 t=1.42 | metades t=0.83/1.06 | placebo (dia seguinte) t=0.77 | mesmo sinal 50.9%
+5m 60 dias, 18h→13h prevê 13h→13h30: n=39 beta=-0.0051 t=-0.40 | metades t=0.82/-1.37 | placebo (dia seguinte) t=0.90 | mesmo sinal 59.0%
+5m 60 dias, 18h→16h25 prevê últimos 30 min: n=39 beta=-0.0137 t=-1.44 | metades t=-0.52/-1.12 | placebo (dia seguinte) t=-1.39 | mesmo sinal 30.8%

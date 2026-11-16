@@ -209,3 +209,8 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Na segunda, `hoje_s == seg` → chaves do dia e da semana iguais no `mapa_fixo` → σ da semana = σ do dia (√5 menor). Chave da semana agora `ativo|sem|data`.
 - Rótulo "dia_ini" na segunda mostrava "sex 20h"; agora "dom".
 - Limpeza do `mapa_fixo` era por ordem alfabética (últimos 200) e podia apagar o EURUSD do dia; agora guarda 21 dias por data.
+
+## 16/11/2026 — pesquisa 0DTE, gregas D+0 no diário, teste de momentum do fim do dia
+- Pesquisa (resumo dado a ela): gamma + → reversão / − → momentum (Dim-Eraker-Vilkov, Adams et al., Barbon-Buraschi, Baltussen 2021); efeito vem do estoque que vence D+0. PCR 0DTE na abertura prevê 1ª hora, mas sem lucro fora da amostra (Maurer-Müller 2026). Pan-Poteshman não vale para índice. Pinning em ações (Ni-Pearson-Poteshman); no S&P sumiu. Charm/vanna/call wall: só regra de fornecedor.
+- Diário do ouro ganhou gregas D+0 (GLD/CME), pin, PCR CME e preços por horário. Ela pediu: nada na tela; contar com 30 dias.
+- `testes/momentum_fim.py`: 1ª versão deu t 7,2 por erro (o preço das 17h pegava a abertura das 18h). Corrigido: n 583, t −2,29 (13h→14h), 1,42 (15h→17h); 5 min 60 dias t −0,4/−1,4. Não passou.

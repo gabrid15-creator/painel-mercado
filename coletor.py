@@ -661,6 +661,22 @@ def b_faixa():
 b_faixa()
 
 
+def gregas(lst, S, T):
+    """Exposição agregada dos bancos às opções que vencem HOJE (D+0), convenção de mercado: calls +, puts −.
+    lst = [(strike, 'C'/'P', contratos, vol_impl_decimal, multiplicador)]. Devolve, em US$ de ouro:
+    gex = compra(+)/venda(−) de hedge para cada +1% no preço (gamma); charm = fluxo de hedge até o vencimento só pela passagem do
+    tempo (+ = bancos compram, empurra para cima); vanna = fluxo se a vol. implícita cair 1 ponto (+ = compram)."""
+    gx = ch_ = va = 0
+    for k, cp, n, iv, m in lst:
+        if iv <= 0 or n <= 0 or k <= 0: continue
+        sq = iv * math.sqrt(T); d1 = (math.log(S / k) + iv * iv * T / 2) / sq; d2 = d1 - sq; ph = math.exp(-d1 * d1 / 2) / math.sqrt(2 * math.pi)
+        sg = 1 if cp == "C" else -1; q = sg * n * m
+        gx += q * ph / (S * sq) * S * S * 0.01                  # Δ dos bancos ganha isto por +1% → hedge vende isto (gamma +: vende na alta)
+        ch_ += -q * ph * d2 / (2 * T) * T * S                    # Δ muda φ·d2/(2T) por ano; até o vencimento (T inteiro); hedge = −Δ
+        va += -q * (-ph * d2 / iv) * (-0.01) * S                 # dΔ/dσ = −φ·d2/σ; vol. −1 ponto; hedge = −Δ
+    return {"gex_usd_1pct": rnd(gx / 1e6, 2), "charm_usd_ate_venc": rnd(ch_ / 1e6, 2), "vanna_usd_vol_menos1": rnd(va / 1e6, 2), "unid": "US$ milhões"}
+
+
 @bloco("0DTE ouro (GLD)")
 def b_0dte():
     # opções do GLD que vencem hoje (ou no próximo pregão): faixa do dia pelo straddle, paredes, gamma flip e max pain,
@@ -731,6 +747,12 @@ def b_0dte():
            "perfil_oi": [[conv(k), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "C")), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03],
            "perfil_vol": [[conv(k), int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "C")),
                            int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03]}
+    try:   # gregas D+0 do GLD (contratos em aberto, não volume: o que importa é o que VENCE hoje, aberto quando for) e strike mais carregado
+        row["greg_gld"] = gregas([(o["k"], o["tipo"], o["oi"], o["iv"], 100) for o in ch], Sv, T) | {"escala": "GLD", "r": rnd(r, 4)}
+        toi = {}
+        for o in ch: toi[o["k"]] = toi.get(o["k"], 0) + o["oi"]
+        row["pin_gld"] = conv(max((k for k in toi if abs(k / S - 1) <= 0.03), key=toi.get, default=None))
+    except Exception as e: STATUS.append({"bloco": "0DTE gregas GLD", "ok": False, "msg": str(e)[:120]})
     # mesma análise com as opções de ouro da CME do mesmo vencimento (contratos em aberto do fechamento anterior, tarefa noturna)
     # mesma análise com as opções de ouro da CME do mesmo vencimento (ajuste e contratos em aberto do pregão anterior, PDF do boletim)
     cme = [o for o in ler("ouro_cadeia.json") if str(o.get("venc")) == venc.isoformat() and o.get("settle") not in (None, "")]
@@ -781,12 +803,19 @@ def b_0dte():
             gr = [sp * (1 + i / 1000) for i in range(-40, 41)]; gv = [gx(x) for x in gr]; flip2 = None
             for i in range(1, len(gr)):
                 if (gv[i - 1] < 0) != (gv[i] < 0): flip2 = gr[i] if flip2 is None or abs(gr[i] - sp) < abs(flip2 - sp) else flip2
+            try:
+                greg_cme = gregas([(k, cp, n, iv, 100) for k, cp, n, iv in opc], sp, Tn)
+                toi2 = {k: cc.get(k, 0) + pp.get(k, 0) for k in kk}
+                pin_cme = cv(max((k for k in toi2 if abs(k / fut - 1) <= 0.03), key=toi2.get, default=None))
+                pcr_cme = rnd(sum(pp.values()) / sum(cc.values()), 3) if sum(cc.values()) else None
+            except Exception: greg_cme = pin_cme = pcr_cme = None
             row["cme"] = {"pregao": pg.isoformat(), "abertos": int(sum(cc.values()) + sum(pp.values())), "futuro": fut, "base": rnd(fut - fut * base, 1),
                           "call_wall": cv(perto(cc, lambda k: k >= sp)), "put_wall": cv(perto(pp, lambda k: k <= sp)),
                           "max_pain": cv(min(dor2, key=dor2.get)) if dor2 else None, "gamma_flip": cv(flip2),
                           "faixa": [cv(fut - strad), cv(fut + strad)] if strad else None, "faixa_pct": rnd(strad / fut * 100, 2) if strad else None,
                           "s1": [cv(fut - 1.25 * strad), cv(fut + 1.25 * strad)] if strad else None,
                           "regime": ("gamma positivo" if gx(sp) > 0 else "gamma negativo") if opc else None,
+                          "greg": greg_cme, "pin": pin_cme, "pcr_oi": pcr_cme,
                           # contratos em aberto por strike (convertido para o à vista), para as barras de "em aberto" do gráfico
                           "perfil": [[cv(k), int(cc.get(k, 0)), int(pp.get(k, 0))] for k in kk if abs(k / fut - 1) <= 0.03 and (cc.get(k, 0) or pp.get(k, 0))]}
         except Exception as e: STATUS.append({"bloco": "0DTE CME", "ok": False, "msg": str(e)[:120]})
@@ -863,7 +892,9 @@ def b_0dte():
             di[hoje_s] = {"dia": hoje_s, "manha": {"hora": ny.strftime("%H:%M"), "ouro": row["ouro"], "regime_gld": row["regime"][:14],
                           "flip_gld": row["gamma_flip"], "teto_gld": row["call_wall"], "piso_gld": row["put_wall"], "faixa_pct": row["faixa_pct"],
                           "regime_cme": cm.get("regime"), "flip_cme": cm.get("gamma_flip"), "teto_cme": cm.get("call_wall"), "piso_cme": cm.get("put_wall"),
-                          "pcr_gld_0dte": (rec.get("gld_0dte") or {}).get("pcr_oi") if "rec" in dir() else None}}
+                          "pcr_gld_0dte": (rec.get("gld_0dte") or {}).get("pcr_oi") if "rec" in dir() else None,
+                          "greg_gld": row.get("greg_gld"), "pin_gld": row.get("pin_gld"),
+                          "greg_cme": cm.get("greg"), "pin_cme": cm.get("pin"), "pcr_cme_0dte": cm.get("pcr_oi"), "venc_cme": bool(cm)}}
         aberto = [x for x in di.values() if "fim" not in x and x["dia"] < hoje_s or ("fim" not in x and x["dia"] == hoje_s and ny.hour >= 17)]
         if aberto:
             q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=10d&interval=1h"))["chart"]["result"][0]
@@ -877,6 +908,14 @@ def b_0dte():
                 x["fim"] = {"abertura": rnd(o, 1), "fechamento": rnd(c, 1), "maxima": rnd(max(b[2] for b in v), 1), "minima": rnd(min(b[3] for b in v), 1),
                             "eficiencia": rnd(abs(c - o) / perc, 3) if perc else None, "cruzou_abertura": sum(1 for i in range(1, len(cl)) if (cl[i] - o) * (cl[i - 1] - o) < 0),
                             "retorno_pct": rnd((c / o - 1) * 100, 3)}
+                try:   # janelas (NY) para os testes: 1ª hora, até 13h, últimos 30 min do pregão do ouro (13h–13h30, vencimento CME) e do GLD (15h30–16h)
+                    if "q5" not in dir():
+                        q5 = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=10d&interval=5m"))["chart"]["result"][0]
+                        p5 = [(dt.datetime.fromtimestamp(t, NY), v * fz) for t, v in zip(q5["timestamp"], q5["indicators"]["quote"][0]["close"]) if v is not None]
+                    em = lambda hh, mm: (lambda w: rnd(w[-1][1], 1) if w and (dt.datetime.combine(d, dt.time(hh, mm), NY) - w[-1][0]).total_seconds() <= 900 else None)([b for b in p5 if b[0] <= dt.datetime.combine(d, dt.time(hh, mm), NY) and b[0] >= ini])
+                    pts = {"p0930": em(9, 30), "p1030": em(10, 30), "p1300": em(13, 0), "p1330": em(13, 30), "p1530": em(15, 30), "p1600": em(16, 0)}
+                    x["fim"]["pontos"] = pts | {"fonte": "GC 5 min × fator Vantage"}
+                except Exception: pass
         save("mi_diario_ouro.json", sorted(di.values(), key=lambda x: x["dia"])[-1000:])
     except Exception as e: STATUS.append({"bloco": "Diário do ouro", "ok": False, "msg": str(e)[:150]})
 b_0dte()
