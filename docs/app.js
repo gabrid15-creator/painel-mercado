@@ -659,9 +659,9 @@
     const t = $('.dj-t tbody'); if (!t) return; t.replaceChildren(); const votos = [];
     for (const r of D('mi_dolar').data || []) {
       const tr = document.createElement('tr'); const bps = r.unid !== '% anualizado';
-      td(tr, r.serie + (r.vs_efetivo_bps != null ? ' · ' + sg(r.vs_efetivo_bps, 0, ' bps vs. efetivo') : ''));
+      { const c0 = td(tr, r.serie); if (r.vs_efetivo_bps != null) { const s = document.createElement('div'); s.style.cssText = 'font-size:12px;color:var(--color-fg-muted)'; s.textContent = sg(r.vs_efetivo_bps, 0, ' bps vs. efetivo'); c0.appendChild(s); } }
       td(tr, nf(r.valor, r.unid === 'p.p.' ? 2 : 2) + (r.unid === '% anualizado' ? '%' : r.unid === 'p.p.' ? ' p.p.' : '%'), 'num');
-      td(tr, r.d1 == null ? '—' : sg(r.d1, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d1)); td(tr, r.d5 == null ? '—' : sg(r.d5, bps ? 1 : 2, bps ? ' bps' : ' p.p.'), 'num ' + cls(r.d5));
+      td(tr, r.d1 == null ? '—' : sg(r.d1, bps ? 1 : 2, bps ? '' : ' p.p.'), 'num ' + cls(r.d1)); td(tr, r.d5 == null ? '—' : sg(r.d5, bps ? 1 : 2, bps ? '' : ' p.p.'), 'num ' + cls(r.d5));   // unidade (bps) no cabeçalho: número não quebra no celular
       const [txt, voto] = djLeitura(r); const c = document.createElement('td'); c.style.fontSize = '12px';
       c.innerHTML = txt; tr.appendChild(c); if (voto) votos.push(voto);
       t.appendChild(tr);
@@ -915,6 +915,7 @@
 
   // ---------------------------------------------------------------- ajuda: "Como ler" e explicações ficam escondidos; botão "?" em cada card e um geral no topo
   function prepAjuda() {
+    document.querySelectorAll('.op-card h2').forEach((h) => { if (h.querySelector(':scope > .h2-t')) return; const s = document.createElement('span'); s.className = 'h2-t'; while (h.firstChild) s.appendChild(h.firstChild); h.appendChild(s); });
     const eAjuda = (e) => e.matches('.mi-exp, .fx-ler, .mi-how') || (e.matches('p.op-note') && (/^(Como ler|Como funciona|Contratos por strike|Contratos em aberto por strike)/.test(e.textContent.trim()) || (e.classList.length === 1 && e.textContent.trim().length > 60)))   // texto fixo longo = explicação;
     document.querySelectorAll('.mi-exp, .fx-ler, .mi-how, p.op-note').forEach((e) => { if (eAjuda(e)) e.classList.add('ajuda'); });
     document.querySelectorAll('.op-card, .rd-c').forEach((c) => {
