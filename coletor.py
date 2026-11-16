@@ -151,9 +151,44 @@ def goldbach(d):
 # ---------------------------------------------------------------- coleta
 P, F, FR, DE = {}, {}, {}, {}
 
+# ouro: o Yahoo só tem o FUTURO (GC=F). A usuária opera XAUUSD à vista (Vantage) → tudo do ouro vai para o à vista:
+# fator = à vista ÷ futuro ativo, pelo custo de carregar medido entre o futuro ativo e o seguinte (ln(F2/F1) ÷ prazo).
+SPOT = {"fator": 1.0, "base_usd": 0.0, "como": "sem conversão"}
+def spot_ouro(gc):
+    hoje = NOW.date(); meses = [2, 4, 6, 8, 10, 12]; cod = {2: "G", 4: "J", 6: "M", 8: "Q", 10: "V", 12: "Z"}
+    cands = []
+    for a in (hoje.year, hoje.year + 1):
+        for m in meses:
+            ent = dt.date(a, m, 26)   # entrega ~fim do mês (último dia de negociação ≈ 3º dia útil antes do fim)
+            if ent > hoje and len(cands) < 4: cands.append((ent, f"GC{cod[m]}{str(a)[2:]}.CMX"))
+    px = []
+    for ent, sym in cands:
+        try:
+            j = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}?range=1d&interval=5m"))["chart"]["result"][0]
+            v = j["meta"].get("regularMarketPrice")
+            if v: px.append((ent, sym, float(v)))
+        except Exception: pass
+    ativo = min((x for x in px if abs(x[2] / gc - 1) < 0.002), key=lambda x: abs(x[2] - gc), default=None)   # qual contrato é o GC=F agora
+    if ativo:
+        prox = next((x for x in px if x[0] > ativo[0]), None)
+        if prox:
+            r = math.log(prox[2] / ativo[2]) / ((prox[0] - ativo[0]).days / 365)
+            if 0 < r < 0.12:
+                f = math.exp(-r * max((ativo[0] - hoje).days, 0) / 365)
+                if 0.97 < f <= 1: return f, f"{ativo[1]}→{prox[1]}, carrego {r*100:.2f}%/ano"
+    try: r13 = next(x["valor"] for x in ler("mi_dolar.json") if x["serie"].startswith("EUA 13")) / 100
+    except Exception: r13 = 0.04
+    STATUS.append({"bloco": "Ouro à vista", "ok": False, "msg": "fator pelos futuros falhou; usando juro de 13 semanas (reserva)"})
+    ent = next((e for e, _ in cands), hoje + dt.timedelta(days=60))
+    return math.exp(-r13 * (ent - hoje).days / 365), "reserva: juro 13 sem."
+
 @bloco("Preços (Yahoo)")
 def b_precos():
     for k, (y, _) in ATIVOS.items(): P[k] = yahoo(y)
+    # ouro → à vista (mesmo fator em toda a série: retornos e % não mudam, só o nível)
+    gc = closes(P["XAUUSD"]); gc_ult = gc[max(gc)]
+    f, como = spot_ouro(gc_ult); SPOT.update({"fator": f, "base_usd": round(gc_ult * (1 - f), 1), "como": como})
+    P["XAUUSD"] = {d: tuple(v * f if v is not None else None for v in ohlc) for d, ohlc in P["XAUUSD"].items()}
     for k, y in FATORES_Y.items():
         try: F[k] = closes(yahoo(y, 5))
         except Exception as e: STATUS.append({"bloco": "Yahoo: " + k, "ok": False, "msg": str(e)[:200]})
@@ -580,7 +615,8 @@ def b_faixa():
         try:
             j = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ATIVOS[a][0])}?range=10d&interval=1h"))["chart"]["result"][0]
             q = j["indicators"]["quote"][0]; NYz = ZoneInfo("America/New_York")
-            bars = [(dt.datetime.fromtimestamp(t, NYz), o, h, l) for t, o, h, l in zip(j["timestamp"], q["open"], q["high"], q["low"]) if o and h and l]
+            fz = SPOT["fator"] if a == "XAUUSD" else 1   # ouro no à vista
+            bars = [(dt.datetime.fromtimestamp(t, NYz), o * fz, h * fz, l * fz) for t, o, h, l in zip(j["timestamp"], q["open"], q["high"], q["low"]) if o and h and l]
             sess = lambda d: (d + dt.timedelta(hours=7)).date()   # dia de negociação começa 17h NY
             hoje_s = sess(bars[-1][0]); dia = [b for b in bars if sess(b[0]) == hoje_s]
             seg = hoje_s - dt.timedelta(days=hoje_s.weekday()); sem = [b for b in bars if sess(b[0]) >= seg]
@@ -653,7 +689,7 @@ def b_0dte():
         if (ny - tl).total_seconds() > 20 * 60:
             q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=5d&interval=5m"))["chart"]["result"][0]
             px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= tl.timestamp()]
-            if px and tl.timestamp() - px[-1][0] < 3 * 3600: r = px[-1][1] / S; parado = tl.strftime("%d/%m %H:%M")
+            if px and tl.timestamp() - px[-1][0] < 3 * 3600: r = px[-1][1] * SPOT["fator"] / S; parado = tl.strftime("%d/%m %H:%M")   # ouro à vista
     except Exception as e: STATUS.append({"bloco": "0DTE razão GLD", "ok": False, "msg": str(e)[:120]})
     Sv = ouro / r   # ouro ao vivo na escala do GLD
     grade = [Sv * (1 + i / 1000) for i in range(-40, 41)]; g = [gex(x) for x in grade]
@@ -702,7 +738,7 @@ def b_0dte():
                 q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=10d&interval=5m"))["chart"]["result"][0]
                 alvo = dt.datetime.combine(pg, dt.time(13, 30), NY).timestamp()
                 px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= alvo]
-                if px and alvo - px[-1][0] < 3600: base = px[-1][1] / fut
+                if px and alvo - px[-1][0] < 3600: base = px[-1][1] * SPOT["fator"] / fut   # GC no ajuste → à vista
             except Exception as e: STATUS.append({"bloco": "0DTE CME régua", "ok": False, "msg": str(e)[:120]})
             if base is None: base = (c.get(pg) or ouro) / fut   # reserva: fechamento diário do GC=F no pregão
             cv = lambda k: rnd(k * base, 1) if k is not None else None
@@ -1148,7 +1184,7 @@ b_score()
 # ---------------------------------------------------------------- painel geral (uma linha) + status
 ag = [r for r in ler("mi_agenda.json") if r["impacto"] == "Alto" and r["data"] == NOW.date().isoformat()]
 g, h = goldbach(NOW.date())
-geral = {"gerado_em": NOW.strftime("%Y-%m-%d %H:%M"), "red_hoje": len(ag),
+geral = {"gerado_em": NOW.strftime("%Y-%m-%d %H:%M"), "red_hoje": len(ag), "ouro_spot": SPOT,
          "red_hoje_txt": " · ".join(f'{r["hora"]} {r["moeda"]} {r["evento"]}' for r in ag[:6]),
          "goldbach_hoje": ("★ Goldbach + Hopiplaka" if g and h else "Goldbach" if g else "Hopiplaka" if h else "nenhum"), **FG}
 save("mi_geral.json", [geral])
