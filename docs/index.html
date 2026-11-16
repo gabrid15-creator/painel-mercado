@@ -367,8 +367,8 @@
 
   /* ---- diagramação 2: parágrafos, alinhamento, ritmo ---- */
   .sc-nome { font-family: inherit; font-size: inherit; font-weight: 700; }   /* título do mapa numa fonte só */
-  .mi-ia-txt, .mp-resumo, .dj-resumo { font-size: 15px !important; line-height: 1.65 !important; max-width: 72ch; text-align: left; }
-  .op-note, .ajuda, .ajuda li { line-height: 1.6; max-width: 80ch; }
+  .mi-ia-txt, .mp-resumo, .dj-resumo { font-size: 15px !important; line-height: 1.65 !important; text-align: left; }
+  .op-note, .ajuda, .ajuda li { line-height: 1.6; }
   .op-card > p, .op-card > div > p { margin-top: 0; }
   .op-card { gap: 12px; }
   .op-table th, .op-table td { vertical-align: middle; }
@@ -390,6 +390,7 @@
   .mp-romp { margin-top: 12px; } .mp-romp-t { font-size: 13px; color: var(--color-fg-muted); margin-bottom: 4px; } .mp-romp-t b { color: var(--color-fg); }
   .mp-romp-agora { margin: 2px 0 6px; font-size: 14px; line-height: 1.55; }
   .romp-t th { text-transform: none; letter-spacing: 0; font-size: 12px; } .romp-t td, .romp-t th { padding-left: 4px; padding-right: 4px; } .romp-t td:nth-child(2), .romp-t td:nth-child(3) { white-space: nowrap; } .op-table.romp-t thead th { text-transform: none; letter-spacing: 0; }
+  .guia > p { margin: 0 0 2px; } .guia ul { margin-top: 4px !important; } .guia li { padding: 5px 0; } .guia li b { color: var(--color-fg); }
 </style>
 </head>
 <body>
@@ -437,7 +438,11 @@
 
     <div class="sec-t">Macro: o que move o dólar</div>
     <section class="op-card radar"><div class="ag-top"><h2>Radar institucional</h2><span class="tl-chip ia-chip">o que as mesas olham</span></div>
-      <p class="op-note"><b>Como ler:</b> são os termômetros que mesas de bancos e fundos olham antes do preço. <b>Liquidez</b> diz se há dinheiro entrando no sistema (combustível para Nasdaq e ouro). <b>Estresse</b> mostra se o medo é pontual ou sistêmico: <b>VIX ÷ VIX 3 meses</b> acima de 1 = pânico de curto prazo, costuma marcar fundos de bolsa quando volta abaixo de 1; <b>MOVE</b> alto = juros instáveis, dólar e iene ganham; <b>NFCI</b> acima de 0 = crédito travando, risco para tudo. <b>Surpresa</b> compara a economia de cada país com o que se esperava: moeda com surpresa positiva tende a se valorizar contra a de surpresa negativa (ex.: <b>USD +40 e EUR −20</b> favorece EURUSD caindo). O <b>regime</b> dos EUA cruza surpresa de crescimento e de inflação: <b>estagflação</b> favorece ouro e franco; <b>cenário ideal</b> favorece Nasdaq.</p>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> São os termômetros que as mesas de bancos e fundos olham antes do preço.</p><ul>
+<li><b>Liquidez:</b> mostra se está entrando dinheiro no sistema, o combustível de Nasdaq e ouro.</li>
+<li><b>Estresse:</b> diz se o medo é pontual ou geral. VIX ÷ VIX 3 meses acima de 1 indica pânico de curto prazo; quando volta para baixo de 1, costuma marcar fundo na bolsa. MOVE alto significa juros instáveis, o que favorece dólar e iene. NFCI acima de 0 indica crédito travando, ruim para todos os ativos.</li>
+<li><b>Surpresa econômica:</b> compara os dados de cada país com o que se esperava. A moeda com surpresa positiva tende a ganhar da que tem surpresa negativa. Exemplo: EUA em +40 e zona do euro em −20 favorecem o EURUSD em queda.</li>
+<li><b>Regime dos EUA:</b> cruza a surpresa de crescimento com a de inflação. Estagflação favorece ouro e franco; crescimento com inflação comportada favorece o Nasdaq.</li></ul></div>
       <div class="rd-g">
         <div class="rd-c"><span class="tl-k">Liquidez líquida do Fed</span><div class="tl-v"><span class="v rd-liq">—</span><span class="tl-u rd-liq-d">—</span></div><span class="tl-chip rd-liq-chip">—</span><ul class="tl-l rd-liq-l"></ul>
           <span class="mi-exp"><b>Balanço do Fed − TGA − reverse repo</b>: o dinheiro que circula no mercado. <b>Subindo</b> = injeção (ajuda Nasdaq e ouro); <b>caindo</b> = drenagem. Atualiza 1× por dia (TGA e RRP) e o balanço 1× por semana (quinta).</span></div>
@@ -449,7 +454,16 @@
 
     <section class="op-card dj"><div class="ag-top"><h2>Dólar e juros</h2><span class="tl-chip ia-chip">o motor do câmbio</span></div>
       <p class="dj-resumo" style="margin:0 0 6px;font-size:15px;line-height:1.5"></p>
-      <p class="op-note"><b>Como ler:</b> dinheiro grande vai para onde o juro paga mais. <b>Juro americano subindo</b> (13 semanas, 5 e 10 anos) = <b>dólar mais forte</b> e pressão de baixa no ouro (que não rende juro); caindo = dólar mais fraco, ouro favorecido. <b>13 semanas</b> = o que o mercado espera do Fed nos próximos meses; <b>5 e 10 anos</b> = crescimento e inflação. <b>Fed Funds implícito</b> = juro que o mercado aposta para o próximo mês: <b>acima</b> do efetivo = aposta em alta de juros (dólar forte); <b>abaixo</b> = aposta em corte (dólar fraco). <b>Diferencial EUA − Japão</b> subindo = USDJPY tende a subir (carry); caindo = iene se fortalece. <b>Diferencial EUA − Alemanha</b> subindo = EURUSD tende a cair (dólar ganha do euro); caindo = euro se fortalece. <b>JGB</b> ou <b>Bund</b> subindo sozinhos = fortalece iene ou euro. <b>GDPNow</b> = previsão do PIB do Fed de Atlanta: subindo = economia forte, sustenta juro e dólar. A coluna <b>Leitura</b> diz o que o movimento do dia favorece (variação &lt; 2 bps = neutro). Testado: os juros <b>explicam</b> o movimento do dólar no mesmo dia/semana, mas <b>não antecipam</b> o seguinte; use como contexto, não como sinal de entrada. Variações em <b>pontos-base</b> (bps: 0,01 p.p.). Juros a cada 5 min (Yahoo, até ~15 min de atraso); JGB, Bund e GDPNow 1× por dia.</p>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> O dinheiro grande vai para onde o juro paga mais.</p><ul>
+<li><b>Juro americano subindo</b> (13 semanas, 5 e 10 anos): dólar mais forte e pressão de baixa no ouro, que não rende juro. Caindo: dólar mais fraco e ouro favorecido.</li>
+<li><b>13 semanas</b> mostra o que o mercado espera do Fed nos próximos meses; <b>5 e 10 anos</b> refletem crescimento e inflação.</li>
+<li><b>Fed Funds implícito:</b> o juro que o mercado aposta para o próximo mês. Acima do efetivo, a aposta é de alta (dólar forte); abaixo, de corte (dólar fraco).</li>
+<li><b>Diferencial EUA − Japão</b> subindo: o USDJPY tende a subir (carry). Caindo: o iene se fortalece.</li>
+<li><b>Diferencial EUA − Alemanha</b> subindo: o EURUSD tende a cair. Caindo: o euro se fortalece. JGB ou Bund subindo sozinhos fortalecem o iene ou o euro.</li>
+<li><b>GDPNow:</b> a previsão do PIB feita pelo Fed de Atlanta. Subindo, indica economia forte, o que sustenta juro e dólar.</li>
+<li><b>Coluna Leitura:</b> o que o movimento do dia favorece. Variação menor que 2 bps conta como neutra.</li>
+<li><b>Testado:</b> os juros explicam o movimento do dólar no mesmo dia e na mesma semana, mas não antecipam o seguinte. Use como contexto, não como sinal de entrada.</li>
+<li><b>Atualização:</b> juros a cada 5 min (Yahoo, até ~15 min de atraso); JGB, Bund e GDPNow uma vez por dia. Variações em pontos-base (1 bp = 0,01 ponto percentual).</li></ul></div>
       <table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia<br><small>bps</small></th><th class="num">5 dias<br><small>bps</small></th><th>Leitura (dia)</th></tr></thead><tbody></tbody></table>
     </section>
 
@@ -460,7 +474,11 @@
       <div class="ag-top"><h2><span class="sc-nome">—</span> · até onde o preço deve ir</h2><span class="tl-chip ia-chip mp-chip">—</span></div>
       <div class="ia-atv"><div class="ia-h"><span class="tl-chip ia-chip">✦ Leitura da IA</span><span class="ia-quando mi-ia-atv-q"></span></div><p class="mi-ia-txt mi-ia-atv">—</p></div>
       <p class="mp-resumo" style="margin:0;font-size:15px;line-height:1.5"></p>
-      <p class="op-note"><b>Como funciona:</b> na <b>abertura do dia de negociação</b> (moedas 19h e ouro 20h de Brasília, quando a CME reabre; no horário de verão dos EUA, 1 h mais cedo) o painel pega a volatilidade esperada e <b>projeta</b> níveis acima e abaixo do preço de abertura. Eles <b>ficam fixos</b> até a próxima abertura: o do <b>dia</b> vale até a abertura seguinte (dá para operar a noite toda com os níveis do dia que começa); o da <b>semana</b>, de domingo à noite até sexta. A <b>chance agora</b> é recalculada a cada atualização a partir do <b>preço atual</b> e do <b>tempo que falta</b> (distância até o nível ÷ volatilidade que ainda cabe no tempo restante), com a frequência real medida em ~2 anos de candles de 1 h (curva estável nas duas metades do período). Ex.: se o preço já subiu muito, a chance de voltar até um nível lá embaixo cai; perto do fim do dia, tudo que está longe vai a ~0%. Embaixo, em cinza, a chance que o nível tinha <b>na abertura</b>. <b>Como usar:</b> alvo dentro dos níveis de chance alta; stop além deles; nível de chance baixa raramente é atingido. <b>Não indica direção</b> (testamos mais de 90 sinais de direção; nenhum passou), só até onde o preço costuma ir para cada lado. Se o preço já andou muito para um lado, o outro lado fica menos provável que a tabela.</p>
+      <div class="op-note ajuda guia"><p><b>Como funciona.</b> Na abertura do dia de negociação, o painel pega a volatilidade esperada e projeta níveis acima e abaixo do preço de abertura. A abertura é às 19h de Brasília nas moedas e às 20h no ouro, quando a CME reabre (uma hora antes no horário de verão americano).</p><ul>
+<li><b>Os níveis ficam fixos</b> até a próxima abertura. Os do dia valem a noite inteira e o dia seguinte; os da semana, de domingo à noite até sexta.</li>
+<li><b>Chance agora:</b> recalculada a cada atualização, pelo preço atual e pelo tempo que falta, com a frequência real medida em cerca de 2 anos de candles de 1 h. Se o preço já subiu muito, a chance de voltar a um nível lá embaixo cai; perto do fim do dia, tudo o que está longe vai a quase 0%. Em cinza, embaixo, fica a chance que o nível tinha na abertura.</li>
+<li><b>Como usar:</b> alvo dentro dos níveis de chance alta e stop além deles. Nível de chance baixa raramente é atingido.</li>
+<li><b>Não indica direção.</b> Testamos mais de 90 sinais de direção e nenhum passou. O mapa mostra até onde o preço costuma ir para cada lado.</li></ul></div>
       <div class="mp-wrap" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:16px">
         <div><h3 style="margin:0 0 4px;font-size:15px">Hoje</h3><div class="op-note mp-dia-q"></div><table class="op-table mp-t mp-dia"><thead><tr><th>Nível</th><th class="num">Preço</th><th class="num">Chance agora</th><th>Leitura</th></tr></thead><tbody></tbody></table></div>
         <div><h3 style="margin:0 0 4px;font-size:15px">Semana</h3><div class="op-note mp-sem-q"></div><table class="op-table mp-t mp-sem"><thead><tr><th>Nível</th><th class="num">Preço</th><th class="num">Chance agora</th><th>Leitura</th></tr></thead><tbody></tbody></table></div>
@@ -487,15 +505,41 @@
 
 
     <section class="op-card z0"><div class="ag-top"><h2>0DTE ouro · opções do vencimento mais próximo</h2><span class="tl-chip ia-chip z0-chip">—</span></div>
-      <p class="op-note"><b>Como ler:</b> opções do vencimento mais próximo (o GLD vence todo dia às 16h de NY: <b>18h de Brasília</b>, 17h no horário de verão americano), no preço do ouro à vista. <span class="lv lv-cw">Teto</span> = onde há mais calls (resistência). <span class="lv lv-pw">Piso</span> = onde há mais puts (suporte). <span class="lv lv-gf">Gamma flip</span>: acima, os bancos tendem a <b>segurar</b> o preço; abaixo, a <b>acelerar</b>. <span class="lv lv-mp">Max pain</span> = onde os compradores de opções mais perdem. <span class="lv lv-rg">Faixa</span> = movimento que o mercado paga até o vencimento; <span class="lv lv-s1">±1σ</span> ≈ 68%. <b>Preço do ouro na régua da Vantage</b> (XAUUSD): futuro da CME (GC) − US$ 6,5, calibrado com preços ao mesmo tempo em 16/11; GLD e CME convertidos para a mesma régua. <b>GLD</b>: ao vivo (15 min de atraso, 11h30–18h). Com o GLD <b>fechado</b> (noite e fim de semana), os níveis dele ficam os do último pregão e o regime de gamma é recalculado com o ouro ao vivo. <b>CME</b>: fechamento anterior, do PDF do boletim; vencimentos de todos os dias (seg–qui separados do PDF pelo preço, conferidos pela paridade); convertida do futuro para o à vista. Linha <b>dourada "✓ concordam"</b> = GLD e CME a até 1 strike do GLD (~US$ 11): nível mais forte. <b>Precisão: sem teste ainda</b> (mede após ~30 vencimentos).</p>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> Opções do vencimento mais próximo. O GLD vence todo dia às 16h de NY (18h de Brasília; 17h no horário de verão americano).</p><ul>
+<li><span class="lv lv-cw">Teto</span> é onde há mais calls (resistência); <span class="lv lv-pw">Piso</span>, onde há mais puts (suporte).</li>
+<li><span class="lv lv-gf">Gamma flip</span>: acima dele, os bancos tendem a segurar o preço; abaixo, a acelerar.</li>
+<li><span class="lv lv-mp">Max pain</span>: o preço em que os compradores de opções mais perdem.</li>
+<li><span class="lv lv-rg">Faixa</span>: o movimento que o mercado paga até o vencimento. O <span class="lv lv-s1">±1σ</span> cobre cerca de 68% dos casos.</li>
+<li><b>Régua:</b> todos os preços estão na régua do XAUUSD da Vantage (futuro da CME menos US$ 6,5, calibrado em 16/11). GLD e CME são convertidos para ela.</li>
+<li><b>GLD:</b> ao vivo, com 15 min de atraso, das 11h30 às 18h. Com o GLD fechado (noite e fim de semana), os níveis dele ficam os do último pregão, e o regime de gamma é recalculado com o ouro ao vivo.</li>
+<li><b>CME:</b> fechamento do pregão anterior, tirado do PDF do boletim, com vencimentos de todos os dias. Cada número é conferido pela paridade antes de ser publicado.</li>
+<li><b>Linha dourada "✓ concordam":</b> GLD e CME a até 1 strike do GLD (~US$ 11). É o nível mais forte.</li>
+<li><b>Precisão:</b> ainda sem teste. Ela começa a ser medida depois de uns 30 vencimentos.</li></ul></div>
       <table class="op-table z0-t"><tbody></tbody></table>
-      <p class="op-note"><b>Contratos por strike</b> (no preço do ouro, atualiza com o GLD a cada 5 min): puts à esquerda, calls à direita. <b>Barra clara</b> = contratos em aberto (GLD + CME somados; CME em equivalente GLD: 1 contrato = 100 oz ≈ 11 do GLD); <b>barra escura</b> por dentro = volume do dia no GLD (onde está a briga agora). Número = em aberto | volume. Barra grande = muita gente posicionada ali → o preço costuma reagir perto. Linha cheia = preço; <b>tracejadas</b> = níveis do GLD (ao vivo) e ±1σ; <b>pontilhadas</b> = níveis da CME (fixos do dia); <b>faixa dourada ✓</b> = GLD e CME concordam (nível mais forte); sombra azul = faixa até o vencimento. Teto e piso do GLD somam em aberto + volume. <b>PCR</b> (puts ÷ calls) embaixo: acima de 1 = <b style="color:#c8443a">+Puts</b> (mais proteção/aposta na queda), abaixo de 1 = <b style="color:#1f8a5b">+Calls</b>. É retrato do posicionamento: o PCR foi testado e <b>não prevê direção</b> sozinho.</p>
+      <div class="op-note ajuda guia"><p><b>Contratos por strike</b>, atualizados com o GLD a cada 5 min. Puts à esquerda, calls à direita.</p><ul>
+<li><b>Barra clara:</b> contratos em aberto do GLD e da CME somados. A CME entra em equivalente GLD (um contrato de 100 onças vale cerca de 11 do GLD).</li>
+<li><b>Barra escura, por dentro:</b> o volume negociado hoje no GLD, onde está a briga agora. O número mostra "em aberto | volume".</li>
+<li><b>Barra grande</b> significa muita gente posicionada ali; o preço costuma reagir por perto.</li>
+<li><b>Linhas:</b> a cheia é o preço; as tracejadas, os níveis do GLD (ao vivo) e o ±1σ; as pontilhadas, os níveis da CME (fixos no dia). A faixa dourada ✓ marca onde GLD e CME concordam, e a sombra azul é a faixa até o vencimento.</li>
+<li>Teto e piso do GLD somam em aberto e volume, por isso nem sempre caem na maior barra clara.</li>
+<li><b>PCR</b> (puts ÷ calls), embaixo: acima de 1, <b style="color:#c8443a">+Puts</b> (mais proteção ou aposta na queda); abaixo de 1, <b style="color:#1f8a5b">+Calls</b>. É um retrato do posicionamento: o PCR foi testado e, sozinho, não prevê direção.</li></ul></div>
       <div class="mi-chart z0b-chart"></div>
     </section>
     <section class="op-card z0j" hidden><div class="ag-top"><h2>0DTE dólar/iene · opções do vencimento mais próximo</h2><span class="tl-chip ia-chip z0j-chip">—</span></div>
-      <p class="op-note"><b>Como ler:</b> opções do vencimento mais próximo com contratos suficientes (≥ 10 strikes; vencem às 9h de Chicago: <b>12h de Brasília</b>, 11h no horário de verão americano), no dólar/iene à vista (call de iene = put de dólar/iene). <span class="lv lv-cw">Teto</span> = onde há mais calls (resistência). <span class="lv lv-pw">Piso</span> = onde há mais puts (suporte). <span class="lv lv-gf">Gamma flip</span>: acima, os bancos tendem a <b>segurar</b> o preço; abaixo, a <b>acelerar</b>. <span class="lv lv-mp">Max pain</span> = onde os compradores de opções mais perdem. <span class="lv lv-rg">Faixa</span> = movimento que o mercado paga até o vencimento; <span class="lv lv-s1">±1σ</span> ≈ 68%. <b>CME</b>: fechamento anterior, do PDF do boletim: <b>não muda durante o dia</b> (o ETF de iene quase não negocia, por isso não há fonte ao vivo). Séries de segunda a quinta têm poucos contratos; as de sexta e quarta, mais. <b>Precisão: sem teste ainda</b> (mede após ~30 vencimentos).</p>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> Opções da CME do vencimento mais próximo que tenha contratos suficientes (10 strikes ou mais). Vencem às 9h de Chicago (12h de Brasília; 11h no horário de verão americano).</p><ul>
+<li>Os preços já estão convertidos para o dólar/iene à vista: uma call de iene equivale a uma put de dólar/iene.</li>
+<li><span class="lv lv-cw">Teto</span> é onde há mais calls (resistência); <span class="lv lv-pw">Piso</span>, onde há mais puts (suporte).</li>
+<li><span class="lv lv-gf">Gamma flip</span>: acima dele, os bancos tendem a segurar o preço; abaixo, a acelerar.</li>
+<li><span class="lv lv-mp">Max pain</span>: o preço em que os compradores de opções mais perdem.</li>
+<li><span class="lv lv-rg">Faixa</span>: o movimento que o mercado paga até o vencimento. O <span class="lv lv-s1">±1σ</span> cobre cerca de 68% dos casos.</li>
+<li><b>CME:</b> fechamento do pregão anterior, tirado do PDF do boletim. Não muda durante o dia, porque o ETF de iene quase não negocia e não há fonte ao vivo. Cada número é conferido pela paridade antes de ser publicado.</li>
+<li>As séries de segunda a quinta costumam ter poucos contratos; as de sexta e de quarta, mais.</li>
+<li><b>Precisão:</b> ainda sem teste. Ela começa a ser medida depois de uns 30 vencimentos.</li></ul></div>
       <table class="op-table z0j-t"><tbody></tbody></table>
-      <p class="op-note"><b>Contratos por strike</b> (no dólar/iene): puts à esquerda, calls à direita, número = contratos. Barra grande = muita gente posicionada ali → o preço costuma reagir perto. Linha cheia = preço atual; tracejadas = teto, piso, gamma flip e max pain; sombra azul = faixa até o vencimento. Strike sem barra = sem contrato. <b>Em aberto</b> = CME. <b>PCR</b> (puts ÷ calls) embaixo: acima de 1 = <b style="color:#c8443a">+Puts</b> (mais proteção/aposta na queda), abaixo de 1 = <b style="color:#1f8a5b">+Calls</b>. É retrato do posicionamento: o PCR foi testado e <b>não prevê direção</b> sozinho.</p>
+      <div class="op-note ajuda guia"><p><b>Contratos por strike</b> no dólar/iene, da CME. Puts à esquerda, calls à direita; o número é a quantidade de contratos em aberto.</p><ul>
+<li><b>Barra grande</b> significa muita gente posicionada ali; o preço costuma reagir por perto.</li>
+<li><b>Linhas:</b> a cheia é o preço atual; as tracejadas, teto, piso, gamma flip e max pain. A sombra azul é a faixa até o vencimento. Strike sem barra não tem contrato.</li>
+<li><b>PCR</b> (puts ÷ calls), embaixo: acima de 1, <b style="color:#c8443a">+Puts</b> (mais proteção ou aposta na queda); abaixo de 1, <b style="color:#1f8a5b">+Calls</b>. É um retrato do posicionamento: o PCR foi testado e, sozinho, não prevê direção.</li></ul></div>
       <div class="mi-chart z0j-chart"></div>
     </section>
     <section class="op-card otc" hidden><div class="ag-top"><h2>Balcão (DTCC) · opções de câmbio dos bancos</h2><span class="tl-chip ia-chip otc-chip">—</span></div>
@@ -514,11 +558,19 @@
     <div class="mais-c">
     <div class="atv-cards">
     <section class="op-card rg"><div class="ag-top"><h2>Regime · o que está mexendo o ativo agora</h2><span class="tl-chip ia-chip">dólar e juros</span></div>
-      <p class="op-note"><b>Como ler:</b> quanto o ativo anda junto com o dólar (DXY) e os juros dos EUA nas <b>últimas 26 semanas</b>. <b>Correlação</b> de −1 a +1: perto de ±1 = andam juntos; perto de 0 = sem ligação. <b>Reação</b> = quanto o ativo costuma andar quando o juro sobe 10 bps (ou o DXY sobe 1%). <b>⚠ quebrou</b> = ligação invertida em relação ao histórico. <b>Precisão (teste 2016+):</b> quando a ligação está <b>forte</b> (≥ 0,4), ela mantém a direção nas 13 semanas seguintes em <b>91–100%</b> das vezes com o DXY e <b>57–90%</b> com os juros (melhor no ouro e no iene). O valor exato muda (erro médio ±0,15 a ±0,40): use a <b>direção e a força</b>, não o número. Explica o movimento, <b>não prevê</b> o preço.</p>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> Quanto o ativo anda junto com o dólar (DXY) e com os juros dos EUA nas últimas 26 semanas.</p><ul>
+<li><b>Correlação,</b> de −1 a +1: perto de ±1, andam juntos; perto de 0, não têm ligação.</li>
+<li><b>Reação:</b> quanto o ativo costuma andar quando o juro sobe 10 bps ou o DXY sobe 1%.</li>
+<li><b>⚠ quebrou:</b> a ligação se inverteu em relação ao histórico.</li>
+<li><b>Precisão</b> (teste desde 2016): com a ligação forte (0,4 ou mais), a direção se mantém nas 13 semanas seguintes em 91–100% das vezes com o DXY e em 57–90% com os juros, melhor no ouro e no iene. O valor exato varia (erro médio de ±0,15 a ±0,40); use a direção e a força, não o número.</li>
+<li>Explica o movimento; não prevê o preço.</li></ul></div>
       <table class="op-table rg-t"><thead><tr><th>Fator</th><th class="num">Correlação 26s</th><th class="num">52s</th><th class="num">Reação</th><th>Ligação</th></tr></thead><tbody></tbody></table>
     </section>
     <section class="op-card cta"><div class="ag-top"><h2>CTA · fundos de tendência (estimativa)</h2><span class="tl-chip ia-chip">fluxo sistemático</span></div>
-      <p class="op-note"><b>Como ler:</b> CTAs são fundos que seguem tendência por regra. <b>Posição</b> de −100% (todos vendidos) a +100% (todos comprados), média das janelas de 1, 3, 6 e 12 meses. <b>Gatilho</b> = preço que, se cruzado, vira uma janela e força compra ou venda. <b>Teste (2016+):</b> no ouro o modelo acompanha a posição real dos fundos no COT (correlação 0,59) e acerta 54,5% em 20 dias: ajuda, mas pouco. Em iene, franco e euro <b>não passou no teste</b> e foi retirado.</p>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> CTAs são fundos que seguem tendência por regra.</p><ul>
+<li><b>Posição:</b> de −100% (todos vendidos) a +100% (todos comprados), pela média das janelas de 1, 3, 6 e 12 meses.</li>
+<li><b>Gatilho:</b> o preço que, se cruzado, vira uma janela e força compra ou venda.</li>
+<li><b>Teste</b> (desde 2016): no ouro, o modelo acompanha a posição real dos fundos no COT (correlação de 0,59) e acerta 54,5% em 20 dias. Ajuda, mas pouco. Em iene, franco e euro não passou no teste e foi retirado.</li></ul></div>
       <table class="op-table cta-t"><thead><tr><th>Ativo</th><th class="num">Posição</th><th>Gatilho mais próximo</th><th class="num">Distância</th></tr></thead><tbody></tbody></table>
     </section>
     </div>
