@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -817,6 +817,23 @@
     // resumo com a chance de agora: nível mais próximo ainda não tocado de cada lado
     const lado = (sgn) => { for (const x of [0.5, 1, 1.5, 2]) { const L = m.ab_dia * Math.exp(sgn * x * sd); if (sgn > 0 ? m.max_dia < L : m.min_dia > L) return [x, L, chAgora(L, sd, m.ts_dia_ini, m.ts_dia_fim)]; } return null; };
     const up = lado(1), dn = lado(-1), fr1 = (r, s) => (r ? `<b>${nf(r[1], k)}</b> (${s}${fx(r[0])}σ): <b>${r[2]}%</b>` : `todos os níveis ${s === '+' ? 'acima' : 'abaixo'} já tocados`);
+    // rompimento do σ do dia (medido em futuros da CME, mesma régua do mapa): o que costuma acontecer depois de cada gatilho
+    { const R = (D('rompimento').data || {})[atv], bx = $('.mp-romp');
+      if (bx) { bx.replaceChildren(); if (R) {
+        const eU = Math.log(m.max_dia / m.ab_dia) / sd, eD = -Math.log(m.min_dia / m.ab_dia) / sd, pc = (x) => nf(x[0], 0) + '%';
+        const L = (x, s) => nf(m.ab_dia * Math.exp(s * x * sd), k);
+        const est = (e) => (e >= 1.5 ? 3 : e >= 1.25 ? 2 : e >= 1 ? 1 : 0);
+        const sit = (e, nome) => ['ainda dentro do 1σ', 'tocou o 1σ: cara ou coroa (' + pc(R.tocou_1s_fecha_fora) + ' fecha fora)', 'passou de 1,25σ: rompimento confirmado (' + pc(R.passou_125_fecha_fora) + ' fecha fora)', 'passou de 1,5σ: rompimento forte (' + pc(R.passou_15_fecha_fora) + ' fecha fora)'][est(e)];
+        const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Rompimento do σ do dia</b> · o que costuma acontecer depois de cada gatilho (futuros da CME desde ' + R.desde + ', ' + nf(R.dias, 0) + ' dias)'; bx.appendChild(h);
+        const ag = document.createElement('p'); ag.className = 'mp-romp-agora'; ag.innerHTML = '<b>Hoje:</b> em cima ' + nf(Math.max(0, eU), 2) + 'σ → <b>' + sit(eU) + '</b> · embaixo ' + nf(Math.max(0, eD), 2) + 'σ → <b>' + sit(eD) + '</b>'; bx.appendChild(ag);
+        const tb = document.createElement('table'); tb.className = 'op-table romp-t'; tb.innerHTML = '<thead><tr><th>Passou de</th><th class="num">Cima</th><th class="num">Baixo</th><th class="num">Depois</th></tr></thead>';
+        const bd = document.createElement('tbody'); tb.appendChild(bd);
+        for (const [x, nome, fora, alem] of [[1, '±1σ', R.tocou_1s_fecha_fora, null], [1.25, '±1,25σ', R.passou_125_fecha_fora, ['1,5σ', R.passou_125_chega_15]], [1.5, '±1,5σ', R.passou_15_fecha_fora, ['2σ', R.passou_15_chega_2]]]) {
+          const tr = document.createElement('tr'); td(tr, nome).style.fontWeight = 600; td(tr, L(x, 1), 'num'); td(tr, L(x, -1), 'num'); const dd = td(tr, '', 'num'); dd.innerHTML = '<b>' + pc(fora) + '</b> fecha fora do 1σ' + (alem ? '<br><small>' + pc(alem[1]) + ' chega a ' + alem[0] + '</small>' : '');
+          if (est(eU) === [1, 1.25, 1.5].indexOf(x) + 1 || est(eD) === [1, 1.25, 1.5].indexOf(x) + 1) tr.style.background = 'color-mix(in srgb, #c98a12 14%, transparent)'; bd.appendChild(tr); }
+        const w = document.createElement('div'); w.className = 'tbl-x'; w.appendChild(tb); bx.appendChild(w);
+        const n = document.createElement('p'); n.className = 'op-note ajuda'; n.innerHTML = '<b>Como ler:</b> níveis a partir da abertura do dia, com o mesmo σ do mapa. <b>Tocou o ±1σ</b> = cara ou coroa: metade das vezes fecha de volta dentro (às vezes só "sambou" e voltou). <b>Passou de ±1,25σ</b> = rompimento confirmado: ~70% fecha fora do 1σ e ~2 em cada 3 chegam a 1,5σ. <b>Passou de ±1,5σ</b>: ~80% fecha fora. A linha dourada é a situação de hoje. Medido nos futuros da CME (máximas e mínimas limpas); estável desde 2016. É estatística do que já aconteceu, não garantia.'; bx.appendChild(n);
+      } } }
     $('.mp-resumo').innerHTML = `<b>Agora</b> (preço ${nf(P, k)}, faltam ${m.ts_dia_fim ? hrs(m.ts_dia_fim) : '—'} para fechar o dia): chance de chegar ao próximo nível acima ${fr1(up, '+')}; abaixo ${fr1(dn, '−')}.`;
     const inp = $('.mp-in'), out = $('.mp-out'); inp.placeholder = 'ex.: ' + nf(P * 1.004, k);
     inp.oninput = () => {
