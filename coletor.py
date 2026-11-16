@@ -624,6 +624,11 @@ def b_0dte():
     NY = ZoneInfo("America/New_York"); ny = NOW.astimezone(NY)
     j = json.loads(get("https://cdn.cboe.com/api/global/delayed_quotes/options/GLD.json"))["data"]
     S = j["current_price"]; ops = []
+    # fora do pregão regular a Cboe mostra preço de pré/pós-mercado em current_price, mas last_trade_time continua o do fechamento:
+    # nesse caso usa o FECHAMENTO oficial, para casar com o ouro do mesmo instante (razão GLD → ouro mais abaixo)
+    try:
+        if (NOW.astimezone(ZoneInfo("America/New_York")) - dt.datetime.fromisoformat(j.get("last_trade_time")).replace(tzinfo=ZoneInfo("America/New_York"))).total_seconds() > 20 * 60 and j.get("close"): S = j["close"]
+    except Exception: pass
     for x in j["options"]:
         o = x["option"]; ops.append({"venc": dt.date(2000 + int(o[3:5]), int(o[5:7]), int(o[7:9])), "tipo": o[9], "k": int(o[10:]) / 1000,
                                      "oi": x["open_interest"] or 0, "vol": x["volume"] or 0, "iv": x["iv"] or 0,
@@ -688,11 +693,18 @@ def b_0dte():
     if cme:
         try:
             fut = float(cme[0].get("futuro") or ouro); pg = dt.date.fromisoformat(cme[0]["data_pregao"])
-            # strikes da CME estão no preço do futuro de dezembro: converte para o ouro à vista pelo custo de carregar até o vencimento do futuro
-            try: r13 = next(x["valor"] for x in ler("mi_dolar.json") if x["serie"].startswith("EUA 13")) / 100
-            except Exception: r13 = 0.04
-            vf = dt.date(pg.year + (pg.month == 12), 12, 29) if pg.month < 12 or pg.day < 26 else dt.date(pg.year + 1, 2, 24)
-            base = 1 / (1 + r13 * max((vf - pg).days, 1) / 365)
+            # strikes da CME estão no preço do futuro subjacente (F). O preço do ouro do painel é o GC=F (futuro ativo no Yahoo),
+            # então converte pela MESMA régua: GC=F no horário do ajuste (13h30 NY do pregão) ÷ F. Antes convertia para o à vista
+            # (−US$ 20) e os níveis da CME ficavam deslocados em relação ao preço e ao GLD (corrigido 16/11/2026). Também segue certo
+            # quando o GC=F troca de contrato (dez → fev).
+            base = None
+            try:
+                q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=10d&interval=5m"))["chart"]["result"][0]
+                alvo = dt.datetime.combine(pg, dt.time(13, 30), NY).timestamp()
+                px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= alvo]
+                if px and alvo - px[-1][0] < 3600: base = px[-1][1] / fut
+            except Exception as e: STATUS.append({"bloco": "0DTE CME régua", "ok": False, "msg": str(e)[:120]})
+            if base is None: base = (c.get(pg) or ouro) / fut   # reserva: fechamento diário do GC=F no pregão
             cv = lambda k: rnd(k * base, 1) if k is not None else None
             cc, pp, setl = {}, {}, {}
             for o in cme:
@@ -816,7 +828,16 @@ def b_0dte_iene():
     venc = next((v for v in vs if bom(v)), vs[0]); pulou = [v for v in vs if v < venc]; ch = [o for o in cad if o["venc"] == venc]
     F = float(ch[0]["futuro"]); pg = dt.date.fromisoformat(ch[0]["data_pregao"])
     c = closes(P["USDJPY"]); spot = c[max(c)]
-    ref = c.get(pg) or spot; base = ref / (1 / F)   # futuro → à vista (diferença de juros EUA × Japão)
+    # futuro → à vista: USDJPY no horário do ajuste da CME (14h de Chicago = 15h NY) ÷ (1/F). Antes usava o fechamento diário do Yahoo,
+    # que é de outro horário (corrigido 16/11/2026).
+    ref = None
+    try:
+        q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/JPY%3DX?range=10d&interval=5m"))["chart"]["result"][0]
+        alvo = dt.datetime.combine(pg, dt.time(15, 0), NY).timestamp()
+        px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= alvo]
+        if px and alvo - px[-1][0] < 3600: ref = px[-1][1]
+    except Exception as e: STATUS.append({"bloco": "0DTE iene régua", "ok": False, "msg": str(e)[:120]})
+    ref = ref or c.get(pg) or spot; base = ref / (1 / F)
     cv = lambda k: rnd(k * base, 3) if k is not None else None
     uc, up, setl = {}, {}, {}   # em USDJPY: calls = puts de iene; puts = calls de iene
     for o in ch:

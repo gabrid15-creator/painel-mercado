@@ -11,4 +11,4 @@ Leia o resumo completo do projeto abaixo antes de qualquer tarefa; ele é a mem�
 - Opções: sempre incluir a CME junto com o GLD. IAU descartado.
 - Todo card novo tem "Como ler" direto ao ponto: o que é, como usar, como impacta o preço.
 - Economia de cota: tarefas agendadas no Sonnet quando possível; não ampliar a tarefa noturna além do que o painel usa.
-- A CME bloqueia o GitHub Actions; dados dela só pela tarefa noturna "Opções de ouro CME (noite)" via Google Drive.
+- A CME bloqueia robôs; dados dela só pelos PDFs que a usuária manda. **Sempre** rodar `confere_cme.py` depois dos leitores: só publica com 0 erro, extremo rigor (pedido dela). Nunca confiar no "FUTURES SETT." do cabeçalho: futuro sempre pela paridade.
