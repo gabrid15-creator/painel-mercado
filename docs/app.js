@@ -815,9 +815,10 @@
     const lado = (sgn) => { for (const x of [0.5, 1, 1.5, 2]) { const L = m.ab_dia * Math.exp(sgn * x * sd); if (sgn > 0 ? m.max_dia < L : m.min_dia > L) return [x, L, chAgora(L, sd, m.ts_dia_ini, m.ts_dia_fim)]; } return null; };
     const up = lado(1), dn = lado(-1), fr1 = (r, s) => (r ? `<b>${nf(r[1], k)}</b> (${s}${fx(r[0])}σ): <b>${r[2]}%</b>` : `todos os níveis ${s === '+' ? 'acima' : 'abaixo'} já tocados`);
     $('.mp-resumo').innerHTML = `<b>Agora</b> (preço ${nf(P, k)}, faltam ${m.ts_dia_fim ? hrs(m.ts_dia_fim) : '—'} para fechar o dia): chance de chegar ao próximo nível acima ${fr1(up, '+')}; abaixo ${fr1(dn, '−')}.`;
-    const inp = $('.mp-in'), out = $('.mp-out');
+    const inp = $('.mp-in'), out = $('.mp-out'); inp.placeholder = 'ex.: ' + nf(P * 1.004, k);
     inp.oninput = () => {
-      const v = parseFloat(inp.value.replace(/\./g, '').replace(',', '.')) || parseFloat(inp.value); if (!v) { out.textContent = ''; return; }
+      const s0 = inp.value.trim(), cands = [parseFloat(s0.replace(/\./g, '').replace(',', '.')), parseFloat(s0.replace(/,/g, '.')), parseFloat(s0.replace(/,/g, ''))].filter((x) => x > 0);   // ponto/vírgula: fica a leitura mais perto do preço
+      const v = cands.sort((x, y) => Math.abs(Math.log(x / P)) - Math.abs(Math.log(y / P)))[0]; if (!v) { out.textContent = ''; return; }
       const ch = (s, mx, mn, ini, fim) => { if (v >= P ? mx >= v : mn <= v) return 'já tocou'; return chAgora(v, s, ini, fim) + '%'; };
       out.textContent = 'chance de o preço chegar a ' + nf(v, k) + ' a partir de agora: hoje ' + ch(sd, m.max_dia, m.min_dia, m.ts_dia_ini, m.ts_dia_fim) + ' · nesta semana ' + ch(sw, m.max_sem, m.min_sem, m.ts_sem_ini, m.ts_sem_fim);
     };
@@ -870,7 +871,7 @@
         const sig = /bem acima/.test(nv.txt) ? 'faixas largas' : /acima/.test(nv.txt) ? 'um pouco largas' : /bem abaixo/.test(nv.txt) ? 'faixas bem estreitas' : /abaixo/.test(nv.txt) ? 'faixas estreitas' : 'tamanho de sempre';
         f0.append(' contra a média ' + nf(nv.media, 1) + '% → ', lv(nv.txt, cl), ' ' + sig + ' (média 1a ' + nf(nv.m1, 1) + ' · 3a ' + nf(nv.m3, 1) + ' · 5a ' + nf(nv.m5, 1) + '%)'); }
       fr.faixas.forEach(linha);
-      if (fr.cme) { fonte('CME · opções de ouro (pregão ' + br(fr.cme.pregao) + ', vencimento ' + br(fr.cme.venc) + ') · vol. ' + nf(fr.cme.iv, 1) + '%'); fr.cme.faixas.forEach(linha);
+      if (fr.cme) { fonte('CME · opções de ' + ({ XAUUSD: 'ouro', USDJPY: 'iene', USDCHF: 'franco', EURUSD: 'euro', GBPUSD: 'libra' }[atv] || atv) + ' (pregão ' + br(fr.cme.pregao) + ', vencimento ' + br(fr.cme.venc) + ') · vol. ' + nf(fr.cme.iv, 1) + '%'); fr.cme.faixas.forEach(linha);
       } else if (atv === 'XAUUSD') fonte('CME: sem PDF do boletim carregado.');
       // precisão medida (backtest longo, mesmo método do painel): visível, sem precisar abrir o ?
       const bt = (D('faixa_backtest').data || {})[atv], bx = $('.fx-bt');
