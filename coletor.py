@@ -187,7 +187,11 @@ def b_precos():
     for k, (y, _) in ATIVOS.items(): P[k] = yahoo(y)
     # ouro → à vista (mesmo fator em toda a série: retornos e % não mudam, só o nível)
     gc = closes(P["XAUUSD"]); gc_ult = gc[max(gc)]
-    f, como = spot_ouro(gc_ult); SPOT.update({"fator": f, "base_usd": round(gc_ult * (1 - f), 1), "como": como})
+    # CALIBRADO COM A VANTAGE (16/11/2026): o XAUUSD dela anda colado no futuro ativo (máx. 3.905,84 × GC 3.904,3;
+    # mín. 3.832,45 × 3.835,2; pico 3.888,9 × 3.892,6) e NÃO US$ 20 abaixo como o à vista teórico → fator 1 (régua do GC).
+    # spot_ouro() fica disponível só para referência (base_usd = quanto o à vista teórico estaria abaixo).
+    f_teor, como = spot_ouro(gc_ult); f = 1.0
+    SPOT.update({"fator": f, "base_usd": 0.0, "teorico_base_usd": round(gc_ult * (1 - f_teor), 1), "como": "régua do futuro (calibrada com a Vantage); " + como})
     P["XAUUSD"] = {d: tuple(v * f if v is not None else None for v in ohlc) for d, ohlc in P["XAUUSD"].items()}
     for k, y in FATORES_Y.items():
         try: F[k] = closes(yahoo(y, 5))
