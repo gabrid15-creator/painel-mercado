@@ -5,6 +5,7 @@ Leia o resumo do projeto abaixo antes de qualquer tarefa; ele é a memória entr
 @PROJETO.md
 
 ## Economia de tokens (prioridade)
+- **Formato das respostas (pedido dela, sempre):** só o resumo final. Um item por ponto: funciona ou não + o motivo em 1 linha. Sem tabelas longas, sem detalhe técnico, sem explicar o processo.
 - Objetivo fixo: **gastar o mínimo de tokens**. Respostas curtas, diretas, objetivas; sem rodeio, sem repetir o que ela disse, sem listar opções que não vai seguir.
 - Não reler arquivos que já estão no resumo; ler só o trecho necessário (grep/sed com linhas), não o arquivo inteiro.
 - Não refazer testes ou conferências já registrados no resumo, a não ser que ela peça ou os dados tenham mudado.
