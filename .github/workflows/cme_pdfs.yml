@@ -1,10 +1,9 @@
 name: PDFs da CME → painel
-# O PC da usuária baixa os PDFs do boletim da CME de madrugada e envia para a branch "pdfs" (só os últimos arquivos).
+# O PC da usuária baixa os PDFs do boletim da CME de madrugada, envia para a branch "pdfs" (só os últimos arquivos)
+# e dispara este workflow (o GitHub não roda workflow por push numa branch que não tem a pasta .github).
 # Aqui: lê os PDFs, roda a conferência rigorosa (confere_cme.py) e só grava na main se der 0 erro.
 # Se der erro, o job falha e o GitHub avisa por e-mail; nada é publicado.
 on:
-  push:
-    branches: [pdfs]
   workflow_dispatch:
 permissions:
   contents: write
