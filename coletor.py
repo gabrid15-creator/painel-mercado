@@ -563,7 +563,7 @@ def b_faixa():
                 melhor = None
                 for v in sorted({o["venc"] for o in cad}):
                     ln = [o for o in cad if o["venc"] == v]; pg = dt.date.fromisoformat(ln[0]["data_pregao"]); d = (dt.date.fromisoformat(v) - pg).days
-                    if d < 3: continue
+                    if sum(1 for i in range(1, d + 1) if (pg + dt.timedelta(i)).weekday() < 5) < 3: continue   # ≥ 3 dias ÚTEIS (a série de seg/ter, com fim de semana no meio, dava vol. baixa demais)
                     F = float(ln[0]["futuro"]); ks = {}
                     for o in ln: ks.setdefault(float(o["strike"]), {})[str(o["tipo"])[0]] = float(o["settle"])
                     k = min((k for k in ks if "C" in ks[k] and "P" in ks[k]), key=lambda k: abs(k - F), default=None)
@@ -780,7 +780,7 @@ def b_0dte():
             rec["cme_curto"] = pc(cm) | {"pregao": cad[0].get("data_pregao")}
             try:   # skew 25Δ da CME na 1ª semanal (≥ 3 dias): vol. implícita pelo settle (Black-76)
                 pg = dt.date.fromisoformat(cad[0]["data_pregao"])
-                v = min(o["venc"] for o in cad if (dt.date.fromisoformat(o["venc"]) - pg).days >= 3)
+                v = min(o["venc"] for o in cad if sum(1 for i in range(1, (dt.date.fromisoformat(o["venc"]) - pg).days + 1) if (pg + dt.timedelta(i)).weekday() < 5) >= 3)
                 ln = [o for o in cad if o["venc"] == v and o.get("delta") not in (None, "") and o.get("settle") not in (None, "")]
                 T = (dt.date.fromisoformat(v) - pg).days / 365; F = float(ln[0]["futuro"])
                 def b76(K, cp, prem):

@@ -891,7 +891,7 @@
     }
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
-      $('.z0-chip').textContent = 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + (z.gld_parado ? 'parado desde ' + z.gld_parado + ' NY (níveis do último pregão, gamma com o ouro ao vivo)' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
+      $('.z0-chip').textContent = 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + (z.gld_parado ? 'fechado (' + z.gld_parado.slice(0, 5) + ')' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
       const n1 = (v) => (v == null ? '—' : nf(v, 1));
       const m = z.cme || {};
       const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],
@@ -899,7 +899,7 @@
       const lin = [...niv.map(([nm, v, c, k]) => [nm, n1(v), c, k == null ? '—' : n1(k)]),
         ['Faixa até o vencimento (±' + nf(z.faixa_pct, 2) + '%' + (m.faixa_pct ? ' · CME ±' + nf(m.faixa_pct, 2) + '%' : '') + ')', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', m.faixa ? n1(m.faixa[0]) + ' – ' + n1(m.faixa[1]) : '—']];
       if (z.s1) lin.push(['±1σ', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
-      const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
+      const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, z.gld_parado ? 'GLD (último pregão)' : cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       const tol = z.gld ? z.ouro / z.gld : z.ouro * 0.003;   // 1 strike do GLD em preço de ouro (~US$ 11): GLD e CME "concordam" se ficam a até 1 degrau
       const par = { 'Teto (call wall)': [z.call_wall, m.call_wall], 'Piso (put wall)': [z.put_wall, m.put_wall], 'Gamma flip': [z.gamma_flip, m.gamma_flip], 'Max pain': [z.max_pain, m.max_pain] };
       for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; const ck = td(tr, k, 'num'); ck.style.fontWeight = 600;
@@ -923,7 +923,7 @@
       const b = document.createElement('button'); b.type = 'button'; b.className = 'aj-bt aj-bt-own'; b.textContent = '?'; b.title = 'Como ler'; b.setAttribute('aria-pressed', 'false');
       b.addEventListener('click', () => { const on = c.classList.toggle('abre'); b.setAttribute('aria-pressed', String(on)); });
       const lugar = c.querySelector(':scope > .ag-top, :scope > .tl-h, :scope > .ia-h') || c.querySelector(':scope > h2, :scope > .tl-k');
-      if (lugar && lugar.matches('.ag-top, .tl-h, .ia-h')) { lugar.firstElementChild ? lugar.firstElementChild.after(b) : lugar.appendChild(b); }   // ? logo depois do título
+      if (lugar && lugar.matches('.ag-top, .tl-h, .ia-h')) { const t0 = lugar.firstElementChild; if (t0 && t0.matches('h2')) t0.appendChild(b); else t0 ? t0.after(b) : lugar.appendChild(b); }   // ? colado no título (quebra junto com ele)
       else if (lugar) { const w = document.createElement('div'); w.className = 'ag-top'; lugar.before(w); w.append(lugar, b); }
       else c.prepend(b);
     });
@@ -933,6 +933,7 @@
     document.querySelectorAll('details.mais').forEach((d) => d.addEventListener('toggle', () => { if (d.open) drawAll(); }));   // gráficos escondidos desenham ao abrir
   }
   prepAjuda();
+  document.querySelectorAll('table.op-table').forEach((t) => { if (t.closest('.op-tablebox, .tbl-x')) return; const w = document.createElement('div'); w.className = 'tbl-x'; t.before(w); w.appendChild(t); });   // tabela larga rola dentro do card, nunca vaza
 
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
   function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); drawDJ(); } drawAI(); }
