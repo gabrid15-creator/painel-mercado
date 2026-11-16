@@ -126,7 +126,7 @@
   .ativos button[aria-pressed="true"] { border-color: var(--color-fg); box-shadow: 0 0 0 1px var(--color-fg) inset; }
   .ativos .an { display: flex; flex-direction: column; } .ativos .an b { font-size: 15px; } .ativos .an small { color: var(--color-fg-muted); font-size: 11px; }
   .ativos .sv { font-family: var(--font-anthropic-serif); font-size: 24px; line-height: 1; min-width: 2ch; text-align: right; }
-  .ativos .sv small { display: block; font-family: var(--font-anthropic-sans); font-size: 10px; text-align: right; }
+  .ativos .sv small { display: block; font-family: var(--font-anthropic-sans); font-size: 10px; line-height: 1.2; margin-top: 4px; text-align: right; }
   /* score */
   .sc-top { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
   .sc-ring { width: 170px; height: 170px; flex: none; }
@@ -325,6 +325,39 @@
   .gb-day .ai-mk { font-size: 9px; font-weight: 700; opacity: .95; }
   .ai-t tr.ai-hoje td { background: color-mix(in srgb, var(--accent) 13%, var(--color-panel)); } .ai-t tr.ai-hoje td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 700; color: var(--accent); }
   #op-eur, #op-xau { display: flex; flex-direction: column; gap: var(--cds-gap-lg); } #op-eur[hidden], #op-xau[hidden] { display: none; }
+
+  .ajuda { display: none !important; }
+  body.ver-ajuda .ajuda, .op-card.abre .ajuda, .op-tile.abre .ajuda, .rd-c.abre .ajuda { display: block !important; }
+  .aj-bt { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg-muted); font: 700 13px/1 inherit; cursor: pointer; padding: 0; margin-left: 6px; }
+  .aj-bt[aria-pressed="true"], body.ver-ajuda .aj-bt { background: var(--color-fg); color: var(--color-panel); border-color: var(--color-fg); }
+  .aj-geral { font-size: 13px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); cursor: pointer; }
+  body.ver-ajuda .aj-geral { background: var(--color-fg); color: var(--color-panel); }
+  details.mais { border: 1px dashed var(--color-border-line); border-radius: var(--cds-radius); padding: 10px 14px; }
+  details.mais > summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  details.mais > summary::before { content: "▸"; font-weight: 700; } details.mais[open] > summary::before { content: "▾"; }
+  details.mais .mais-t { font-weight: 700; font-size: 16px; }
+  details.mais .mais-c { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
+
+  /* ---- diagramação: sem quebra feia, títulos equilibrados, listas sem bolinha ---- */
+  p, li, .op-note, .mi-ia-txt, .mi-exp, td, summary { text-wrap: pretty; hyphens: none; word-break: normal; overflow-wrap: normal; }
+  h1, h2, h3, .tl-k, .mais-t { text-wrap: balance; hyphens: none; }
+  .ajuda ul, ul.ajuda, .fx-ler ul { list-style: none !important; padding-left: 0 !important; margin: 8px 0 0 !important; }
+  .ajuda li, ul.ajuda > li { padding: 6px 0; border-top: 1px dashed var(--color-border-line); line-height: 1.55; }
+  .ajuda li:first-child { border-top: 0; }
+  .op-note.ajuda, .mi-exp.ajuda, .fx-ler.ajuda, ul.ajuda { background: color-mix(in srgb, var(--color-fg) 4%, transparent); border-radius: 10px; padding: 10px 12px !important; border: 0 !important; margin: 4px 0 !important; font-size: 13px; line-height: 1.55; }
+  .ag-top { justify-content: flex-start; }
+  .tl-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .op-card h2 { font-size: 18px; font-weight: 650; line-height: 1.25; }
+  .op-card h3 { font-size: 15px; font-weight: 650; }
+  .op-head h1 { letter-spacing: -.01em; }
+  .sec-t { display: flex; align-items: center; gap: 12px; margin: 10px 0 -4px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-fg-muted); }
+  .sec-t::after { content: ""; flex: 1; height: 1px; background: var(--color-border-line); }
+
+  .op-tile, .rd-c { position: relative; }
+  .ag-top > :first-child, .tl-h > :first-child, .ia-h > :first-child { margin-right: 0 !important; }
+  .ag-top > .aj-bt + *, .tl-h > .aj-bt + *, .ia-h > .aj-bt + * { margin-left: auto; }
+  .aj-bt { width: 20px; height: 20px; font-size: 11px; margin-left: 2px; }
+  .rd-c > .ag-top { flex-wrap: nowrap; justify-content: flex-start; }
 </style>
 </head>
 <body>
@@ -335,11 +368,13 @@
       <button type="button" class="op-tab" data-tab="sec-mi" aria-selected="true">Mercado</button>
       <button type="button" class="op-tab" data-tab="sec-dias" aria-selected="false">Dias de alto impacto</button>
     </nav>
+    <button type="button" class="aj-geral" aria-pressed="false" title="Mostrar ou esconder todas as explicações">? Explicações</button>
   </div>
 
   <!-- ============================== MERCADO ============================== -->
   <div class="op-wrap op-sec" id="sec-mi">
     <header class="op-head"><h1>Inteligência de mercado</h1><p class="mi-take">Carregando…</p></header>
+    <div class="sec-t">Panorama do dia</div>
     <section class="op-card mi-iag"><div class="ia-h"><h2>Leitura do dia</h2><span class="tl-chip ia-chip">✦ IA</span><span class="ia-quando mi-ia-geral-q"></span></div><p class="mi-ia-txt mi-ia-geral">—</p></section>
 
     <section class="op-tiles">
@@ -368,6 +403,7 @@
         <span class="mi-exp">Dólar contra 6 moedas (57% é o euro). Subindo: EURUSD, GBPUSD e ouro caem; USDJPY e USDCHF sobem. A variação de 20 dias dá a tendência.</span></div>
     </section>
 
+    <div class="sec-t">Macro: o que move o dólar</div>
     <section class="op-card radar"><div class="ag-top"><h2>Radar institucional</h2><span class="tl-chip ia-chip">o que as mesas olham</span></div>
       <p class="op-note"><b>Como ler:</b> são os termômetros que mesas de bancos e fundos olham antes do preço. <b>Liquidez</b> diz se há dinheiro entrando no sistema (combustível para Nasdaq e ouro). <b>Estresse</b> mostra se o medo é pontual ou sistêmico: <b>VIX ÷ VIX 3 meses</b> acima de 1 = pânico de curto prazo, costuma marcar fundos de bolsa quando volta abaixo de 1; <b>MOVE</b> alto = juros instáveis, dólar e iene ganham; <b>NFCI</b> acima de 0 = crédito travando, risco para tudo. <b>Surpresa</b> compara a economia de cada país com o que se esperava: moeda com surpresa positiva tende a se valorizar contra a de surpresa negativa (ex.: <b>USD +40 e EUR −20</b> favorece EURUSD caindo). O <b>regime</b> dos EUA cruza surpresa de crescimento e de inflação: <b>estagflação</b> favorece ouro e franco; <b>cenário ideal</b> favorece Nasdaq.</p>
       <div class="rd-g">
@@ -385,6 +421,7 @@
       <table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia</th><th class="num">5 dias</th><th>Leitura (dia)</th></tr></thead><tbody></tbody></table>
     </section>
 
+    <div class="sec-t">Ativo: níveis e opções</div>
     <div class="ativos-fixo"><span class="tl-k">Escolha o ativo</span><div class="ativos" role="group" aria-label="Ativo"></div></div>
 
     <section class="op-card mp">
@@ -397,16 +434,7 @@
         <div><h3 style="margin:0 0 4px;font-size:15px">Semana</h3><div class="op-note mp-sem-q"></div><table class="op-table mp-t mp-sem"><thead><tr><th>Nível</th><th class="num">Preço</th><th class="num">Chance agora</th><th>Leitura</th></tr></thead><tbody></tbody></table></div>
       </div>
       <div class="mp-teste"><label>Teste um preço: <input type="text" inputmode="decimal" class="mp-in" placeholder="ex.: 3950" style="font:inherit;width:110px;padding:3px 6px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg)"></label> <span class="mp-out op-note"></span></div>
-      <p class="op-note mp-val" style="margin-top:10px"></p>
-    </section>
-
-    <div class="atv-cards">
-    <section class="op-card rg"><div class="ag-top"><h2>Regime · o que está mexendo o ativo agora</h2><span class="tl-chip ia-chip">dólar e juros</span></div>
-      <p class="op-note"><b>Como ler:</b> quanto o ativo anda junto com o dólar (DXY) e os juros dos EUA nas <b>últimas 26 semanas</b>. <b>Correlação</b> de −1 a +1: perto de ±1 = andam juntos; perto de 0 = sem ligação. <b>Reação</b> = quanto o ativo costuma andar quando o juro sobe 10 bps (ou o DXY sobe 1%). <b>⚠ quebrou</b> = ligação invertida em relação ao histórico. <b>Precisão (teste 2016+):</b> quando a ligação está <b>forte</b> (≥ 0,4), ela mantém a direção nas 13 semanas seguintes em <b>91–100%</b> das vezes com o DXY e <b>57–90%</b> com os juros (melhor no ouro e no iene). O valor exato muda (erro médio ±0,15 a ±0,40): use a <b>direção e a força</b>, não o número. Explica o movimento, <b>não prevê</b> o preço.</p>
-      <table class="op-table rg-t"><thead><tr><th>Fator</th><th class="num">Correlação 26s</th><th class="num">52s</th><th class="num">Reação</th><th>Ligação</th></tr></thead><tbody></tbody></table>
-    </section>
-
-    <section class="op-card fx"><div class="ag-top"><h2>Faixa esperada pelas opções</h2><span class="tl-chip ia-chip">o que os grandes precificam</span></div>
+  <div class="fx mp-fx"><h3 style="margin:14px 0 4px;font-size:15px">Faixa esperada pelas opções <span class="op-note" style="font-weight:400">· de onde vem o σ</span></h3>
       <div class="op-note fx-ler"><b>Como ler:</b> até onde o preço costuma ir, calculado pelo preço das opções (volatilidade implícita). Mede <b>tamanho</b> do movimento, não direção; parte do preço atual.
         <ul style="margin:6px 0 0;padding-left:18px;line-height:1.7">
           <li><span class="lv lv-s1">±1σ</span> faixa normal: o preço fecha dentro em ~2 de cada 3 vezes (ouro, testado: 74% na semana).</li>
@@ -415,7 +443,14 @@
           <li><b>Fontes:</b> ouro tem duas (índice GVZ da Cboe e opções da CME). Moedas: volatilidade dos últimos 21 dias + prêmio típico (testada: ±1σ 72–73%, ±2σ 93–95%).</li>
         </ul></div>
       <table class="op-table fx-t"><thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span> normal</th><th class="num"><span class="lv lv-s2">±2σ</span> extremo</th></tr></thead><tbody></tbody></table>
+    </div>
+      <p class="op-note mp-val ajuda" style="margin-top:10px"></p>
     </section>
+
+    <div class="atv-cards">
+
+
+
 
     <section class="op-card z0"><div class="ag-top"><h2>0DTE ouro · opções do vencimento mais próximo</h2><span class="tl-chip ia-chip z0-chip">—</span></div>
       <p class="op-note"><b>Como ler:</b> opções do vencimento mais próximo (o GLD vence todo dia às 16h de NY: <b>18h de Brasília</b>, 17h no horário de verão americano), no preço do ouro à vista. <span class="lv lv-cw">Teto</span> = onde há mais calls (resistência). <span class="lv lv-pw">Piso</span> = onde há mais puts (suporte). <span class="lv lv-gf">Gamma flip</span>: acima, os bancos tendem a <b>segurar</b> o preço; abaixo, a <b>acelerar</b>. <span class="lv lv-mp">Max pain</span> = onde os compradores de opções mais perdem. <span class="lv lv-rg">Faixa</span> = movimento que o mercado paga até o vencimento; <span class="lv lv-s1">±1σ</span> ≈ 68%. <b>GLD</b>: ao vivo (15 min de atraso, 11h30–18h). <b>CME</b>: fechamento anterior, do PDF do boletim; só vencimentos de sexta; convertida do futuro para o à vista. Linha <b>dourada "✓ concordam"</b> = GLD e CME a até 1 strike do GLD (~US$ 11): nível mais forte. <b>Precisão: sem teste ainda</b> (mede após ~30 vencimentos).</p>
@@ -430,13 +465,22 @@
       <div class="mi-chart z0j-chart"></div>
     </section>
 
+
+    </div>
+
+
+    <details class="mais"><summary><span class="mais-t">Mais sobre o ativo e o mercado</span><span class="op-note">regime, CTA, preço e ATR, sazonalidade, COT, correlações, Goldbach e tabela macro</span></summary>
+    <div class="mais-c">
+    <div class="atv-cards">
+    <section class="op-card rg"><div class="ag-top"><h2>Regime · o que está mexendo o ativo agora</h2><span class="tl-chip ia-chip">dólar e juros</span></div>
+      <p class="op-note"><b>Como ler:</b> quanto o ativo anda junto com o dólar (DXY) e os juros dos EUA nas <b>últimas 26 semanas</b>. <b>Correlação</b> de −1 a +1: perto de ±1 = andam juntos; perto de 0 = sem ligação. <b>Reação</b> = quanto o ativo costuma andar quando o juro sobe 10 bps (ou o DXY sobe 1%). <b>⚠ quebrou</b> = ligação invertida em relação ao histórico. <b>Precisão (teste 2016+):</b> quando a ligação está <b>forte</b> (≥ 0,4), ela mantém a direção nas 13 semanas seguintes em <b>91–100%</b> das vezes com o DXY e <b>57–90%</b> com os juros (melhor no ouro e no iene). O valor exato muda (erro médio ±0,15 a ±0,40): use a <b>direção e a força</b>, não o número. Explica o movimento, <b>não prevê</b> o preço.</p>
+      <table class="op-table rg-t"><thead><tr><th>Fator</th><th class="num">Correlação 26s</th><th class="num">52s</th><th class="num">Reação</th><th>Ligação</th></tr></thead><tbody></tbody></table>
+    </section>
     <section class="op-card cta"><div class="ag-top"><h2>CTA · fundos de tendência (estimativa)</h2><span class="tl-chip ia-chip">fluxo sistemático</span></div>
       <p class="op-note"><b>Como ler:</b> CTAs são fundos que seguem tendência por regra. <b>Posição</b> de −100% (todos vendidos) a +100% (todos comprados), média das janelas de 1, 3, 6 e 12 meses. <b>Gatilho</b> = preço que, se cruzado, vira uma janela e força compra ou venda. <b>Teste (2016+):</b> no ouro o modelo acompanha a posição real dos fundos no COT (correlação 0,59) e acerta 54,5% em 20 dias: ajuda, mas pouco. Em iene, franco e euro <b>não passou no teste</b> e foi retirado.</p>
       <table class="op-table cta-t"><thead><tr><th>Ativo</th><th class="num">Posição</th><th>Gatilho mais próximo</th><th class="num">Distância</th></tr></thead><tbody></tbody></table>
     </section>
     </div>
-
-
     <section class="op-tiles">
       <div class="op-card op-tile"><span class="tl-k">Preço</span><span class="v mi-a" data-f="preco">—</span><ul class="tl-l mi-a-var"></ul><span class="mi-exp">Último preço e variação em 1 dia, 5 dias (semana), 20 dias (mês) e no ano.</span></div>
       <div class="op-card op-tile"><span class="tl-k">Valor justo pelos juros</span><span class="v mi-a" data-f="vj_valor">—</span><ul class="tl-l mi-a-vj"></ul><span class="mi-exp">Preço que o ativo "deveria" ter pelo fator de juros que mais o explica no último ano. Abaixo do justo = barato (tende a subir até ele), acima = caro. z além de ±2 = muito esticado. Só confie se o R² for 0,3 ou mais.</span></div>
@@ -501,6 +545,10 @@
       <div class="mi-chart mi-hist"></div>
     </section>
 
+    </div>
+    </details>
+
+    <div class="sec-t">Agenda e notícias</div>
     <div class="op-grid">
       <section class="op-card"><div class="ag-top"><h2>Agenda da semana (alto e médio impacto)</h2><span class="ag-live">conectando…</span></div>
         <p class="op-note">Horário de Brasília. <span class="ag-red"></span> = red folder. O valor <b>Atual</b> aparece sozinho segundos depois da divulgação: <b class="mi-pos">▲ verde</b> = veio acima da previsão, <b class="mi-neg">▼ vermelho</b> = abaixo.</p>

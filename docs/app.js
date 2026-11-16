@@ -860,7 +860,7 @@
       } }
     // Faixa das opções
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv);
-    if (mostra('.op-card.fx', fr)) { const t = $('.fx-t tbody'); t.replaceChildren(); const k = casas(fr.preco);
+    if (mostra('.mp-fx', fr)) { const t = $('.fx-t tbody'); t.replaceChildren(); const k = casas(fr.preco);
       const linha = (f) => { const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
         cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr); };
       const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 3; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; t.appendChild(tr); return e; };
@@ -912,6 +912,27 @@
       drawZ0b(z);
     }
   }
+
+  // ---------------------------------------------------------------- ajuda: "Como ler" e explicações ficam escondidos; botão "?" em cada card e um geral no topo
+  function prepAjuda() {
+    const eAjuda = (e) => e.matches('.mi-exp, .fx-ler, .mi-how') || (e.matches('p.op-note') && (/^(Como ler|Como funciona|Contratos por strike|Contratos em aberto por strike)/.test(e.textContent.trim()) || (e.classList.length === 1 && e.textContent.trim().length > 60)))   // texto fixo longo = explicação;
+    document.querySelectorAll('.mi-exp, .fx-ler, .mi-how, p.op-note').forEach((e) => { if (eAjuda(e)) e.classList.add('ajuda'); });
+    document.querySelectorAll('.op-card, .rd-c').forEach((c) => {
+      const minha = [...c.querySelectorAll('.ajuda')].filter((a) => a.closest('.op-card, .rd-c') === c || (c.matches('.radar') && a.closest('.op-card') === c));
+      if (!minha.length || c.querySelector(':scope > .ag-top .aj-bt, :scope > .tl-h .aj-bt, :scope .aj-bt-own')) return;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'aj-bt aj-bt-own'; b.textContent = '?'; b.title = 'Como ler'; b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => { const on = c.classList.toggle('abre'); b.setAttribute('aria-pressed', String(on)); });
+      const lugar = c.querySelector(':scope > .ag-top, :scope > .tl-h, :scope > .ia-h') || c.querySelector(':scope > h2, :scope > .tl-k');
+      if (lugar && lugar.matches('.ag-top, .tl-h, .ia-h')) { lugar.firstElementChild ? lugar.firstElementChild.after(b) : lugar.appendChild(b); }   // ? logo depois do título
+      else if (lugar) { const w = document.createElement('div'); w.className = 'ag-top'; lugar.before(w); w.append(lugar, b); }
+      else c.prepend(b);
+    });
+    const g = $('.aj-geral'); const set = (on) => { document.body.classList.toggle('ver-ajuda', on); if (g) g.setAttribute('aria-pressed', String(on)); try { localStorage.setItem('verAjuda', on ? '1' : ''); } catch (e) {} };
+    if (g) g.addEventListener('click', () => { set(!document.body.classList.contains('ver-ajuda')); drawAll(); });
+    try { set(!!localStorage.getItem('verAjuda')); } catch (e) {}
+    document.querySelectorAll('details.mais').forEach((d) => d.addEventListener('toggle', () => { if (d.open) drawAll(); }));   // gráficos escondidos desenham ao abrir
+  }
+  prepAjuda();
 
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
   function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); drawDJ(); } drawAI(); }
