@@ -18,7 +18,7 @@ permissions:
 jobs:
   coleta:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 11
     permissions:
       contents: write
     concurrency:
@@ -39,6 +39,8 @@ jobs:
           timeout 300 python3 coletor.py out || true
           [ -f out/mi_ia.json ] || cp docs/data/mi_ia.json out/mi_ia.json
           cat out/mi_status.json || true
+      - name: Opções de balcão (DTCC, câmbio)
+        run: timeout 150 python3 dtcc.py out || true
       - name: Opções (arquivo da tarefa noturna no Google Drive)
         run: python3 opcoes_drive.py out || true; python3 cme_local.py out || true
       - name: Leitura da IA (de hora em hora ou depois de red folder)

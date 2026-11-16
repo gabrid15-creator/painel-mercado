@@ -492,6 +492,12 @@
       <p class="op-note"><b>Contratos por strike</b> (no dólar/iene): puts à esquerda, calls à direita, número = contratos. Barra grande = muita gente posicionada ali → o preço costuma reagir perto. Linha cheia = preço atual; tracejadas = teto, piso, gamma flip e max pain; sombra azul = faixa até o vencimento. Strike sem barra = sem contrato. <b>Em aberto</b> = CME. <b>PCR</b> (puts ÷ calls) embaixo: acima de 1 = <b style="color:#c8443a">+Puts</b> (mais proteção/aposta na queda), abaixo de 1 = <b style="color:#1f8a5b">+Calls</b>. É retrato do posicionamento: o PCR foi testado e <b>não prevê direção</b> sozinho.</p>
       <div class="mi-chart z0j-chart"></div>
     </section>
+    <section class="op-card otc" hidden><div class="ag-top"><h2>Balcão (DTCC) · opções de câmbio dos bancos</h2><span class="tl-chip ia-chip otc-chip">—</span></div>
+      <p class="op-note"><b>Como ler:</b> opções de câmbio negociadas <b>direto entre bancos e fundos</b> (fora da bolsa), publicadas pela DTCC segundos depois do negócio, de graça. É o mercado grande do câmbio, bem maior que a CME. Cada barra = <b>soma dos negócios ainda vivos</b> naquele strike e vencimento, em <b>US$ milhões</b> (não é "contratos em aberto" oficial: é a soma dos negócios dos últimos 60 dias que não foram encerrados). <span class="lv lv-cw">Teto</span> = strike com mais calls acima do preço; <span class="lv lv-pw">Piso</span> = strike com mais puts abaixo. Vencimentos grandes perto do preço costumam <b>atrair e segurar</b> o preço até o corte (geralmente <b>10h de NY = 12h de Brasília</b>, 11h no horário de verão americano) — hipótese ainda <b>sem teste</b> (o painel grava todo dia para medir). Limites: só negócios com uma parte americana (fatia grande, não o mercado todo); negócios gigantes aparecem com teto de tamanho (marcados com +). Comece pelos vencimentos mais curtos (hoje, amanhã).</p>
+      <div class="op-legend otc-bt"></div>
+      <table class="op-table otc-t"><tbody></tbody></table>
+      <div class="mi-chart otc-chart"></div>
+    </section>
 
 
     </div>

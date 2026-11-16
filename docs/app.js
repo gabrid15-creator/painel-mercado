@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -686,7 +686,7 @@
     const temVol = pf.some((r) => r[4] != null), W = Math.max(300, el.clientWidth), cel = W < 600, bh = cel ? 16 : 18, gap = 5;
     const m = { t: temVol ? 38 : 22, r: cel ? (o.lv2 ? 116 : 100) : 132, b: 6, l: cel ? 46 : 54 }, H = m.t + m.b + pf.length * (bh + gap) - gap;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
-    const tx = (v, vv) => nf(v, 0) + (temVol && !cel ? ' | ' + nf(vv || 0, 0) : '');   // no celular só o em aberto (volume no toque)
+    const dn = o.dec ?? 0, tx = (v, vv) => nf(v, dn) + (temVol && !cel ? ' | ' + nf(vv || 0, 0) : '');   // no celular só o em aberto (volume no toque)
     const cw = (cel ? 5.8 : 6.4), lmax = d3.max(pf, (r) => Math.max(tx(r[1], r[4]).length, tx(r[2], r[5]).length)) || 4;
     const x0 = m.l, x1 = W - m.r, xm = (x0 + x1) / 2, half = Math.max(30, (x1 - x0) / 2 - lmax * cw - 10);   // sobra para o número na ponta (mede o maior)
     const mx = d3.max(pf, (r) => Math.max(r[1], r[2], r[4] || 0, r[5] || 0)) || 1, w = (v) => (v / mx) * half;
@@ -725,7 +725,7 @@
       if (p || vp) svg.append('text').attr('x', xm - Math.max(w(p), w(vp || 0)) - 4).attr('y', yy + bh / 2 + 4).attr('text-anchor', 'end').style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(tx(p, vp));
       if (c || vc) svg.append('text').attr('x', xm + Math.max(w(c), w(vc || 0)) + 4).attr('y', yy + bh / 2 + 4).style('font-size', fs).style('fill', mu).attr('class', 'bb-n').text(tx(c, vc));
       svg.append('rect').attr('x', 0).attr('y', yy - gap / 2).attr('width', W).attr('height', bh + gap).attr('fill', 'transparent')
-        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, cs + 1), ...(o.rotulo ? [o.rotulo] : []), 'Calls (verde): ' + nf(c, 0), 'Puts (vermelho): ' + nf(p, 0), 'Total: ' + nf(tot, 0),
+        .on('mousemove', (ev) => show(el, tp, ev, ['Strike ' + nf(k, cs + 1), ...(o.rotulo ? [o.rotulo] : []), 'Calls (verde): ' + nf(c, dn), 'Puts (vermelho): ' + nf(p, dn), 'Total: ' + nf(tot, dn),
           ...(temVol ? ['Volume do dia (GLD): ' + nf(vc || 0, 0) + ' calls / ' + nf(vp || 0, 0) + ' puts'] : []), ...(ex || [])])).on('mouseleave', () => { tp.hidden = true; });
     });
     svg.selectAll('.bb-n').each(function () { const bb = this.getBBox(); svg.insert('rect', () => this).attr('x', bb.x - 2).attr('y', bb.y).attr('width', bb.width + 4).attr('height', bb.height).attr('rx', 2).style('fill', 'var(--color-panel)'); });   // fundo: linha do nível não corta o número
@@ -755,6 +755,7 @@
 
   // 0DTE ouro: borboleta única, GLD (ao vivo) + CME juntos na grade de strikes do GLD (1 degrau ≈ US$ 11).
   // Barra clara = contratos em aberto (GLD + CME em equivalente GLD); barra escura = volume do dia (GLD). Níveis do GLD tracejados, da CME pontilhados.
+  const otcSel = {};
   function drawZ0b(z) {
     const el = $('.z0b-chart'); if (!el) return;
     const rat = z.gld && z.ouro ? z.ouro / z.gld : 10.9, fat = rat;   // 1 contrato CME (100 oz) ≈ ouro ÷ GLD contratos do GLD
@@ -898,6 +899,25 @@
         const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v ? n3(v[0]) + ' – ' + n3(v[1]) : 'sem par call/put no dinheiro', 'num').style.fontWeight = 600; t.appendChild(tr); }
       const tr = document.createElement('tr'); td(tr, 'Regime: ' + (zj.regime || '—')); td(tr, nf(zj.abertos, 0) + ' em aberto · ' + zj.n_strikes + ' strikes' + (zj.n_strikes < 10 ? ' (poucos: leia com cautela)' : ''), 'num'); t.appendChild(tr);
       drawZ0j(zj);
+    }
+    // Balcão (DTCC): opções de câmbio entre bancos, por vencimento (mais curtos primeiro)
+    const ot = (D('mi_otc').data || [])[0], op = ot && (ot.pares || []).find((x) => x.ativo === atv);
+    if (mostra('.op-card.otc', op && op.vencimentos && op.vencimentos.length)) {
+      const usd = (mi) => (mi >= 1000 ? 'US$ ' + nf(mi / 1000, 1) + ' bi' : 'US$ ' + nf(mi, 0) + ' mi');
+      const vs = op.vencimentos, cs = atv === 'USDJPY' ? 2 : 4, hoje = new Date().toISOString().slice(0, 10), ama = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+      if (!vs.some((v) => v.venc === otcSel[atv])) otcSel[atv] = vs[0].venc;
+      const m = ot.meta || {}; $('.otc-chip').textContent = (m.historico_completo ? '' : 'carregando histórico (' + m.dias_carregados + ' dias) · ') + 'DTCC até ' + (m.pacote_ate ? m.pacote_ate.slice(11, 16) + ' UTC' : '—');
+      const nomeV = (v) => (v === hoje ? 'hoje' : v === ama ? 'amanhã' : br(v).slice(0, 5));
+      const bt = $('.otc-bt'); bt.replaceChildren(); bt.append('Vencimento: ');
+      for (const v of vs.slice(0, 6)) { const b = document.createElement('button'); b.type = 'button'; b.className = 'op-btn'; const on = v.venc === otcSel[atv];
+        b.textContent = (on ? '● ' : '○ ') + nomeV(v.venc) + ' · ' + usd(v.calls_mi + v.puts_mi); b.setAttribute('aria-pressed', String(on)); b.style.fontWeight = on ? 700 : 400; b.style.opacity = on ? 1 : 0.6;
+        b.addEventListener('click', () => { otcSel[atv] = v.venc; drawAtv(); }); bt.appendChild(b); }
+      const v = vs.find((x) => x.venc === otcSel[atv]), t = $('.otc-t tbody'); t.replaceChildren();
+      const nv = [['Teto (mais calls acima)', v.teto, 'lv-cw'], [NOME[atv] + ' agora', op.preco, 'lv-now'], ['Piso (mais puts abaixo)', v.piso, 'lv-pw']].filter((x) => x[1] != null).sort((a, b) => b[1] - a[1]);
+      for (const [nm, val, c] of nv) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, nf(val, nm.endsWith('agora') ? (op.casas || 3) : cs), 'num').style.fontWeight = 600; t.appendChild(tr); }
+      { const tr = document.createElement('tr'); td(tr, 'Vence ' + nomeV(v.venc) + ' (corte de NY, 12h de Brasília)'); td(tr, nf(v.negocios, 0) + ' negócios · ' + usd(v.calls_mi) + ' em calls / ' + usd(v.puts_mi) + ' em puts' + (v.teto_limite ? ' · ' + v.teto_limite + ' acima do teto de divulgação' : ''), 'num'); t.appendChild(tr); }
+      drawBorb($('.otc-chart'), (v.perfil || []).map((r) => [r[0], r[1], r[2], [r[3] + ' negócio(s)', 'valores em US$ milhões']]), { preco: op.preco, teto: v.teto, piso: v.piso },
+        { casas: cs, dec: 0, rotulo: 'Negócios vivos (US$ milhões)', pcr: [v.puts_mi, v.calls_mi], pcrRot: 'tamanho em US$, vencimento ' + nomeV(v.venc) });
     }
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
