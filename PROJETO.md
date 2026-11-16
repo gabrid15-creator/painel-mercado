@@ -74,6 +74,7 @@
 | Paredes de **balcão (DTCC)**, 2 anos, inclusive só 0–2 dias | **Nada** (ímã, range, parada nas paredes = acaso). | Card escondido |
 | Sinais de direção (PCR, GVZ, SKEW, juros, score, SMT, calendário…) | **Nenhum** prevê direção com segurança. | Não entra |
 | **Ping-pong × tendência** no ouro (2 anos 1 h; eficiência = |fech − abert| ÷ caminho percorrido) | Nada antecipa com dado grátis: dia anterior, GVZ (nível, variação, prêmio), gap, dia da semana, madrugada até 10h → todos ~1/3 por lado. | Aguardando opções (§6) |
+| σ das opções (GVZ) curto × longo → lateral × tendência? (559 dias, GC 1 h) | **Tamanho sim, formato não.** σ curto (~US$ 30): andou US$ 21 líquido, range US$ 41. σ longo (~US$ 83): US$ 62 e US$ 126 (t = 11,6 e 23; estável nas 2 metades). Mas a proporção ping-pong × tendência é igual (~1/3 cada, t = −1,3): tudo cresce junto. | Usar o σ para dimensionar grade e stop (em σ, não em US$) |
 | Qual σ é mais preciso (ouro) | GVZ: largo no 1σ (78%), certo no 2σ (96%). Nenhuma escala acerta 68% e 95% juntos (caudas grossas). | Mapa usa GVZ |
 | Pesquisa | S&P: futuro puxado ao strike no dinheiro no vencimento das opções sobre o futuro (1992–2009), não mais em 2016–2025. Gamma negativo → momentum no fim do dia (Baltussen 2021). SpotGamma: S&P fecha no movimento esperado em 76%. | Hipóteses a testar |
 

@@ -196,3 +196,10 @@ A aba **Paredes de opções** foi removida em 12/11/2026 (o painel já mostra 0D
 
 ## 7. Preferências
 Português · respostas curtas e econômicas · capricho visual: nada sobreposto nem vazando do card (rodar varredura de sobreposição **e de vazamento** no PC (1200), celular (390) e celular estreito/letra grande (340), claro e escuro, ouro/iene/euro, com e sem ajuda, **usando cópia dos dados atuais da branch `dados`** — o teste local sem rede usa a reserva `docs/data` antiga e esconde problemas) antes de publicar · "Como ler" em todo indicador novo · horário de Brasília · **opções: sempre incluir a CME (mercado muito maior) junto com o GLD, em qualquer análise ou teste**; só entra no painel o que passar em teste estatístico (previsão; retrato não serve).
+
+
+## 16/11/2026 — σ das opções × ping-pong/tendência (`testes/pingpong_sigma.py`)
+Hipótese da usuária: σ curto = lateral, σ longo = tendência. GC=F 1 h, sessão 18h NY, 559 dias (07/2024–11/2026), σ = GVZ da véspera.
+Terços por σ em US$: curto σ 29,7 → deslocamento 21,1, range 41,3, eficiência 0,240, ping-pong 31,6%, tendência 33,2%; médio 50,1 → 37,5 / 75,1 / 0,232 / 36,0% / 31,7%; longo 82,9 → 62,5 / 126,5 / 0,228 / 31,7% / 30,6%.
+Correlação σ × deslocamento r 0,44 (t 11,6), σ × range r 0,70 (t 23,4), σ × eficiência r −0,06 (t −1,3); σ relativo à média de 60 dias × eficiência r 0,007. Estável nas duas metades.
+Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong × tendência). Deslocamento líquido médio ≈ 0,75σ em qualquer regime. Uso prático: grade e stop medidos em σ do dia.
