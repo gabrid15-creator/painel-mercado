@@ -1,0 +1,37 @@
+   H1 Ouro: n=579 t=+1.2 metades r=+0.04/+0.05 mesmo lado 50%
+   H2 Ouro: n=579 t=+1.2 metades r=+0.10/+0.03 mesmo lado 53%
+   H3 Ouro: n=440 t=+1.3 metades r=+0.07/+0.07 mesmo lado 52%
+   H4 Ouro: n=171 t=-0.4 metades r=-0.04/-0.04 mesmo lado 48%
+   H7 Ouro: n=104 t=-1.6 metades r=-0.17/-0.15 mesmo lado 50%
+   H5 Ouro: tendência após dia estreito 40% (n=68) × outros 33%, t=+1.1
+✅ H6 Ouro: n=3664 t=-3.9 metades r=-0.09/-0.04 mesmo lado 46%
+   H1 Iene: n=579 t=+1.1 metades r=+0.03/+0.08 mesmo lado 52%
+   H2 Iene: n=579 t=-1.6 metades r=-0.10/+0.00 mesmo lado 53%
+   H3 Iene: n=445 t=+0.5 metades r=-0.00/+0.07 mesmo lado 53%
+   H4 Iene: n=167 t=+0.5 metades r=+0.14/-0.13 mesmo lado 51%
+   H7 Iene: n=104 t=+0.3 metades r=+0.14/-0.15 mesmo lado 43%
+   H5 Iene: tendência após dia estreito 33% (n=91) × outros 33%, t=-0.1
+   H6 Iene: n=3764 t=-0.9 metades r=-0.02/-0.01 mesmo lado 49%
+   H1 Euro: n=578 t=+0.1 metades r=-0.01/+0.04 mesmo lado 52%
+   H2 Euro: n=578 t=-1.4 metades r=-0.06/-0.05 mesmo lado 50%
+   H3 Euro: n=389 t=-0.6 metades r=-0.01/-0.05 mesmo lado 49%
+   H4 Euro: n=155 t=+0.1 metades r=-0.12/+0.15 mesmo lado 54%
+   H7 Euro: n=103 t=+2.4 metades r=+0.15/+0.37 mesmo lado 52%
+   H5 Euro: tendência após dia estreito 39% (n=64) × outros 34%, t=+0.9
+   H6 Euro: n=3769 t=-1.3 metades r=-0.02/-0.02 mesmo lado 49%
+   H1 Franco: n=579 t=+0.8 metades r=+0.00/+0.08 mesmo lado 48%
+   H2 Franco: n=579 t=-0.2 metades r=-0.05/+0.05 mesmo lado 52%
+   H3 Franco: n=376 t=-0.5 metades r=-0.01/-0.04 mesmo lado 51%
+   H4 Franco: n=157 t=-0.6 metades r=-0.17/+0.05 mesmo lado 50%
+   H7 Franco: n=104 t=+1.7 metades r=-0.05/+0.37 mesmo lado 60%
+   H5 Franco: tendência após dia estreito 32% (n=81) × outros 34%, t=-0.4
+   H6 Franco: n=3770 t=-1.9 metades r=-0.04/-0.03 mesmo lado 49%
+   H1 Libra: n=579 t=+0.8 metades r=+0.04/+0.03 mesmo lado 51%
+   H2 Libra: n=579 t=+0.2 metades r=-0.00/+0.02 mesmo lado 51%
+   H3 Libra: n=377 t=+2.1 metades r=+0.20/+0.01 mesmo lado 52%
+   H4 Libra: n=168 t=-0.0 metades r=-0.08/+0.07 mesmo lado 53%
+   H7 Libra: n=104 t=+2.9 metades r=+0.16/+0.41 mesmo lado 55%
+   H5 Libra: tendência após dia estreito 43% (n=70) × outros 31%, t=+2.0
+   H6 Libra: n=3764 t=-0.8 metades r=-0.03/-0.00 mesmo lado 50%
+
+PASSOU: [('Ouro', 'H6', -3.9)]

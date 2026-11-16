@@ -1,0 +1,5 @@
+Ouro: n=672 t=-1.0 metades r=-0.04/-0.04 | segunda vai contra o gap 50% | gap fecha no dia 62%
+Iene: n=640 t=-0.1 metades r=+0.09/-0.10 | segunda vai contra o gap 50% | gap fecha no dia 70%
+Euro: n=659 t=+4.0 metades r=+0.26/+0.01 | segunda vai contra o gap 49% | gap fecha no dia 77%
+Franco: n=651 t=+1.5 metades r=+0.10/+0.01 | segunda vai contra o gap 50% | gap fecha no dia 86%
+Libra: n=660 t=-1.6 metades r=-0.19/+0.05 | segunda vai contra o gap 50% | gap fecha no dia 75%

@@ -222,3 +222,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Bloco "Dia normal" (todos os 5 ativos): metade dos dias ±q50·σ, 9 em 10 ±q90·σ, amplitude típica, amplitude de hoje até agora.
 - `testes/range_cedo.py`: amplitude 18h→9h NY prevê a de 9h→17h. Ouro GVZ r 0,30 t 7,3; 6J r 0,50 t 13,7; 6E 0,31; 6S 0,40; 6B 0,31. Cortes (σ): terço baixo <~0,8, alto ≥~1,2; resto mediano baixo/médio/alto: ouro 0,75/0,79/0,95, 6J 0,48/0,62/0,85, 6E 0,72/0,82/1,01, 6S 0,70/0,75/0,91, 6B 0,71/0,81/0,99.
 - `amp_cedo` no `mi_faixa.mapa`, calculado com futuros (6E/6B/6J/6S/GC) entre 9h e 17h NY.
+
+## 16/11/2026 — regras de trader (H1–H7) e gap de domingo
+- 35 testes; nenhum útil. Ouro CLV t −3,9 (metades −0,09/−0,04, acerto 54%) = fraco. Gap domingo: euro t 4,0 só na 1ª metade; "gap fecha 62–86%" é porque o gap é pequeno, não sinal.
