@@ -174,7 +174,7 @@
     const g0 = ia('GERAL'); $('.mi-ia-geral').textContent = g0 ? g0.texto : '—'; $('.mi-ia-geral-q').textContent = g0 ? 'escrita em ' + br(g0.gerado_em) : '';
     $('.sc-nome').textContent = atv + ' · ' + NOME[atv];
     { const sp = ((D('mi_geral').data || [])[0] || {}).ouro_spot; let e = $('.sc-spot'); if (!e) { e = document.createElement('span'); e.className = 'sc-spot'; $('.sc-nome').after(e); }
-      e.textContent = ''; }
+      e.textContent = atv === 'XAUUSD' && sp && sp.base_usd ? ' (régua da Vantage · futuro − US$ ' + nf(sp.base_usd, 1) + ')' : ''; }
     const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) : '';
     drawMapa();
 

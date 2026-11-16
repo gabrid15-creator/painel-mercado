@@ -190,8 +190,11 @@ def b_precos():
     # CALIBRADO COM A VANTAGE (16/11/2026): o XAUUSD dela anda colado no futuro ativo (máx. 3.905,84 × GC 3.904,3;
     # mín. 3.832,45 × 3.835,2; pico 3.888,9 × 3.892,6) e NÃO US$ 20 abaixo como o à vista teórico → fator 1 (régua do GC).
     # spot_ouro() fica disponível só para referência (base_usd = quanto o à vista teórico estaria abaixo).
-    f_teor, como = spot_ouro(gc_ult); f = 1.0
-    SPOT.update({"fator": f, "base_usd": 0.0, "teorico_base_usd": round(gc_ult * (1 - f_teor), 1), "como": "régua do futuro (calibrada com a Vantage); " + como})
+    # 2ª calibração (16/11/2026, preços no MESMO instante, ditados pela usuária): GC 3.882 × Vantage 3.875 e GC 3.880 × 3.874
+    # → Vantage ≈ futuro ativo − US$ 6,5. Ajuste proporcional (fator) em toda a série do ouro. Recalibrar na troca de contrato.
+    VANTAGE_USD = 6.5; CALIB = "16/11/2026"
+    f_teor, como = spot_ouro(gc_ult); f = 1 - VANTAGE_USD / gc_ult
+    SPOT.update({"fator": f, "base_usd": VANTAGE_USD, "calibrado": CALIB, "teorico_base_usd": round(gc_ult * (1 - f_teor), 1), "como": "régua da Vantage (futuro − US$ 6,5); " + como})
     P["XAUUSD"] = {d: tuple(v * f if v is not None else None for v in ohlc) for d, ohlc in P["XAUUSD"].items()}
     for k, y in FATORES_Y.items():
         try: F[k] = closes(yahoo(y, 5))
