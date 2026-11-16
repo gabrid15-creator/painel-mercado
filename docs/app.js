@@ -57,7 +57,7 @@
   else if (location.hash === '#sec-dias') tabs('sec-dias');
 
   // ---------------------------------------------------------------- mercado
-  let atv = 'EURUSD', serie = 'Spread 2a EUA−Alemanha', jan = 10, nwF = 'ativo'; const vis = {};
+  let atv = (() => { try { return localStorage.getItem('atv') || 'EURUSD'; } catch (e) { return 'EURUSD'; } })(), serie = 'Spread 2a EUA−Alemanha', jan = 10, nwF = 'ativo'; const vis = {};
   const bar = $('.ativos');
   // altura do topo fixo -> o seletor de ativo gruda logo abaixo dele
   { const tp = document.querySelector('.topo'), af = document.querySelector('.ativos-fixo');
@@ -67,7 +67,7 @@
     const b = document.createElement('button'); b.type = 'button'; b.dataset.a = a;
     b.innerHTML = '<span class="an"><b></b><small></small></span><span class="sv">—<small></small></span>';
     b.querySelector('.an b').textContent = a; b.querySelector('.an small').textContent = NOME[a];
-    b.addEventListener('click', () => { atv = a; drawMI(); drawAtv(); }); bar.appendChild(b);
+    b.addEventListener('click', () => { atv = a; try { localStorage.setItem('atv', a); } catch (e) {} drawMI(); drawAtv(); }); bar.appendChild(b);
   }
   document.querySelectorAll('.mi-jan button').forEach((b) => b.addEventListener('click', () => {
     jan = Number(b.dataset.j); document.querySelectorAll('.mi-jan button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); drawMI();
@@ -989,5 +989,13 @@
   window.APP = { D, nf, sg, br, td, tip, show, axisStyle, COLORS, $ };
   function drawAll() { drawGB(); if (!$('#sec-mi').hidden) { drawMI(); drawRadar(); drawDJ(); } drawAI(); }
   let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawAll, 150); });
-  load().then(() => { liveTick(); surpTick(); aiTick(); }); setInterval(load, 2 * 60 * 1000); setInterval(surpTick, 10 * 60 * 1000); setInterval(aiTick, 10 * 60 * 1000);
+  // atualização automática: dados a cada 2 min; ao voltar para a tela (celular/aba em segundo plano), na hora;
+  // versão nova do site publicada → recarrega sozinho (mantém o ativo escolhido, guardado no navegador)
+  let ultLoad = 0; const carrega = () => { ultLoad = Date.now(); return load(); };
+  const versao = (document.querySelector('script[src*="app.js"]') || {}).src || '';
+  const confereVersao = async () => { try { const h = await (await fetch('index.html?t=' + Date.now(), { cache: 'no-store' })).text();
+    const m = h.match(/app\.js\?v=[^"']+/); if (m && versao && !versao.includes(m[0])) location.reload(); } catch (e) {} };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (Date.now() - ultLoad > 60000) carrega(); confereVersao(); } });
+  setInterval(() => { if (!document.hidden) confereVersao(); }, 10 * 60 * 1000);
+  carrega().then(() => { liveTick(); surpTick(); aiTick(); }); setInterval(carrega, 2 * 60 * 1000); setInterval(surpTick, 10 * 60 * 1000); setInterval(aiTick, 10 * 60 * 1000);
 })();
