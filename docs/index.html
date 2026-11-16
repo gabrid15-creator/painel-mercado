@@ -385,6 +385,7 @@
   .fx-bt { margin-top: 12px; } .fx-bt-t { font-size: 13px; color: var(--color-fg-muted); margin-bottom: 4px; } .fx-bt-t b { color: var(--color-fg); }
   span.ajuda { display: none !important; } body.ver-ajuda span.ajuda, .op-card.abre span.ajuda { display: inline !important; }
   .fx-bt th { text-transform: none; letter-spacing: 0; font-size: 12px; } .fx-bt td, .fx-bt th { padding-left: 4px; padding-right: 4px; }
+  .otc-teste { margin: 0; font-size: 13px; line-height: 1.55; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--color-warn) 12%, transparent); }
 </style>
 </head>
 <body>
@@ -494,6 +495,7 @@
     </section>
     <section class="op-card otc" hidden><div class="ag-top"><h2>Balcão (DTCC) · opções de câmbio dos bancos</h2><span class="tl-chip ia-chip otc-chip">—</span></div>
       <p class="op-note"><b>Como ler:</b> opções de câmbio negociadas <b>direto entre bancos e fundos</b> (fora da bolsa), publicadas pela DTCC segundos depois do negócio, de graça. É o mercado grande do câmbio, bem maior que a CME. Cada barra = <b>soma dos negócios ainda vivos</b> naquele strike e vencimento, em <b>US$ milhões</b> (não é "contratos em aberto" oficial: é a soma dos negócios dos últimos 60 dias que não foram encerrados). <span class="lv lv-cw">Teto</span> = strike com mais calls acima do preço; <span class="lv lv-pw">Piso</span> = strike com mais puts abaixo. Vencimentos grandes perto do preço costumam <b>atrair e segurar</b> o preço até o corte (geralmente <b>10h de NY = 12h de Brasília</b>, 11h no horário de verão americano) — hipótese ainda <b>sem teste</b> (o painel grava todo dia para medir). Limites: só negócios com uma parte americana (fatia grande, não o mercado todo); negócios gigantes aparecem com teto de tamanho (marcados com +). Comece pelos vencimentos mais curtos (hoje, amanhã).</p>
+      <p class="otc-teste"><b>Testado em 2 anos</b> (dez/2024–nov/2026, 1.192 vencimentos, 4 pares): o preço <b>não</b> foi atraído pelo strike com mais dinheiro (46% × 46% do acaso), o range do dia <b>não</b> ficou mais dentro de piso–teto (47,6% × 47,2%) e a máxima/mínima <b>não</b> parou mais nas paredes (29,7% × 29,9%). Use como <b>retrato do posicionamento dos bancos</b>, não como suporte/resistência.</p>
       <div class="op-legend otc-bt"></div>
       <table class="op-table otc-t"><tbody></tbody></table>
       <div class="mi-chart otc-chart"></div>

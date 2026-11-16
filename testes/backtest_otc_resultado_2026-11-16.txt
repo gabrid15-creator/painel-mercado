@@ -1,0 +1,21 @@
+Amostra: 1192 (par × dia), 298 dias, 2024-12-03 → 2026-11-12
+
+A) ATRAÇÃO (7h → corte 10h NY): andou em direção ao strike com mais dinheiro vencendo?
+  strike ≥ US$ 100 mi: real  46.0% · acaso  46.0% · dif  +0.0 p.p. · t= 0.01 · n=1139
+  strike ≥ US$ 500 mi: real  44.0% · acaso  46.4% · dif  -2.4 p.p. · t=-1.24 · n=782
+  strike ≥ US$ 1000 mi: real  42.4% · acaso  46.3% · dif  -3.9 p.p. · t=-1.62 · n=493
+     USDJPY: real  47.8% · acaso  46.3% · dif  +1.5 p.p. · t= 0.51 · n=297
+     EURUSD: real  42.6% · acaso  45.8% · dif  -3.2 p.p. · t=-1.05 · n=296
+     USDCHF: real  48.4% · acaso  45.2% · dif  +3.2 p.p. · t= 0.91 · n=254
+     GBPUSD: real  45.5% · acaso  46.6% · dif  -1.0 p.p. · t=-0.32 · n=292
+
+B) RANGE DO DIA (0h–17h NY, a partir do fechamento 17h):
+  range inteiro dentro de piso–teto: real  47.6% · acaso  47.2% · dif  +0.4 p.p. · t= 0.35 · n=1122 · metades [-2.4913424200411725, 3.342396034018137]
+  extremo do dia parou a ≤ 1 degrau do teto: real  29.7% · acaso  29.9% · dif  -0.2 p.p. · t=-0.17 · n=1122 · metades [-1.5712682379349043, 1.1559444714524927]
+  extremo do dia parou a ≤ 1 degrau do piso: real  27.5% · acaso  27.9% · dif  -0.4 p.p. · t=-0.34 · n=1122 · metades [0.21366367177418855, -1.0221045871669758]
+
+C) σ DO DIA (vol. 21d × 1,09):
+  range inteiro dentro de ±1σ: 51.6% (n=1192) · tocou +1σ 24.2% · tocou −1σ 24.8%
+  extremo do dia parou a ≤ 0,1σ do ±1σ: real   7.4% · acaso   7.0% · dif  +0.5 p.p. · t= 0.85 · n=2384
+  extremo parou a ≤ 0,1σ da PAREDE: real   7.0% · acaso   7.2% · dif  -0.2 p.p. · t=-0.30 · n=2244
+  CONFLUÊNCIA (parede a ≤ 0,25σ do ±1σ): parou ali: real   6.6% · acaso   7.2% · dif  -0.6 p.p. · t=-0.47 · n=423
