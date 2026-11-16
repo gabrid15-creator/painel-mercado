@@ -852,6 +852,32 @@ def b_0dte():
             except Exception: pass
         ph = {h["data"]: h for h in ler("mi_pcr_hist.json")}; ph[rec["data"]] = rec
         save("mi_pcr_hist.json", sorted(ph.values(), key=lambda x: x["data"])[-2000:])
+    # DIÁRIO DO OURO (16/11/2026, pedido da usuária): para testar se as opções antecipam dia de PING-PONG (lado a lado, bom para
+    # o robô de compra e venda) × dia de TENDÊNCIA, e o LADO do dia. De manhã (1ª coleta com o GLD aberto, 9h30–10h30 NY) grava o
+    # estado das opções; depois das 17h NY completa com o que o dia fez (régua da Vantage). Teste pré-registrado com ~60 dias.
+    try:
+        di = {x["dia"]: x for x in ler("mi_diario_ouro.json")}; hoje_s = ny.date().isoformat()
+        if ny.weekday() < 5 and 9 * 60 + 30 <= ny.hour * 60 + ny.minute <= 10 * 60 + 30 and hoje_s not in di and not parado:
+            cm = row.get("cme") or {}
+            di[hoje_s] = {"dia": hoje_s, "manha": {"hora": ny.strftime("%H:%M"), "ouro": row["ouro"], "regime_gld": row["regime"][:14],
+                          "flip_gld": row["gamma_flip"], "teto_gld": row["call_wall"], "piso_gld": row["put_wall"], "faixa_pct": row["faixa_pct"],
+                          "regime_cme": cm.get("regime"), "flip_cme": cm.get("gamma_flip"), "teto_cme": cm.get("call_wall"), "piso_cme": cm.get("put_wall"),
+                          "pcr_gld_0dte": (rec.get("gld_0dte") or {}).get("pcr_oi") if "rec" in dir() else None}}
+        aberto = [x for x in di.values() if "fim" not in x and x["dia"] < hoje_s or ("fim" not in x and x["dia"] == hoje_s and ny.hour >= 17)]
+        if aberto:
+            q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=10d&interval=1h"))["chart"]["result"][0]
+            qq = q["indicators"]["quote"][0]; fz = SPOT["fator"]
+            bars = [(dt.datetime.fromtimestamp(t, NY), o * fz, h * fz, l * fz, c * fz) for t, o, h, l, c in zip(q["timestamp"], qq["open"], qq["high"], qq["low"], qq["close"]) if None not in (o, h, l, c)]
+            for x in aberto:
+                d = dt.date.fromisoformat(x["dia"]); ini = dt.datetime.combine(d - dt.timedelta(days=3 if d.weekday() == 0 else 1), dt.time(18), NY); fim = dt.datetime.combine(d, dt.time(17), NY)
+                v = [b for b in bars if ini <= b[0] < fim]
+                if len(v) < 18: continue
+                o = v[0][1]; c = v[-1][4]; cl = [b[4] for b in v]; perc = abs(cl[0] - o) + sum(abs(cl[i] - cl[i - 1]) for i in range(1, len(cl)))
+                x["fim"] = {"abertura": rnd(o, 1), "fechamento": rnd(c, 1), "maxima": rnd(max(b[2] for b in v), 1), "minima": rnd(min(b[3] for b in v), 1),
+                            "eficiencia": rnd(abs(c - o) / perc, 3) if perc else None, "cruzou_abertura": sum(1 for i in range(1, len(cl)) if (cl[i] - o) * (cl[i - 1] - o) < 0),
+                            "retorno_pct": rnd((c / o - 1) * 100, 3)}
+        save("mi_diario_ouro.json", sorted(di.values(), key=lambda x: x["dia"])[-1000:])
+    except Exception as e: STATUS.append({"bloco": "Diário do ouro", "ok": False, "msg": str(e)[:150]})
 b_0dte()
 
 @bloco("0DTE dólar/iene (CME)")
