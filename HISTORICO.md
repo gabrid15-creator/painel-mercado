@@ -214,3 +214,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Pesquisa (resumo dado a ela): gamma + → reversão / − → momentum (Dim-Eraker-Vilkov, Adams et al., Barbon-Buraschi, Baltussen 2021); efeito vem do estoque que vence D+0. PCR 0DTE na abertura prevê 1ª hora, mas sem lucro fora da amostra (Maurer-Müller 2026). Pan-Poteshman não vale para índice. Pinning em ações (Ni-Pearson-Poteshman); no S&P sumiu. Charm/vanna/call wall: só regra de fornecedor.
 - Diário do ouro ganhou gregas D+0 (GLD/CME), pin, PCR CME e preços por horário. Ela pediu: nada na tela; contar com 30 dias.
 - `testes/momentum_fim.py`: 1ª versão deu t 7,2 por erro (o preço das 17h pegava a abertura das 18h). Corrigido: n 583, t −2,29 (13h→14h), 1,42 (15h→17h); 5 min 60 dias t −0,4/−1,4. Não passou.
+
+## 16/11/2026 — dia típico em σ (moedas "longas")
+- Ela acha o σ das moedas largo demais. `testes/dia_tipico.py` (futuros 6J/6E/6S/6B/GC, 15 anos): mediana |fech−abert| 0,54–0,57σ moedas, 0,45σ ouro; 68% ≤ 0,83–0,86σ; ±1σ contém 75–76% (80% ouro); amplitude mediana 1,18–1,30σ. O σ está certo; o dia "normal" é ~metade dele.

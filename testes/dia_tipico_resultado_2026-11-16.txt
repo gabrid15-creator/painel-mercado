@@ -1,0 +1,5 @@
+Iene 6J: n=3744 | |fech−abert| em σ: 50%≤0.54 68%≤0.83 80%≤1.11 90%≤1.55 95%≤1.95 | dentro de ±1σ 76% | amplitude 50%≤1.18 80%≤1.76 | metades 50%: 0.55/0.53
+Euro 6E: n=3747 | |fech−abert| em σ: 50%≤0.57 68%≤0.86 80%≤1.14 90%≤1.52 95%≤1.89 | dentro de ±1σ 75% | amplitude 50%≤1.27 80%≤1.82 | metades 50%: 0.56/0.58
+Franco 6S: n=3748 | |fech−abert| em σ: 50%≤0.56 68%≤0.85 80%≤1.12 90%≤1.51 95%≤1.94 | dentro de ±1σ 75% | amplitude 50%≤1.30 80%≤1.88 | metades 50%: 0.55/0.57
+Libra 6B: n=3748 | |fech−abert| em σ: 50%≤0.55 68%≤0.84 80%≤1.12 90%≤1.53 95%≤1.94 | dentro de ±1σ 76% | amplitude 50%≤1.23 80%≤1.80 | metades 50%: 0.54/0.56
+Ouro GC: n=3745 | |fech−abert| em σ: 50%≤0.45 68%≤0.72 80%≤0.99 90%≤1.40 95%≤1.85 | dentro de ±1σ 80% | amplitude 50%≤1.08 80%≤1.68 | metades 50%: 0.41/0.51
