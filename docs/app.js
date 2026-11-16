@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -830,7 +830,7 @@
     if (vf) tx.push(`<b>Faixa das opções</b> (${vf.n} dias): fechou dentro de ±1σ em ${nf(vf.dentro_1s, 0)}% (esperado ~68%) e de ±2σ em ${nf(vf.dentro_2s, 0)}% (~95%)`);
     if (atv === 'XAUUSD' && vd.zdte) tx.push(`<b>0DTE</b> (${vd.zdte.n} vencimentos, GLD): fechou dentro da faixa do dia em ${nf(vd.zdte.dentro_faixa, 0)}%` + (vd.zdte.entre_paredes != null ? ` e entre as paredes em ${nf(vd.zdte.entre_paredes, 0)}%` : ''));
     if (atv === 'XAUUSD' && vd.zdte_cme) tx.push(`<b>0DTE CME</b> (${vd.zdte_cme.n} vencimentos): dentro da faixa em ${nf(vd.zdte_cme.dentro_faixa, 0)}%` + (vd.zdte_cme.entre_paredes != null ? ` e entre as paredes em ${nf(vd.zdte_cme.entre_paredes, 0)}%` : ''));
-    $('.mp-val').innerHTML = tx.length ? `<b>Conferência diária</b> (cima/baixo; atualizado ${vd.atualizado}): ` + tx.join('. ') + '. <b>Como ler:</b> compara a chance que o painel mostrou com o que de fato aconteceu nos dias e semanas já fechados. Real perto do previsto = mapa confiável; muito acima = o preço anda mais que o esperado (níveis largos ficam mais alcançáveis); muito abaixo = mercado mais parado. Com menos de ~30 dias, ainda é amostra pequena.' : '<b>Conferência diária:</b> acumulando (começa a mostrar depois do primeiro dia fechado).';
+    $('.mp-val').innerHTML = tx.length ? `<b>Conferência diária</b> (cima/baixo; atualizado ${vd.atualizado}): ` + tx.join('. ') + '. <span class="ajuda"><b>Como ler:</b> compara a chance que o painel mostrou com o que de fato aconteceu nos dias e semanas já fechados. Real perto do previsto = mapa confiável; muito acima = o preço anda mais que o esperado (níveis largos ficam mais alcançáveis); muito abaixo = mercado mais parado. Com menos de ~30 dias, ainda é amostra pequena.</span>' : '<b>Conferência diária:</b> acumulando (começa a mostrar depois do primeiro dia fechado).';
   }
 
 
@@ -872,6 +872,15 @@
       fr.faixas.forEach(linha);
       if (fr.cme) { fonte('CME · opções de ouro (pregão ' + br(fr.cme.pregao) + ', vencimento ' + br(fr.cme.venc) + ') · vol. ' + nf(fr.cme.iv, 1) + '%'); fr.cme.faixas.forEach(linha);
       } else if (atv === 'XAUUSD') fonte('CME: sem PDF do boletim carregado.');
+      // precisão medida (backtest longo, mesmo método do painel): visível, sem precisar abrir o ?
+      const bt = (D('faixa_backtest').data || {})[atv], bx = $('.fx-bt');
+      if (bx) { bx.replaceChildren(); if (bt) {
+        const tit = document.createElement('div'); tit.className = 'fx-bt-t'; tit.innerHTML = '<b>Precisão medida</b> · quantas vezes o preço <b>fechou dentro</b> da faixa (' + (atv === 'XAUUSD' ? 'GVZ' : 'vol. 21d × 1,09') + ', desde ' + bt.dia.desde + ', ' + nf(bt.dia.n, 0) + ' dias)'; bx.appendChild(tit);
+        const tb = document.createElement('table'); tb.className = 'op-table'; tb.innerHTML = '<thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span><br><small>ideal 68%</small></th><th class="num"><span class="lv lv-s2">±2σ</span><br><small>ideal 95%</small></th><th class="num">Nem tocou<br><small>±1σ</small></th><th class="num">Ano<br><small>±1σ</small></th></tr></thead>';
+        const bd = document.createElement('tbody'); tb.appendChild(bd);
+        for (const p of ['dia', 'semana', 'mês']) { const r = bt[p]; if (!r) continue; const tr = document.createElement('tr'); td(tr, p).style.fontWeight = 600;
+          td(tr, nf(r.s1, 0) + '%', 'num').style.fontWeight = 700; td(tr, nf(r.s2, 0) + '%', 'num').style.fontWeight = 700; td(tr, nf(r.nunca_saiu_s1, 0) + '%', 'num'); td(tr, r.s1_ano[0] + '–' + r.s1_ano[1] + '%', 'num'); bd.appendChild(tr); }
+        const w = document.createElement('div'); w.className = 'tbl-x'; w.appendChild(tb); bx.appendChild(w); } }
     }
     // 0DTE (só ouro)
     // 0DTE dólar/iene (só CME)

@@ -382,6 +382,9 @@
     .op-card { padding: 14px; gap: 10px; }
     .op-card h2 { font-size: 17px; }
   }
+  .fx-bt { margin-top: 12px; } .fx-bt-t { font-size: 13px; color: var(--color-fg-muted); margin-bottom: 4px; } .fx-bt-t b { color: var(--color-fg); }
+  span.ajuda { display: none !important; } body.ver-ajuda span.ajuda, .op-card.abre span.ajuda { display: inline !important; }
+  .fx-bt th { text-transform: none; letter-spacing: 0; font-size: 12px; } .fx-bt td, .fx-bt th { padding-left: 4px; padding-right: 4px; }
 </style>
 </head>
 <body>
@@ -467,8 +470,9 @@
           <li><b>Fontes:</b> ouro tem duas (índice GVZ da Cboe e opções da CME). Moedas: volatilidade dos últimos 21 dias + prêmio típico (testada: ±1σ 72–73%, ±2σ 93–95%).</li>
         </ul></div>
       <table class="op-table fx-t"><thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span> normal</th><th class="num"><span class="lv lv-s2">±2σ</span> extremo</th></tr></thead><tbody></tbody></table>
+        <div class="fx-bt"></div>
     </div>
-      <p class="op-note mp-val ajuda" style="margin-top:10px"></p>
+      <p class="op-note mp-val" style="margin-top:10px"></p>
     </section>
 
     <div class="atv-cards">
