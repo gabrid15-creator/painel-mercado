@@ -891,7 +891,7 @@
     }
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
-      $('.z0-chip').textContent = 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + z.atualizado + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
+      $('.z0-chip').textContent = 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + (z.gld_parado ? 'parado desde ' + z.gld_parado + ' NY (níveis do último pregão, gamma com o ouro ao vivo)' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
       const n1 = (v) => (v == null ? '—' : nf(v, 1));
       const m = z.cme || {};
       const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],

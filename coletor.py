@@ -639,10 +639,22 @@ def b_0dte():
         return math.exp(-d1 * d1 / 2) / math.sqrt(2 * math.pi) / (Sx * o["iv"] * math.sqrt(T))
     def gex(Sx):   # convenção de mercado: dealers vendidos em puts e comprados em calls dos clientes → call +, put −
         return sum((1 if o["tipo"] == "C" else -1) * gama(Sx, o) * (o["oi"] + o["vol"]) * 100 * Sx * Sx * 0.01 for o in ch)
-    grade = [S * (1 + i / 1000) for i in range(-40, 41)]; g = [gex(x) for x in grade]
+    # conversão GLD → ouro: razão do MOMENTO do último negócio do GLD. Fora do pregão do GLD (noite/fim de semana) o ouro segue andando;
+    # usar o ouro de agora deslocava todos os níveis (ex.: dom 16/11: ~US$ 38). Com a razão travada, os níveis ficam fixos no preço do ouro
+    # e o gamma (regime e flip) é recalculado com o ouro ao vivo levado para a escala do GLD.
+    c = closes(P["XAUUSD"]); ouro = c[max(c)]; r = ouro / S; parado = False
+    try:
+        tl = dt.datetime.fromisoformat(j.get("last_trade_time")).replace(tzinfo=NY)
+        if (ny - tl).total_seconds() > 20 * 60:
+            q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=5d&interval=5m"))["chart"]["result"][0]
+            px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= tl.timestamp()]
+            if px and tl.timestamp() - px[-1][0] < 3 * 3600: r = px[-1][1] / S; parado = tl.strftime("%d/%m %H:%M")
+    except Exception as e: STATUS.append({"bloco": "0DTE razão GLD", "ok": False, "msg": str(e)[:120]})
+    Sv = ouro / r   # ouro ao vivo na escala do GLD
+    grade = [Sv * (1 + i / 1000) for i in range(-40, 41)]; g = [gex(x) for x in grade]
     flip = None
     for i in range(1, len(grade)):
-        if (g[i - 1] < 0) != (g[i] < 0): flip = grade[i] if flip is None or abs(grade[i] - S) < abs(flip - S) else flip
+        if (g[i - 1] < 0) != (g[i] < 0): flip = grade[i] if flip is None or abs(grade[i] - Sv) < abs(flip - Sv) else flip
     ks = sorted({o["k"] for o in ch}); atm = min(ks, key=lambda k: abs(k - S))
     # straddle no dinheiro; se faltar preço no strike mais perto, usa o próximo strike que tenha call e put com preço
     strad = 0
@@ -657,7 +669,6 @@ def b_0dte():
         return m
     cw, pw = peso("C"), peso("P")
     dor = {k: sum(max(0, k - o["k"]) * o["oi"] for o in ch if o["tipo"] == "C") + sum(max(0, o["k"] - k) * o["oi"] for o in ch if o["tipo"] == "P") for k in ks}
-    c = closes(P["XAUUSD"]); ouro = c[max(c)]; r = ouro / S
     conv = lambda v: rnd(v * r, 1) if v is not None else None
     lado = lambda m, f: max((k for k in m if f(k) and abs(k / S - 1) <= 0.03), key=lambda k: m[k], default=None)
     row = {"vencimento": venc.isoformat(), "atualizado": ny.strftime("%H:%M") + " NY", "gld": rnd(S, 2), "ouro": rnd(ouro, 1),
@@ -666,7 +677,7 @@ def b_0dte():
            "s1": [conv(S - 1.25 * strad), conv(S + 1.25 * strad)],   # straddle ≈ 0,8σ → 1σ ≈ 1,25 × straddle
            "call_wall": conv(lado(cw, lambda k: k >= S)), "put_wall": conv(lado(pw, lambda k: k <= S)),
            "gamma_flip": conv(flip), "max_pain": conv(min(dor, key=dor.get)) if dor else None,
-           "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(S) > 0 else "gamma negativo (movimentos tendem a acelerar)",
+           "gld_parado": parado, "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(Sv) > 0 else "gamma negativo (movimentos tendem a acelerar)",
            "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / S - 1) <= 0.03],
            "perfil_oi": [[conv(k), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "C")), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03],
            "perfil_vol": [[conv(k), int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "C")),
