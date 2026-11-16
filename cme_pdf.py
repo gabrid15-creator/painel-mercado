@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Lê o PDF "Metals Option Products" (Section 64) do boletim diário da CME, enviado pela usuária, e grava
 cme/opcoes_<pregão>.json no formato do painel (ouro_cadeia + ouro_boletim). Uso: python3 cme_pdf.py <pdf>
-Usa só as séries de sexta (OG1–OG5 e OG mensal), que vêm separadas em PUT/CALL no PDF; as semanais de seg–qui
-vêm misturadas (vários vencimentos sem separação) e são ignoradas."""
+Séries de sexta (OG1–OG5 e OG mensal) vêm separadas em PUT/CALL. As semanais de seg–qui (GMW seg, GWT ter, GWW qua, GWR qui)
+vêm misturadas no PDF (calls, puts e mais de um vencimento no mesmo bloco); delas só se usa a série que vence em até 2 dias úteis,
+separada pelo preço: tipo pela posição do delta (ITM > 0,5) e vencimento pela vol. implícita calculada para esse prazo
+(a série curta forma um grupo de vol. normal; as longas dão vol. absurda nesse prazo). Travas: vol. parecida com a da sexta e paridade."""
 import sys, re, json, datetime as dt, pdfplumber
 pdf = pdfplumber.open(sys.argv[1])
 txt = "\n".join((p.extract_text() or "") for p in pdf.pages)
@@ -27,6 +29,55 @@ for l in txt.splitlines():
     r = rx.match(l) if cur else None
     if r: rows.append({"venc": VENC[cur[0]].isoformat(), "tipo": "Call" if cur[1] == "CALL" else "Put", "strike": float(r.group(1)),
                        "settle": float(r.group(2)), "delta": None if r.group(4) == "----" else float(r.group(4)), "oi": int(r.group(5))})
+# ---- semanais de seg–qui: só o vencimento curto (0–2 dias úteis), separado do resto do bloco pelo preço
+import math, statistics as _st
+_N = _st.NormalDist()
+def _b76(Fx, k, cp, prem, T):
+    lo, hi = 0.005, 5.0
+    for _ in range(60):
+        sg = (lo + hi) / 2; d1 = (math.log(Fx / k) + sg * sg * T / 2) / (sg * math.sqrt(T)); d2 = d1 - sg * math.sqrt(T)
+        pr = Fx * _N.cdf(d1) - k * _N.cdf(d2) if cp == "C" else k * _N.cdf(-d2) - Fx * _N.cdf(-d1)
+        lo, hi = (sg, hi) if pr < prem else (lo, sg)
+    return sg
+DIA = {"GMW": 0, "GWT": 1, "GWW": 2, "GWR": 3}
+SEM = []
+_cf = {x["strike"]: x["settle"] for x in rows if x["tipo"] == "Call"}; _pf = {x["strike"]: x["settle"] for x in rows if x["tipo"] == "Put"}
+if _cf and _pf:
+    _k = min((k for k in _cf if k in _pf), key=lambda k: abs(_cf[k] - _pf[k])); Fref = _k + _cf[_k] - _pf[_k]
+    _vf = min(x["venc"] for x in rows); _Tf = max((dt.date.fromisoformat(_vf) - pregao).days, 1) / 365
+    ivref = _st.median([_b76(Fref, x["strike"], "C" if x["tipo"] == "Call" else "P", x["settle"], _Tf) for x in rows if x["venc"] == _vf and abs(x["strike"] / Fref - 1) < 0.01 and x["settle"] > 0.5] or [0.2])
+    for cod, wd in DIA.items():
+        v = pregao + dt.timedelta(days=1)
+        while v.weekday() != wd: v += dt.timedelta(days=1)
+        if uteis(pregao, v) > 2: continue
+        T = (v - pregao).days / 365
+        bl, cur2 = [], False
+        for l in txt.splitlines():
+            if re.match(r"^[A-Z0-9]{2,4} (PUT|CALL|MON|TUE|WED|THU|FRI|OPT)\b", l): cur2 = l.startswith(cod + " ") and "MICRO" not in l; continue
+            r = rx.match(l) if cur2 else None
+            if r and r.group(4) != "----":
+                k, st_, de = float(r.group(1)), float(r.group(2)), float(r.group(4))
+                if abs(k / Fref - 1) > 0.05 or st_ <= 0: continue
+                cp = "C" if (de > 0.5) == (k < Fref) else "P"
+                bl.append({"k": k, "cp": cp, "s": st_, "oi": int(r.group(5)), "iv": _b76(Fref, k, cp, st_, T)})
+        atm = [x["iv"] for x in bl if abs(x["k"] / Fref - 1) < 0.01]
+        if not atm: continue
+        base = min(atm)
+        if not (0.5 * ivref <= base <= 1.6 * ivref): print("semanal", cod, v, "descartada: vol.", round(base * 100, 1), "% vs sexta", round(ivref * 100, 1), "%"); continue
+        perto = [x for x in bl if 0.8 * base <= x["iv"] <= 1.5 * base]
+        c = {x["k"]: x["s"] for x in perto if x["cp"] == "C"}; p = {x["k"]: x["s"] for x in perto if x["cp"] == "P"}
+        par = [k for k in c if k in p and abs(k / Fref - 1) < 0.01]
+        if not par: continue
+        k0 = min(par, key=lambda k: abs(c[k] - p[k])); Fs = round(k0 + c[k0] - p[k0], 1)
+        err = max(abs((c[k] - p[k]) - (Fs - k)) for k in par)
+        if err > 3: print("semanal", cod, v, "descartada: paridade não fecha (erro US$", round(err, 1), ")"); continue
+        for x in perto: SEM.append({"venc": v.isoformat(), "tipo": "Call" if x["cp"] == "C" else "Put", "strike": x["k"], "settle": x["s"], "delta": None, "oi": x["oi"], "_F": Fs})
+        print("semanal", cod, v, "ok:", len(perto), "linhas, vol. ATM", round(base * 100, 1), "% (sexta", round(ivref * 100, 1), "%), futuro", Fs, ", erro de paridade US$", round(err, 2))
+_un = {}
+for x in SEM:   # mesmo strike/tipo duas vezes (ITM fundo, vol. parecida): fica o de menor prêmio = vencimento mais curto
+    ch = (x["venc"], x["tipo"], x["strike"])
+    if ch not in _un or x["settle"] < _un[ch]["settle"]: _un[ch] = x
+rows += [{k: x[k] for k in ("venc", "tipo", "strike", "settle", "delta", "oi")} for x in _un.values()]
 F = {}   # futuro por paridade (call − put no strike onde os dois mais se aproximam)
 for v in {x["venc"] for x in rows}:
     c = {x["strike"]: x["settle"] for x in rows if x["venc"] == v and x["tipo"] == "Call"}
