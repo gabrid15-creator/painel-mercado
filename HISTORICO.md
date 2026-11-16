@@ -217,3 +217,8 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 16/11/2026 — dia típico em σ (moedas "longas")
 - Ela acha o σ das moedas largo demais. `testes/dia_tipico.py` (futuros 6J/6E/6S/6B/GC, 15 anos): mediana |fech−abert| 0,54–0,57σ moedas, 0,45σ ouro; 68% ≤ 0,83–0,86σ; ±1σ contém 75–76% (80% ouro); amplitude mediana 1,18–1,30σ. O σ está certo; o dia "normal" é ~metade dele.
+
+## 16/11/2026 — "Dia normal" no mapa + Ásia/Londres prevê tamanho do resto do dia
+- Bloco "Dia normal" (todos os 5 ativos): metade dos dias ±q50·σ, 9 em 10 ±q90·σ, amplitude típica, amplitude de hoje até agora.
+- `testes/range_cedo.py`: amplitude 18h→9h NY prevê a de 9h→17h. Ouro GVZ r 0,30 t 7,3; 6J r 0,50 t 13,7; 6E 0,31; 6S 0,40; 6B 0,31. Cortes (σ): terço baixo <~0,8, alto ≥~1,2; resto mediano baixo/médio/alto: ouro 0,75/0,79/0,95, 6J 0,48/0,62/0,85, 6E 0,72/0,82/1,01, 6S 0,70/0,75/0,91, 6B 0,71/0,81/0,99.
+- `amp_cedo` no `mi_faixa.mapa`, calculado com futuros (6E/6B/6J/6S/GC) entre 9h e 17h NY.

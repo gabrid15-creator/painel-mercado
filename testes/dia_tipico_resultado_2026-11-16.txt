@@ -3,3 +3,4 @@ Euro 6E: n=3747 | |fech−abert| em σ: 50%≤0.57 68%≤0.86 80%≤1.14 90%≤1
 Franco 6S: n=3748 | |fech−abert| em σ: 50%≤0.56 68%≤0.85 80%≤1.12 90%≤1.51 95%≤1.94 | dentro de ±1σ 75% | amplitude 50%≤1.30 80%≤1.88 | metades 50%: 0.55/0.57
 Libra 6B: n=3748 | |fech−abert| em σ: 50%≤0.55 68%≤0.84 80%≤1.12 90%≤1.53 95%≤1.94 | dentro de ±1σ 76% | amplitude 50%≤1.23 80%≤1.80 | metades 50%: 0.54/0.56
 Ouro GC: n=3745 | |fech−abert| em σ: 50%≤0.45 68%≤0.72 80%≤0.99 90%≤1.40 95%≤1.85 | dentro de ±1σ 80% | amplitude 50%≤1.08 80%≤1.68 | metades 50%: 0.41/0.51
+Ouro GC, σ GVZ: n=3770 | |fech−abert| em σ: 50%≤0.44 68%≤0.70 80%≤0.95 90%≤1.35 95%≤1.70 | dentro de ±1σ 82% | amplitude 50%≤1.05 80%≤1.58 | metades 50%: 0.39/0.50

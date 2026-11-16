@@ -1,0 +1,6 @@
+Ouro GC: n=554 r=0.30 t=7.3 metades r=0.36/0.22 | resto grande: cedo alto 65% × cedo baixo 39% (acaso 50%)
+Iene 6J: n=554 r=0.50 t=13.7 metades r=0.46/0.51 | resto grande: cedo alto 73% × cedo baixo 30% (acaso 50%)
+Euro 6E: n=555 r=0.31 t=7.7 metades r=0.29/0.33 | resto grande: cedo alto 68% × cedo baixo 35% (acaso 50%)
+Franco 6S: n=556 r=0.40 t=10.4 metades r=0.45/0.36 | resto grande: cedo alto 61% × cedo baixo 42% (acaso 50%)
+Libra 6B: n=556 r=0.31 t=7.6 metades r=0.29/0.33 | resto grande: cedo alto 68% × cedo baixo 35% (acaso 50%)
+cortes [terço baixo <, terço alto ≥, resto mediano se baixo, se médio, se alto] em σ: {'Ouro GC': [0.81, 1.22, 0.75, 0.79, 0.95], 'Iene 6J': [0.79, 1.17, 0.48, 0.62, 0.85], 'Euro 6E': [0.8, 1.23, 0.72, 0.82, 1.01], 'Franco 6S': [0.77, 1.12, 0.7, 0.75, 0.91], 'Libra 6B': [0.82, 1.17, 0.71, 0.81, 0.99]}

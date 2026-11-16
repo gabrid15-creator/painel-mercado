@@ -167,7 +167,8 @@
 | Chance de **tocar** os níveis | Curva real (2 anos de 1 h). A fórmula teórica superestimava no meio (prevista 45%, real 33–40%). |
 | **Rompimento** (`testes/rompimento.py`, futuros, 18–26 anos) | Tocou ±1σ → fecha fora 49–51%. Passou de ±1,25σ → fecha fora 68–71%, chega a 1,5σ 62–67%. Passou de ±1,5σ → fecha fora 80–84%, chega a 2σ 37–45%. |
 | **σ das opções × tamanho do dia** (`testes/pingpong_sigma.py`, 559 dias de GC 1 h) | σ curto (~US$ 30) → andou US$ 21, range US$ 41; médio (~US$ 50) → 37 / 75; longo (~US$ 83) → 62 / 126. r = 0,44 (t 11,6) e 0,70 (t 23). Estável. Deslocamento médio ≈ 0,75σ. **Uso: medir grade e stop em σ do dia.** |
-| **Dia típico em σ** (`testes/dia_tipico.py`, futuros diários 15 anos, ~3.750 dias cada) | Metade dos dias fecha a ≤ 0,55σ da abertura (moedas; ouro 0,45σ); 68% ≤ 0,85σ; 90% ≤ 1,5σ. Amplitude máx−mín mediana 1,2σ (80% ≤ 1,8σ). Estável nas metades. 16/11: USDJPY meio 37 pips, EURUSD 23, USDCHF 22, GBPUSD 30, ouro US$ 34. Ainda não está na tela. |
+| **Dia típico em σ** (`testes/dia_tipico.py`, futuros diários 15 anos, ~3.750 dias cada) | Metade dos dias fecha a ≤ 0,55σ da abertura (moedas; ouro 0,45σ); 68% ≤ 0,85σ; 90% ≤ 1,5σ. Amplitude máx−mín mediana 1,2σ. Ouro com σ GVZ: 0,44σ / 90% ≤ 1,35σ / amplitude 1,05σ. Estável. **Na tela: bloco "Dia normal" do mapa** (`.mp-normal`, constantes `Q` no `app.js`). |
+| **Ásia + Londres → tamanho do resto do dia** (`testes/range_cedo.py`, futuros 1 h, 2 anos, ~555 dias) | Amplitude 18h→9h NY em σ × amplitude 9h→17h: r 0,30–0,50 (t 7–14), metades estáveis. Cedo no terço alto → resto grande 61–73%; terço baixo → 30–42% (acaso 50%). Ouro (σ GVZ) o mais fraco: r 0,30 (metades 0,36/0,22). Na tela a partir das 11h BRT (`mapa.amp_cedo`, medido no futuro da CME; constantes `C` no `app.js`). Diz o TAMANHO, não o formato nem a direção. |
 | Regime forte | Mantém a direção por 13 semanas: DXY 91–100%, juros 57–90%. |
 
 ### Não passou (não usar como sinal)

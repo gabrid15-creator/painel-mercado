@@ -634,7 +634,20 @@ def b_faixa():
             sd = FIXO[kd]["sd"]
             hab = 18 if a == "XAUUSD" else 17   # ouro: a CME reabre às 18h de NY; moedas viram o dia às 17h
             hb = lambda d: dt.datetime.combine(d, dt.time(hab), NYz).astimezone(BRT).strftime("%a %d/%m %Hh").replace("Mon", "seg").replace("Tue", "ter").replace("Wed", "qua").replace("Thu", "qui").replace("Fri", "sex").replace("Sat", "sáb").replace("Sun", "dom")
-            row["mapa"] = {"sd_dia": rnd(sd, 6), "sd_sem": rnd(FIXO[kw]["sd"], 6), "proj_dia": FIXO[kd]["em"], "proj_sem": FIXO[kw]["em"],
+            # amplitude da Ásia + Londres (18h → 9h NY) em σ do dia, só depois das 9h NY (testes/range_cedo.py: prevê o tamanho do resto do dia)
+            # medida no FUTURO da CME (máx./mín. do Yahoo FX têm picos falsos); amplitude em log não depende da cotação (6J = 1/USDJPY)
+            amp_cedo = None
+            try:
+                if 9 <= NOW.astimezone(NYz).hour < 17:
+                    fs = {"EURUSD": "6E=F", "GBPUSD": "6B=F", "USDJPY": "6J=F", "USDCHF": "6S=F", "XAUUSD": "GC=F"}.get(a)
+                    jf = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(fs)}?range=5d&interval=1h"))["chart"]["result"][0] if fs else None
+                    if jf:
+                        qf = jf["indicators"]["quote"][0]
+                        ce = [(h, l) for t, h, l in zip(jf["timestamp"], qf["high"], qf["low"]) if h and l and sess(dt.datetime.fromtimestamp(t, NYz)) == hoje_s
+                              and (dt.datetime.fromtimestamp(t, NYz).hour >= 18 or dt.datetime.fromtimestamp(t, NYz).hour < 9)]
+                        if len(ce) >= 12: amp_cedo = math.log(max(h for h, l in ce) / min(l for h, l in ce)) / sd
+            except Exception: pass
+            row["mapa"] = {"sd_dia": rnd(sd, 6), "sd_sem": rnd(FIXO[kw]["sd"], 6), "proj_dia": FIXO[kd]["em"], "proj_sem": FIXO[kw]["em"], "amp_cedo": rnd(amp_cedo, 2) if amp_cedo else None,
                            "dia_ini": hb(hoje_s - dt.timedelta(days=1)), "dia_fim": hb(hoje_s),
                            "sem_ini": hb(seg - dt.timedelta(days=1)),
                            "sem_fim": dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).astimezone(BRT).strftime("sex %d/%m %Hh"),   # fechamento de sexta (17h NY) para todos

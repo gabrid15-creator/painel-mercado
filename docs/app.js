@@ -817,6 +817,23 @@
     // resumo com a chance de agora: nível mais próximo ainda não tocado de cada lado
     const lado = (sgn) => { for (const x of [0.5, 1, 1.5, 2]) { const L = m.ab_dia * Math.exp(sgn * x * sd); if (sgn > 0 ? m.max_dia < L : m.min_dia > L) return [x, L, chAgora(L, sd, m.ts_dia_ini, m.ts_dia_fim)]; } return null; };
     const up = lado(1), dn = lado(-1), fr1 = (r, s) => (r ? `<b>${nf(r[1], k)}</b> (${s}${fx(r[0])}σ): <b>${r[2]}%</b>` : `todos os níveis ${s === '+' ? 'acima' : 'abaixo'} já tocados`);
+    // dia normal: quanto o dia anda de verdade, em σ do painel (testes/dia_tipico.py, futuros da CME, 15 anos, ~3.750 dias cada)
+    { const Q = { XAUUSD: [0.44, 1.35, 1.05], USDJPY: [0.54, 1.55, 1.18], EURUSD: [0.57, 1.52, 1.27], USDCHF: [0.56, 1.51, 1.30], GBPUSD: [0.55, 1.53, 1.23] }[atv], bx = $('.mp-normal');
+      if (bx) { bx.replaceChildren(); bx.hidden = !Q; if (Q) {
+        const pip = atv === 'XAUUSD' ? 1 : atv.includes('JPY') ? 0.01 : 0.0001, un = atv === 'XAUUSD' ? '' : ' pips', us = atv === 'XAUUSD' ? 'US$ ' : '';
+        const pp = (x) => us + nf(m.ab_dia * (Math.exp(x * sd) - 1) / pip, 0) + un, L = (x) => nf(m.ab_dia * Math.exp(x * sd), k);
+        const amp = Math.log(m.max_dia / m.min_dia) / sd;
+        const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Dia normal</b> · quanto o dia anda de verdade (futuros da CME, 15 anos)'; bx.appendChild(h);
+        const a1 = document.createElement('p'); a1.innerHTML = '<b>Metade dos dias</b> fecha entre <b>' + L(-Q[0]) + '</b> e <b>' + L(Q[0]) + '</b> (±' + pp(Q[0]) + ' da abertura, ' + nf(Q[0], 2) + 'σ). <b>9 em cada 10</b> fecham entre ' + L(-Q[1]) + ' e ' + L(Q[1]) + ' (±' + pp(Q[1]) + ').'; bx.appendChild(a1);
+        const a2 = document.createElement('p'); a2.innerHTML = 'Distância típica entre a máxima e a mínima do dia: <b>' + pp(Q[2]) + '</b>. <b>Hoje até agora:</b> ' + us + nf((m.max_dia - m.min_dia) / pip, 0) + un + ' (' + nf(amp / Q[2] * 100, 0) + '% do típico).'; bx.appendChild(a2);
+        const C = { XAUUSD: [0.81, 1.22, 0.75, 0.79, 0.95, 65, 39], USDJPY: [0.79, 1.17, 0.48, 0.62, 0.85, 73, 30], EURUSD: [0.80, 1.23, 0.72, 0.82, 1.01, 68, 35], USDCHF: [0.77, 1.12, 0.70, 0.75, 0.91, 61, 42], GBPUSD: [0.82, 1.17, 0.71, 0.81, 0.99, 68, 35] }[atv];
+        const a3 = document.createElement('p');
+        if (C && m.amp_cedo != null) { const ce = m.amp_cedo, g = ce >= C[1] ? 2 : ce < C[0] ? 0 : 1;
+          a3.innerHTML = '<b>Ásia + Londres (até 11h BRT):</b> andou ' + nf(ce, 2) + 'σ, ' + ['<b>pouco</b>', '<b>normal</b>', '<b>muito</b>'][g] + '. Daqui até o fim, o típico em dias assim é <b>' + pp(C[2 + g]) + '</b> entre a máxima e a mínima' + (g === 2 ? ' (' + C[5] + '% de chance de o resto do dia ser grande)' : g === 0 ? ' (só ' + C[6] + '% de chance de o resto do dia ser grande)' : '') + '.'; }
+        else a3.innerHTML = '<b>Ásia + Londres:</b> a leitura do resto do dia aparece às 11h BRT.';
+        bx.appendChild(a3);
+        const n = document.createElement('p'); n.className = 'op-note ajuda'; n.innerHTML = '<b>Como ler:</b> o σ mostra o limite de um dia forte; o dia comum anda mais ou menos metade disso. Use a faixa da metade dos dias como tamanho de um dia normal para a grade do robô, e o ±1σ como o dia forte. A linha da Ásia + Londres usa o quanto o preço andou até as 11h de Brasília: quando andou muito, o resto do dia também tende a ser grande; quando andou pouco, tende a ser pequeno (medido em 2 anos de futuros a cada hora, estável). Medido em 15 anos dos futuros da CME, com o mesmo σ do mapa e estável no tempo. Mostra o tamanho do dia, não a direção.'; bx.appendChild(n);
+      } } }
     // rompimento do σ do dia (medido em futuros da CME, mesma régua do mapa): o que costuma acontecer depois de cada gatilho
     { const R = (D('rompimento').data || {})[atv], bx = $('.mp-romp');
       if (bx) { bx.replaceChildren(); if (R) {
