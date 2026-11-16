@@ -1,0 +1,48 @@
+name: PDFs da CME → painel
+# O PC da usuária baixa os PDFs do boletim da CME de madrugada e envia para a branch "pdfs" (só os últimos arquivos).
+# Aqui: lê os PDFs, roda a conferência rigorosa (confere_cme.py) e só grava na main se der 0 erro.
+# Se der erro, o job falha e o GitHub avisa por e-mail; nada é publicado.
+on:
+  push:
+    branches: [pdfs]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: cme-pdfs
+  cancel-in-progress: false
+jobs:
+  ler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q pdfplumber
+      - name: Baixar os PDFs da branch pdfs
+        run: |
+          git fetch -q --depth=1 origin pdfs
+          mkdir -p /tmp/pdfs && git archive FETCH_HEAD | tar -x -C /tmp/pdfs
+          ls -la /tmp/pdfs
+      - name: Ler e conferir
+        run: |
+          set -e
+          O=/tmp/pdfs/Section64_Metals_Option_Products.pdf
+          C=/tmp/pdfs/Section33_Japanese_Yen_Call_Options.pdf
+          P=/tmp/pdfs/Section34_Japanese_Yen_Put_Options.pdf
+          ARGS=""
+          if [ -f "$O" ]; then python3 cme_pdf.py "$O" | tee /tmp/ouro.log; J=$(grep -o 'cme/opcoes_[0-9-]*\.json' /tmp/ouro.log | head -1); ARGS="$ARGS --ouro $O $J"; fi
+          if [ -f "$C" ] && [ -f "$P" ]; then python3 cme_pdf_iene.py "$C" "$P" | tee /tmp/iene.log; J=$(grep -o 'cme/iene_[0-9-]*\.json' /tmp/iene.log | head -1); ARGS="$ARGS --iene $C $P $J"; fi
+          [ -n "$ARGS" ] || { echo "nenhum PDF"; exit 1; }
+          python3 confere_cme.py $ARGS
+      - name: Gravar na main (só com 0 erro)
+        run: |
+          git config user.name "painel-cme"; git config user.email "actions@users.noreply.github.com"
+          git add cme/*.json
+          if git diff --cached --quiet; then echo "nada novo (PDF já carregado)"; exit 0; fi
+          git commit -q -m "CME: PDFs do boletim (automático, conferido)"
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && exit 0; sleep 5; done; exit 1

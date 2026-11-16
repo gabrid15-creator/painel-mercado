@@ -1,0 +1,6 @@
+[Unit]
+Description=Baixa os PDFs da CME para o painel
+
+[Service]
+Type=oneshot
+ExecStart=%h/painel-cme/baixar_cme.sh

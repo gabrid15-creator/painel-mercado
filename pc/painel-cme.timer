@@ -1,0 +1,10 @@
+[Unit]
+Description=PDFs da CME de madrugada (3h30 às 8h, de 30 em 30 min, seg a sáb)
+
+[Timer]
+OnCalendar=Mon..Sat *-*-* 03,04,05,06,07:00,30:00
+OnCalendar=Mon..Sat *-*-* 08:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
