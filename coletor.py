@@ -628,14 +628,14 @@ def b_faixa():
             hoje_s = sess(bars[-1][0]); dia = [b for b in bars if sess(b[0]) == hoje_s]
             seg = hoje_s - dt.timedelta(days=hoje_s.weekday()); sem = [b for b in bars if sess(b[0]) >= seg]
             # σ congelado na 1ª coleta da sessão (dia) e da semana: os níveis são projetados na abertura e não mudam até a próxima
-            kd, kw = f"{a}|{hoje_s}", f"{a}|{seg}"
+            kd, kw = f"{a}|{hoje_s}", f"{a}|sem|{seg}"   # chave da semana separada: na segunda hoje_s == seg e o σ da semana saía igual ao do dia
             if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
             if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
             sd = FIXO[kd]["sd"]
             hab = 18 if a == "XAUUSD" else 17   # ouro: a CME reabre às 18h de NY; moedas viram o dia às 17h
             hb = lambda d: dt.datetime.combine(d, dt.time(hab), NYz).astimezone(BRT).strftime("%a %d/%m %Hh").replace("Mon", "seg").replace("Tue", "ter").replace("Wed", "qua").replace("Thu", "qui").replace("Fri", "sex").replace("Sat", "sáb").replace("Sun", "dom")
             row["mapa"] = {"sd_dia": rnd(sd, 6), "sd_sem": rnd(FIXO[kw]["sd"], 6), "proj_dia": FIXO[kd]["em"], "proj_sem": FIXO[kw]["em"],
-                           "dia_ini": hb(hoje_s - dt.timedelta(days=3 if hoje_s.weekday() == 0 else 1)), "dia_fim": hb(hoje_s),
+                           "dia_ini": hb(hoje_s - dt.timedelta(days=1)), "dia_fim": hb(hoje_s),
                            "sem_ini": hb(seg - dt.timedelta(days=1)),
                            "sem_fim": dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).astimezone(BRT).strftime("sex %d/%m %Hh"),   # fechamento de sexta (17h NY) para todos
                            "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
@@ -653,7 +653,8 @@ def b_faixa():
         rows.append(row)
         hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
     if not rows: raise ValueError("sem volatilidade")
-    save("mapa_fixo.json", [dict(sorted(FIXO.items())[-200:])])
+    corte_ = str(NOW.date() - dt.timedelta(days=21))   # guarda 3 semanas por data (o corte antigo por ordem alfabética podia apagar o EURUSD do dia)
+    save("mapa_fixo.json", [{k: v for k, v in sorted(FIXO.items()) if k.rsplit("|", 1)[1] >= corte_}])
     save("mi_mapa_hist.json", sorted(MH.values(), key=lambda h: (h["ini"], h["ativo"], h["tipo"]))[-6000:])
     save("mi_faixa.json", rows)
     save("mi_faixa_hist.json", sorted(hist.values(), key=lambda h: (h["ativo"], h["data"]))[-4000:])

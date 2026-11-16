@@ -203,3 +203,9 @@ Hipótese da usuária: σ curto = lateral, σ longo = tendência. GC=F 1 h, sess
 Terços por σ em US$: curto σ 29,7 → deslocamento 21,1, range 41,3, eficiência 0,240, ping-pong 31,6%, tendência 33,2%; médio 50,1 → 37,5 / 75,1 / 0,232 / 36,0% / 31,7%; longo 82,9 → 62,5 / 126,5 / 0,228 / 31,7% / 30,6%.
 Correlação σ × deslocamento r 0,44 (t 11,6), σ × range r 0,70 (t 23,4), σ × eficiência r −0,06 (t −1,3); σ relativo à média de 60 dias × eficiência r 0,007. Estável nas duas metades.
 Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong × tendência). Deslocamento líquido médio ≈ 0,75σ em qualquer regime. Uso prático: grade e stop medidos em σ do dia.
+
+
+## 16/11/2026 — bug do σ da semana no mapa
+- Na segunda, `hoje_s == seg` → chaves do dia e da semana iguais no `mapa_fixo` → σ da semana = σ do dia (√5 menor). Chave da semana agora `ativo|sem|data`.
+- Rótulo "dia_ini" na segunda mostrava "sex 20h"; agora "dom".
+- Limpeza do `mapa_fixo` era por ordem alfabética (últimos 200) e podia apagar o EURUSD do dia; agora guarda 21 dias por data.
