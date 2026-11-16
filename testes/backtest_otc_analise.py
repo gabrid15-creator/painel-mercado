@@ -1,5 +1,6 @@
 import json, math, statistics as st, collections
-obs = json.load(open("bt2.json")); PARES = ["USDJPY", "EURUSD", "USDCHF", "GBPUSD"]
+import os
+obs = json.load(open(os.environ.get("SAIDA", "bt2.json"))); PARES = ["USDJPY", "EURUSD", "USDCHF", "GBPUSD"]
 def t_(d):
     return st.mean(d) / (st.stdev(d) / math.sqrt(len(d))) if len(d) > 2 and st.stdev(d) > 0 else 0
 def linha(nome, ys, ps, extra=""):

@@ -902,7 +902,8 @@
     }
     // Balcão (DTCC): opções de câmbio entre bancos, por vencimento (mais curtos primeiro)
     const ot = (D('mi_otc').data || [])[0], op = ot && (ot.pares || []).find((x) => x.ativo === atv);
-    if (mostra('.op-card.otc', op && op.vencimentos && op.vencimentos.length)) {
+    const MOSTRA_OTC = false;   // DTCC: só gravando (16/11/2026: paredes testadas em 2 anos, todos os negócios e só 0–2 dias, sem efeito)
+    if (mostra('.op-card.otc', MOSTRA_OTC && op && op.vencimentos && op.vencimentos.length)) {
       const usd = (mi) => (mi >= 1000 ? 'US$ ' + nf(mi / 1000, 1) + ' bi' : 'US$ ' + nf(mi, 0) + ' mi');
       const vs = op.vencimentos, cs = atv === 'USDJPY' ? 2 : 4, hoje = new Date().toISOString().slice(0, 10), ama = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
       if (!vs.some((v) => v.venc === otcSel[atv])) otcSel[atv] = vs[0].venc;

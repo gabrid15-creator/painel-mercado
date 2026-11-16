@@ -29,7 +29,12 @@ for f in arqs:
     if d not in vistos: vistos.add(d); fila.append((d, f))
 fila.sort()
 ini = fila[0][0] + dt.timedelta(days=45)   # ≥ 45 dias de negócios carregados antes do 1º teste
+CURTO = int(os.environ.get("CURTO", "0"))   # 0 = todos; N = só negócios abertos a até N dias do vencimento
 for d, f in fila:
+    if d >= ini and d.weekday() < 5 and CURTO:
+        lim = dt.datetime.combine(d, dt.time(7, 0), NY).astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M")
+        g["HOJE"] = d; L = linhas(f)
+        g["processa"]([r for r in L if (r.get("Event timestamp") or r.get("Execution Timestamp") or "9")[:16] < lim])
     if d >= ini and d.weekday() < 5:
         for par in YH:
             sg = SIG[par].get(d)
@@ -40,7 +45,8 @@ for d, f in fila:
             if not (sg and pre and cut and len(dia) >= 14 and ab): continue
             s0, sc, sab = pre[-1][3], cut[-1][3], ab[-1][3]
             hi, lo = math.log(max(x[1] for x in dia) / sab), math.log(min(x[2] for x in dia) / sab)
-            vivos = [v for v in g["NEG"].values() if v["p"] == par and v["v"] == d.isoformat()]
+            vivos = [v for v in g["NEG"].values() if v["p"] == par and v["v"] == d.isoformat()
+                     and (not CURTO or v["ts"][:10] >= (d - dt.timedelta(days=CURTO + (2 if d.weekday() < CURTO else 0))).isoformat())]
             passo = g["PASSO"][par]; gr = lambda k: round(round(k / passo) * passo, 6)
             cal, put, tot = collections.Counter(), collections.Counter(), collections.Counter()
             for v in vivos:
@@ -56,5 +62,5 @@ for d, f in fila:
                 gl = sorted({gr(s0 * (1 + i / 1000)) for i in range(-10, 11)}); outros = [k for k in gl if abs(k - kstar) > passo / 2]
                 obs[-1]["rumo_base"] = st.mean((abs(math.log(sc / k)) < abs(math.log(s0 / k))) for k in outros)
     g["HOJE"] = d; g["processa"](linhas(f))
-json.dump(obs, open("bt2.json", "w"))
+json.dump(obs, open(os.environ.get("SAIDA", "bt2.json"), "w"))
 print("observações:", len(obs), "| dias:", len({o["dia"] for o in obs}), "| de", obs[0]["dia"], "a", obs[-1]["dia"])
