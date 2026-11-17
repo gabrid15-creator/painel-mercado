@@ -225,3 +225,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 16/11/2026 — regras de trader (H1–H7) e gap de domingo
 - 35 testes; nenhum útil. Ouro CLV t −3,9 (metades −0,09/−0,04, acerto 54%) = fraco. Gap domingo: euro t 4,0 só na 1ª metade; "gap fecha 62–86%" é porque o gap é pequeno, não sinal.
+
+## 17/11/2026 — "current" da CME devolveu boletim velho
+- Ela colou o link "current" e abriu o de sexta (cópia guardada). Solução manual: acrescentar `?x=<qualquer número>` ao link. `pc/baixar_cme.sh` agora pede sem cache (`?t=<hora>` + Cache-Control).

@@ -12,7 +12,7 @@ ARQS="Section64_Metals_Option_Products.pdf Section33_Japanese_Yen_Call_Options.p
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 log() { echo "$(date '+%d/%m %H:%M') $*" >> "$LOG"; }
 for a in $ARQS; do
-  code=$(curl -sS -L -m 60 -o "$TMP/$a" -w '%{http_code}' -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36" "$URL/$a") || code=000
+  code=$(curl -sS -L -m 60 -o "$TMP/$a" -w '%{http_code}' -H "Cache-Control: no-cache" -H "Pragma: no-cache" -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36" "$URL/$a?t=$(date +%s)")   # ?t= evita cópia velha guardada no caminho (16/11 o "current" devolveu o boletim de sexta) || code=000
   if [ "$code" != 200 ] || [ "$(head -c 4 "$TMP/$a")" != "%PDF" ]; then log "falhou $a (HTTP $code)"; exit 1; fi
 done
 cd "$REPO" || { log "pasta $REPO não existe"; exit 1; }
