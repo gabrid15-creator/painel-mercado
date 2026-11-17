@@ -19,7 +19,7 @@ Se der erro, nada é publicado e o GitHub te avisa por e-mail.
 ## 2. Instalar no PC (copie e cole no Terminal, um bloco por vez)
 
 ```bash
-sudo apt install -y git curl
+sudo apt install -y git curl poppler-utils
 ```
 
 ```bash
