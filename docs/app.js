@@ -786,7 +786,7 @@
   function drawMapa() {
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), tb = (D('toque_tabela').data || {})[atv];
     const ok = fr && fr.mapa && tb; $('.mp-wrap').hidden = !ok; $('.mp-teste').hidden = !ok; $('.mp-resumo').hidden = !ok;
-    $('.mp-chip').textContent = ok ? 'chances medidas em ' + tb.n_dias + ' dias' : 'sem mapa para este ativo';
+    $('.mp-chip').textContent = ok ? 'chances medidas em ' + tb.n_dias + ' dias' + (tb.sigma === 'DTCC' ? ' (σ das opções de balcão)' : '') : 'sem mapa para este ativo';
     if (!ok) return;
     const m = fr.mapa, sd = m.sd_dia, sw = m.sd_sem || sd * Math.sqrt(5), k = CASAS[atv];
     const lv = (txt, c) => { const s = document.createElement('span'); s.className = 'lv ' + c; s.textContent = txt; return s; };
@@ -850,7 +850,7 @@
         const L = (x, s) => nf(m.ab_dia * Math.exp(s * x * sd), k);
         const est = (e) => (e >= 1.5 ? 3 : e >= 1.25 ? 2 : e >= 1 ? 1 : 0);
         const sit = (e, nome) => ['ainda dentro do 1σ', 'tocou o 1σ: cara ou coroa (' + pc(R.tocou_1s_fecha_fora) + ' fecha fora)', 'passou de 1,25σ: rompimento confirmado (' + pc(R.passou_125_fecha_fora) + ' fecha fora)', 'passou de 1,5σ: rompimento forte (' + pc(R.passou_15_fecha_fora) + ' fecha fora)'][est(e)];
-        const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Rompimento do σ do dia</b> · o que costuma acontecer depois de cada gatilho (futuros da CME desde ' + R.desde + ', ' + nf(R.dias, 0) + ' dias)'; bx.appendChild(h);
+        const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Rompimento do σ do dia</b> · o que costuma acontecer depois de cada gatilho (futuros da CME desde ' + R.desde + ', ' + nf(R.dias, 0) + ' dias' + (R.sigma === 'DTCC' ? ', com o σ das opções de balcão' : '') + ')'; bx.appendChild(h);
         const ag = document.createElement('p'); ag.className = 'mp-romp-agora'; ag.innerHTML = '<b>Hoje:</b> em cima ' + nf(Math.max(0, eU), 2) + 'σ → <b>' + sit(eU) + '</b> · embaixo ' + nf(Math.max(0, eD), 2) + 'σ → <b>' + sit(eD) + '</b>'; bx.appendChild(ag);
         const tb = document.createElement('table'); tb.className = 'op-table romp-t'; tb.innerHTML = '<thead><tr><th>Passou de</th><th class="num">Cima</th><th class="num">Baixo</th><th class="num">Depois</th></tr></thead>';
         const bd = document.createElement('tbody'); tb.appendChild(bd);
@@ -858,7 +858,7 @@
           const tr = document.createElement('tr'); td(tr, nome).style.fontWeight = 600; td(tr, L(x, 1), 'num'); td(tr, L(x, -1), 'num'); const dd = td(tr, '', 'num'); dd.innerHTML = '<b>' + pc(fora) + '</b> fecha fora do 1σ' + (alem ? '<br><small>' + pc(alem[1]) + ' chega a ' + alem[0] + '</small>' : '');
           if (est(eU) === [1, 1.25, 1.5].indexOf(x) + 1 || est(eD) === [1, 1.25, 1.5].indexOf(x) + 1) tr.style.background = 'color-mix(in srgb, #c98a12 14%, transparent)'; bd.appendChild(tr); }
         const w = document.createElement('div'); w.className = 'tbl-x'; w.appendChild(tb); bx.appendChild(w);
-        const n = document.createElement('p'); n.className = 'op-note ajuda'; n.innerHTML = '<b>Como ler:</b> níveis a partir da abertura do dia, com o mesmo σ do mapa. <b>Tocou o ±1σ</b> = cara ou coroa: metade das vezes fecha de volta dentro (às vezes só "sambou" e voltou). <b>Passou de ±1,25σ</b> = rompimento confirmado: ~70% fecha fora do 1σ e ~2 em cada 3 chegam a 1,5σ. <b>Passou de ±1,5σ</b>: ~80% fecha fora. A linha dourada é a situação de hoje. Medido nos futuros da CME (máximas e mínimas limpas); estável desde 2016. É estatística do que já aconteceu, não garantia.'; bx.appendChild(n);
+        const n = document.createElement('p'); n.className = 'op-note ajuda'; n.innerHTML = '<b>Como ler:</b> níveis a partir da abertura do dia, com o mesmo σ do mapa. <b>Tocou o ±1σ</b> = cara ou coroa: metade das vezes fecha de volta dentro (às vezes só "sambou" e voltou). <b>Passou de ±1,25σ</b> = rompimento confirmado: ~70% fecha fora do 1σ e ~2 em cada 3 chegam a 1,5σ. <b>Passou de ±1,5σ</b>: ~80% fecha fora. A linha dourada é a situação de hoje. Medido nos futuros da CME (máximas e mínimas limpas)' + (R.sigma === 'DTCC' ? ', em 2 anos, com o mesmo σ das opções de balcão que o mapa usa; amostra menor que a do ouro, então os números variam alguns pontos.' : '; estável desde 2016.') + ' É estatística do que já aconteceu, não garantia.'; bx.appendChild(n);
       } } }
     $('.mp-resumo').innerHTML = `<b>Agora</b> (preço ${nf(P, k)}, faltam ${m.ts_dia_fim ? hrs(m.ts_dia_fim) : '—'} para fechar o dia): chance de chegar ao próximo nível acima ${fr1(up, '+')}; abaixo ${fr1(dn, '−')}.`;
     const inp = $('.mp-in'), out = $('.mp-out'); inp.placeholder = 'ex.: ' + nf(P * 1.004, k);

@@ -246,3 +246,7 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 17/11/2026 — σ das moedas pela DTCC
 - Ela pediu "algo que meça as opções melhores" no Forex. DTCC tem o prêmio de cada opção → vol. implícita. Teste 2 anos (`testes/vol_dtcc_resultado_2026-11-17.txt`): USDJPY r 0,52 × 0,34; EURUSD 0,55 × 0,45; USDCHF 0,35 × 0,32; GBPUSD 0,37 × 0,18. Ligado em produção com reserva na realizada. Cortes da Ásia+Londres reescalados (×0,925 iene, ×0,96 euro, ×0,99 franco, ×1,01 libra).
+
+## 17/11/2026 — métricas das moedas com σ DTCC
+- Pedido dela: medir todas as métricas das moedas com CME/DTCC. CME iene sem histórico (só desde 11/2026). Refeito com DTCC (2 anos): toque dia/semana, fecha dentro, curva agora, rompimento. Antigos (vol. realizada, 1996+/2001+) substituídos; resultados em `testes/metricas_dtcc_resultado_2026-11-17.txt`.
+- Também: título "Mapa de opções"; linha da hora no ouro.

@@ -25,7 +25,7 @@ def iv(S, K, T, P, call):
     for _ in range(60):
         m = (lo + hi) / 2; lo, hi = (m, hi) if black(S, K, T, m, call) < P else (lo, m)
     return (lo + hi) / 2
-arqs = sorted(glob.glob(os.path.join(PASTA, "*.json.gz")))
+arqs = sorted(glob.glob(os.path.join(PASTA, "*.json.gz"))); SERIE = {}
 for par, (nome, fx, fut, base_usd) in PAR.items():
     h1 = y(fx, "730d", "1h"); spot = {t // 3600: c for t, o, h, l, c in h1}
     base, quote = par.split("/")
@@ -62,6 +62,7 @@ for par, (nome, fx, fut, base_usd) in PAR.items():
                 if v and 0.02 < v < 0.40: vs.append(v)
             except Exception: continue
         if len(vs) >= 5: dia_iv[d] = st.median(vs)
+    SERIE[nome] = {d.isoformat(): v for d, v in dia_iv.items()}
     dv = y(fut, "2y", "1d"); dd = [(dt.datetime.fromtimestamp(t, NY).date(), o, h, l, c) for t, o, h, l, c in dv]
     rows = []; DIAS = []
     for i in range(22, len(dd)):
@@ -86,3 +87,4 @@ for par, (nome, fx, fut, base_usd) in PAR.items():
     for d, sg, o, c in DIAS: sem.setdefault(d.isocalendar()[:2], []).append((d, sg, o, c))
     w = [(v[0][1] * math.sqrt(5), abs(math.log(v[-1][3] / v[0][2]))) for v in sem.values() if len(v) >= 4]
     print(f"   semana (σ da segunda × √5): ±1σ {sum(1 for a, b in w if b <= a) / len(w):.0%} ±2σ {sum(1 for a, b in w if b <= 2 * a) / len(w):.0%} n={len(w)}")
+if len(sys.argv) > 2: json.dump(SERIE, open(sys.argv[2], "w"))   # série diária da vol. implícita DTCC por par (para os outros testes)
