@@ -228,3 +228,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 17/11/2026 — "current" da CME devolveu boletim velho
 - Ela colou o link "current" e abriu o de sexta (cópia guardada). Solução manual: acrescentar `?x=<qualquer número>` ao link. `pc/baixar_cme.sh` agora pede sem cache (`?t=<hora>` + Cache-Control).
+
+## 17/11/2026 — Dólar e juros
+- Resumo dizia "Hoje:" mas os juros são do fechamento anterior (16/11) → agora "Juros dos EUA, fechamento de seg 16/11". Leitura só com pares e Dólar/Iene, seta + cor. Tabela dentro de .tbl-x.

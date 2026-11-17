@@ -647,13 +647,14 @@
   function djLeitura(r) {
     const d = r.d1, s = r.serie; if (d == null) return ['—', 0];
     const lim = r.unid === '% anualizado' ? 0.05 : 2; if (Math.abs(d) < lim) return ['<span class="op-note">neutro</span>', 0];
-    const up = d > 0, U = (x) => `<span class="mi-pos">${x}</span>`, N = (x) => `<span class="mi-neg">${x}</span>`;
-    if (/^EUA|Fed Funds/.test(s)) return [up ? U('dólar ↑') + ' · ouro ↓' : N('dólar ↓') + ' · ouro ↑', up ? 1 : -1];
-    if (/EUA − Japão/.test(s)) return [up ? U('USDJPY ↑') + ' (carry)' : N('USDJPY ↓') + ' · iene ↑', 0];
-    if (/EUA − Alemanha/.test(s)) return [up ? N('EURUSD ↓') + ' · dólar ↑' : U('EURUSD ↑') + ' · euro ↑', 0];
-    if (/JGB|Japão 10/.test(s)) return [up ? 'iene ↑ · ' + N('USDJPY ↓') : 'iene ↓ · ' + U('USDJPY ↑'), 0];
-    if (/Bund|Alemanha 10/.test(s)) return [up ? 'euro ↑ · ' + U('EURUSD ↑') : 'euro ↓ · ' + N('EURUSD ↓'), 0];
-    if (/GDPNow/.test(s)) return [up ? U('economia forte') + ' · dólar ↑' : N('economia fraca') + ' · dólar ↓', 0];
+    // só pares que ela opera: verde = deve subir, vermelho = deve cair (pedido 17/11)
+    const up = d > 0, P = (par, sobe) => `<span style="white-space:nowrap" class="${sobe ? 'mi-pos' : 'mi-neg'}">${par} ${sobe ? '↑' : '↓'}</span>`, J = (...x) => x.join('<br>');
+    if (/^EUA|Fed Funds/.test(s)) return [J(P('Dólar', up), P('XAUUSD', !up)), up ? 1 : -1];
+    if (/EUA − Japão/.test(s)) return [J(P('USDJPY', up), P('Iene', !up)), 0];
+    if (/EUA − Alemanha/.test(s)) return [P('EURUSD', !up), 0];
+    if (/JGB|Japão 10/.test(s)) return [J(P('Iene', up), P('USDJPY', !up)), 0];
+    if (/Bund|Alemanha 10/.test(s)) return [P('EURUSD', up), 0];
+    if (/GDPNow/.test(s)) return [J(P('Dólar', up), P('XAUUSD', !up)), 0];
     return ['—', 0];
   }
 
@@ -668,11 +669,13 @@
       c.innerHTML = txt; tr.appendChild(c); if (voto) votos.push(voto);
       t.appendChild(tr);
     }
+    const dts = (D('mi_dolar').data || []).filter((r) => /^EUA \d/.test(r.serie)).map((r) => r.data).filter(Boolean).sort(), dt0 = dts[dts.length - 1];
+    const quando = dt0 ? '<b>Juros dos EUA, fechamento de ' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(dt0 + 'T12:00:00').getDay()] + ' ' + dt0.slice(8, 10) + '/' + dt0.slice(5, 7) + ':</b> ' : '<b>Último fechamento:</b> ';
     const sobe = votos.filter((v) => v > 0).length, desce = votos.filter((v) => v < 0).length, rs = $('.dj-resumo');
-    if (rs) rs.innerHTML = !votos.length ? '<b>Hoje:</b> juros praticamente parados, sem pressão clara sobre o dólar.'
-      : '<b>Hoje:</b> ' + (sobe > desce ? `juros americanos subindo (${sobe} de ${votos.length} séries) → <b class="mi-pos">dólar mais forte</b>, pressão de baixa no ouro, EURUSD e alta no USDJPY/USDCHF.`
-        : desce > sobe ? `juros americanos caindo (${desce} de ${votos.length} séries) → <b class="mi-neg">dólar mais fraco</b>, ouro e EURUSD favorecidos, USDJPY/USDCHF pressionados.`
-        : 'juros mistos → sem direção clara para o dólar.') + ' Explica o dia; não prevê o próximo.';
+    if (rs) rs.innerHTML = !votos.length ? quando + 'juros praticamente parados, sem pressão clara sobre o dólar.'
+      : quando + (sobe > desce ? `juros americanos subindo (${sobe} de ${votos.length} séries) → <b class="mi-pos">Dólar ↑</b>: <b class="mi-neg">XAUUSD ↓ · EURUSD ↓</b> · <b class="mi-pos">USDJPY ↑ · USDCHF ↑</b>.`
+        : desce > sobe ? `juros americanos caindo (${desce} de ${votos.length} séries) → <b class="mi-neg">Dólar ↓</b>: <b class="mi-pos">XAUUSD ↑ · EURUSD ↑</b> · <b class="mi-neg">USDJPY ↓ · USDCHF ↓</b>.`
+        : 'juros mistos → sem direção clara para o dólar.') + ' Os juros só fecham uma vez por dia: isto explica aquele dia, não o de hoje, e não prevê o próximo.';
     drawAtv();
   }
 

@@ -113,7 +113,7 @@
 1. **Panorama do dia:** leitura da IA; Fear & Greed, red folder, VIX, DXY.
 2. **Macro, o que move o dólar:**
    - Radar institucional: liquidez, estresse, surpresa, regime EUA.
-   - Dólar e juros: bps no cabeçalho, coluna Leitura, EUA − Alemanha → EURUSD. Descreve o dia, não prevê.
+   - Dólar e juros: bps no cabeçalho, coluna "Leitura (fechamento)" só com Dólar/Iene e os pares (XAUUSD, EURUSD, USDJPY) com seta, verde = sobe, vermelho = cai (17/11). Resumo diz a data do fechamento dos juros dos EUA (não é "hoje"). Descreve o fechamento, não prevê.
    - Fed Funds usa o contrato fixo do mês (ex.: ZQZ26.CBT).
 3. **Ativo, níveis e opções** (o seletor gruda no topo):
    - **Mapa "até onde o preço deve ir":**

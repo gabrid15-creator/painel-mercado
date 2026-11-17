@@ -362,7 +362,7 @@
   .tbl-x { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
   @media (max-width: 600px) { .tbl-x .op-table th, .tbl-x .op-table td { padding-left: 5px; padding-right: 5px; } .rg-t, .cta-t { font-size: 12.5px; } }
   h2 > .aj-bt { flex: none; align-self: center; }
-  .dj-t td.num { white-space: nowrap; }
+  .dj-t td.num { white-space: nowrap; } .dj-resumo b { white-space: nowrap; }
   .h2-t { min-width: 0; }
 
   /* ---- diagramação 2: parágrafos, alinhamento, ritmo ---- */
@@ -465,7 +465,7 @@
 <li><b>Coluna Leitura:</b> o que o movimento do dia favorece. Variação menor que 2 bps conta como neutra.</li>
 <li><b>Testado:</b> os juros explicam o movimento do dólar no mesmo dia e na mesma semana, mas não antecipam o seguinte. Use como contexto, não como sinal de entrada.</li>
 <li><b>Atualização:</b> juros a cada 5 min (Yahoo, até ~15 min de atraso); JGB, Bund e GDPNow uma vez por dia. Variações em pontos-base (1 bp = 0,01 ponto percentual).</li></ul></div>
-      <table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia<br><small>bps</small></th><th class="num">5 dias<br><small>bps</small></th><th>Leitura (dia)</th></tr></thead><tbody></tbody></table>
+      <div class="tbl-x"><table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia<br><small>bps</small></th><th class="num">5 dias<br><small>bps</small></th><th>Leitura<br><small>fechamento</small></th></tr></thead><tbody></tbody></table></div>
     </section>
 
     <div class="sec-t">Ativo: níveis e opções</div>
@@ -700,6 +700,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261116a"></script>
+<script src="app.js?v=20261117a"></script>
 </body>
 </html>
