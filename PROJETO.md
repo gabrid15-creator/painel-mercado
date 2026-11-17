@@ -27,7 +27,7 @@
 | Auto-atualização | Dados a cada 2 min; ao voltar para a aba (se > 60 s); confere versão nova a cada 10 min e recarrega; ativo escolhido e estado da ajuda ficam no `localStorage`. |
 | IA | `ia.py`, modelo `claude-haiku-5-5` (variável `IA_MODELO`), segredo `ANTHROPIC_API_KEY`. Leitura geral e por ativo, sem viés. |
 | CME | PDFs → `cme_pdf.py` (ouro) / `cme_pdf_iene.py` (iene) → `confere_cme.py` → `cme/opcoes_<pregão>.json`, `cme/iene_<pregão>.json` → `cme_local.py` carrega na coleta (só se o pregão for ≥ o atual). |
-| CME pelo PC | `pc/` (`baixar_cme.sh`, `painel-cme.service/.timer`, `LEIAME.md`): Ubuntu, seg–sáb 3h30–8h de 30 em 30 min, curl dá 403 até no PC dela (17/11) → baixa abrindo o **Brave dela num perfil separado** (`~/.config/painel-cme/brave`, PDF direto para pasta temporária, fecha depois; precisa sessão logada; testado com Chromium + Xvfb), envia à branch `pdfs` (commit órfão) e dispara `.github/workflows/cme_pdfs.yml` (lê, confere, só grava na main com 0 erro). Token fine-grained em `~/.config/painel-cme/token` (Contents + Actions RW, só este repo). **Ela ainda não instalou.** |
+| CME pelo PC | `pc/` (`baixar_cme.sh`, `painel-cme.service/.timer`, `LEIAME.md`): Ubuntu, seg–sáb 3h30–8h de 30 em 30 min, curl dá 403 até no PC dela (17/11) → baixa abrindo o **Brave dela num perfil separado** (`~/.config/painel-cme/brave`, PDF direto para pasta temporária, fecha depois; precisa sessão logada; testado com Chromium + Xvfb), envia à branch `pdfs` (commit órfão) e dispara `.github/workflows/cme_pdfs.yml` (lê, confere, só grava na main com 0 erro). Token fine-grained em `~/.config/painel-cme/token` (Contents + Actions RW, só este repo). **Instalado no PC dela em 17/11 (Linux Mint): 1º teste ok, leitura automática conferida e publicada.** Roda 3h–8h de 30 em 30 min + 10h e 12h, abre o Brave só até pegar o boletim (estado em `~/.config/painel-cme/estado`). |
 | DTCC | `dtcc.py` (≤ 150 s): balcão de opções de câmbio; estado `dtcc_estado.json` → `mi_otc.json`, `mi_otc_hist.json`. Card escondido. |
 | 1 min | `minutos.py` 1×/dia ~01h UTC → branch `minutos` (`AAAA-MM-DD.csv.gz`: GC, SI, DXY, 6E, 6J, 6S). |
 | Branches | `main` (código), `dados` (coleta), `minutos`, `pdfs`. |
@@ -230,7 +230,7 @@
 
 ## 8. Próximos passos
 
-1. Ela instalar a automação dos PDFs (`pc/LEIAME.md`) e ver se a CME bloqueia o PC dela.
+1. Acompanhar a automação dos PDFs nos primeiros dias (log: `~/.local/state/painel-cme.log` no PC dela).
 2. Recalibrar a régua da Vantage na troca do GC (fim de nov.).
 3. Euro e franco na CME: achar as seções no boletim; seguir o molde do iene.
 4. Rodar os testes da §6 nas datas. Ideias anotadas: rompimento por horário (Ásia/Londres/NY), rompimento com × sem red folder, gamma × rompimento, rompimento no σ da semana, grade do robô medida em σ.
