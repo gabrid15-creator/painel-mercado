@@ -9,12 +9,12 @@ PASTA = sys.argv[1]; random.seed(1)
 PAR = {"USD/JPY": ("6J%3DF", -1), "EUR/USD": ("6E%3DF", 1), "USD/CHF": ("6S%3DF", -1), "GBP/USD": ("6B%3DF", 1)}
 INV = {"JPY/USD": "USD/JPY", "USD/EUR": "EUR/USD", "CHF/USD": "USD/CHF", "USD/GBP": "GBP/USD"}
 num = lambda x: float(str(x).replace(",", "").rstrip("+")) if x not in (None, "") else None   # "+" = tamanho acima do teto divulgado
-BAR = int(os.environ.get("BAR", "300")); RANGE = "730d" if BAR == 3600 else "60d"
+BAR = int(os.environ.get("BAR", "300")); RANGE = {3600: "730d", 60: "8d"}.get(BAR, "60d")
 def y(s):
-    u = f"https://query2.finance.yahoo.com/v8/finance/chart/{s}?range={RANGE}&interval={'1h' if BAR == 3600 else '5m'}"
+    u = f"https://query2.finance.yahoo.com/v8/finance/chart/{s}?range={RANGE}&interval={ {3600: '1h', 60: '1m'}.get(BAR, '5m') }"
     j = json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"}), timeout=30).read())["chart"]["result"][0]
     return {t: c for t, c in zip(j["timestamp"], j["indicators"]["quote"][0]["close"]) if c}
-HZ = [60, 120] if os.environ.get("BAR") == "3600" else [5, 15, 30, 60]
+HZ = {"3600": [60, 120], "60": [1, 2, 3, 5, 10]}.get(os.environ.get("BAR", ""), [5, 15, 30, 60])
 for par, (fut, sn) in PAR.items():
     px = y(fut); ts_ = sorted(px); ini = dt.datetime.fromtimestamp(ts_[0], dt.timezone.utc).date()
     base, quote = par.split("/")
@@ -59,7 +59,7 @@ for par, (fut, sn) in PAR.items():
                     a, b = preco(e[idx]), preco(e[idx] + h * 60)
                     if a and b:
                         r_ = sn * math.log(b / a) * 1e4 * e[2]; x.append(r_); plc.append(r_ * random.choice((1, -1)))
-                if len(x) < 30: linha.append(f"{h}min n={len(x)}"); continue
+                if len(x) < 20: linha.append(f"{h}min n={len(x)}"); continue
                 m = st.mean(x); t = m / (st.stdev(x) / math.sqrt(len(x))); hh = len(x) // 2
                 ac = sum(1 for v in x if v > 0) / max(1, sum(1 for v in x if v != 0))
                 linha.append(f"{h}min {m:+.2f}pb t={t:+.1f} [{st.mean(x[:hh]):+.2f}/{st.mean(x[hh:]):+.2f}] acerto {ac:.0%} n={len(x)}")
