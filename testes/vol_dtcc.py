@@ -41,7 +41,7 @@ for par, (nome, fx, fut, base_usd) in PAR.items():
                 if not (0.5 < K / (spot.get(int(ts.timestamp()) // 3600) or 1e9) < 2): K = 1 / K if K else K
                 S = spot.get(int(ts.timestamp()) // 3600)
                 dias = (ex - ts.date()).days
-                if not S or not (1 <= dias <= 30) or abs(math.log(K / S)) > 0.01: continue
+                if not S or not (1 <= dias <= int(os.environ.get("TENOR", "30"))) or abs(math.log(K / S)) > 0.01: continue
                 fis = r.get("UPI FISN", "").split()   # "NA/O Van Call JPY USD": call na 1ª moeda
                 if len(fis) < 5 or fis[2] != "Call" or fis[3] not in (base, quote): continue
                 call = fis[3] == base

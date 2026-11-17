@@ -38,7 +38,7 @@ for par, (fut, sn) in PAR.items():
                 S0p = S0 ** sn   # futuro → par
                 if not (0.5 < K / S0p < 2): K = 1 / K
                 if abs(math.log(K / S0p)) > 0.01: continue
-                if (dt.date.fromisoformat(r["Expiration Date"]) - dt.date.fromtimestamp(te)).days > 7: continue
+                if (dt.date.fromisoformat(r["Expiration Date"]) - dt.date.fromtimestamp(te)).days > int(os.environ.get("TENOR", "7")): continue
                 ba = None
                 for qa, qb in (("Call amount", "Put amount"), ("Notional amount-Leg 1", "Notional amount-Leg 2")):
                     va, vb = num(r.get(qa)), num(r.get(qb))

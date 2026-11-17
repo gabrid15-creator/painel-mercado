@@ -1,0 +1,20 @@
+USDJPY: n=427 dias | vol. DTCC média 15.6% × realizada 9.9%
+   prevê a amplitude do dia: DTCC r=0.46 [0.33/0.44] × realizada r=0.35 [0.21/0.24]
+   fechou dentro de ±1σ: DTCC 93% × realizada 78% (ideal 68%)
+   com σ DTCC: ±2σ 99% | |fech−abert| 50%≤0.32σ 90%≤0.86σ | amplitude mediana 0.68σ
+   semana (σ da segunda × √5): ±1σ 92% ±2σ 99% n=87
+EURUSD: n=457 dias | vol. DTCC média 11.0% × realizada 7.3%
+   prevê a amplitude do dia: DTCC r=0.51 [0.43/0.42] × realizada r=0.44 [0.37/0.24]
+   fechou dentro de ±1σ: DTCC 91% × realizada 74% (ideal 68%)
+   com σ DTCC: ±2σ 100% | |fech−abert| 50%≤0.38σ 90%≤0.96σ | amplitude mediana 0.85σ
+   semana (σ da segunda × √5): ±1σ 89% ±2σ 98% n=92
+USDCHF: n=90 dias | vol. DTCC média 11.6% × realizada 8.8%
+   prevê a amplitude do dia: DTCC r=0.31 [0.20/0.34] × realizada r=0.22 [-0.13/0.30]
+   fechou dentro de ±1σ: DTCC 89% × realizada 77% (ideal 68%)
+   com σ DTCC: ±2σ 100% | |fech−abert| 50%≤0.45σ 90%≤1.10σ | amplitude mediana 0.93σ
+   semana (σ da segunda × √5): ±1σ 100% ±2σ 100% n=12
+GBPUSD: n=209 dias | vol. DTCC média 11.2% × realizada 7.4%
+   prevê a amplitude do dia: DTCC r=0.34 [0.26/0.37] × realizada r=0.13 [0.19/-0.01]
+   fechou dentro de ±1σ: DTCC 92% × realizada 75% (ideal 68%)
+   com σ DTCC: ±2σ 100% | |fech−abert| 50%≤0.37σ 90%≤0.93σ | amplitude mediana 0.80σ
+   semana (σ da segunda × √5): ±1σ 83% ±2σ 100% n=23

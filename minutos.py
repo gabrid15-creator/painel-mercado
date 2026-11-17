@@ -4,7 +4,7 @@ Roda 1×/dia (passo do workflow ~01h UTC); pega os últimos 5 dias do Yahoo e s�
 Uso: python3 minutos.py <pasta>"""
 import sys, os, gzip, json, time, datetime as dt, urllib.request, urllib.parse
 PASTA = sys.argv[1] if len(sys.argv) > 1 else "min"
-ATV = {"ouro": "GC=F", "prata": "SI=F", "dxy": "DX-Y.NYB", "euro": "6E=F", "iene": "6J=F", "franco": "6S=F"}
+ATV = {"ouro": "GC=F", "prata": "SI=F", "dxy": "DX-Y.NYB", "euro": "6E=F", "iene": "6J=F", "franco": "6S=F", "libra": "6B=F"}   # libra: teste de scalp DTCC (17/11/2026)
 hoje = dt.datetime.now(dt.timezone.utc).date()
 por_dia = {}
 for nome, sym in ATV.items():
