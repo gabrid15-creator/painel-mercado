@@ -4,6 +4,8 @@ O PC baixa os 3 PDFs da CME de madrugada (seg a sáb, de 30 em 30 min das 3h às
 e dispara a leitura. O GitHub lê, confere com rigor e só publica no painel com **0 erro**.
 Se der erro, nada é publicado e o GitHub te avisa por e-mail.
 
+**Como baixa:** a CME recusa programas simples (curl → 403), mas aceita navegador. O robô abre o **Brave** num perfil separado (não mexe no seu Brave), baixa os 3 PDFs e fecha. Precisa: Brave instalado e **você logada no Ubuntu** (tela bloqueada serve; desligado ou deslogado não).
+
 ## 1. Criar o token do GitHub (uma vez)
 
 1. GitHub → foto → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.

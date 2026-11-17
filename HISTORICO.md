@@ -237,3 +237,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Textos corrigidos: "mais de 90 sinais" → centenas; Faixa esperada (moedas não usam opções; precisão 71–78% conforme tabela; moedas 71–74%/94–95%); Valor justo sem "tende a subir"; ATR ≠ dia normal; COT sem "score" e sem promessas; VIX sem "ouro ganha" (correlação negativa); Radar = contexto, não sinal; PCR volume do GLD diz "último pregão" com GLD fechado.
 - Conferido e certo: max pain = teto hoje (curva achatada 357–360 no GLD, recalculado direto da Cboe); diferenciais e spreads batem; liquidez = balanço − TGA − RRP; Fed Funds +18 bps; máx./mín. Yahoo FX × futuros sem pico hoje.
 - Varredura: página inteira, 60 combinações, nada vazando.
+
+## 17/11/2026 — robô da CME no PC dela
+- curl no PC dela: 000 (HTTP/2) e 403 (HTTP/1.1, JSON da CME). Ela pediu para usar navegador. `baixar_cme.sh` agora abre o Brave em perfil separado, baixa os 3 PDFs (prefs: always_open_pdf_externally, pasta temp), fecha com pkill do perfil. Headless não baixa; precisa tela (DISPLAY/XAUTHORITY/Wayland achados sozinhos). Teste local com Chromium + Xvfb: 3 PDFs baixados.
