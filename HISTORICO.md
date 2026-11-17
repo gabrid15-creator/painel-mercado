@@ -243,3 +243,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 17/11/2026 — horários de lateralidade no ouro
 - Ver `testes/horas_lateral_resultado_2026-11-17.txt`. Amplitude/hora varia 2,5× (01h 0,19σ × 10h 0,48σ); eficiência por hora não difere (0,21–0,38, n≈50, ruído). Blocos: eficiência depende do nº de barras, não comparável entre blocos.
+
+## 17/11/2026 — σ das moedas pela DTCC
+- Ela pediu "algo que meça as opções melhores" no Forex. DTCC tem o prêmio de cada opção → vol. implícita. Teste 2 anos (`testes/vol_dtcc_resultado_2026-11-17.txt`): USDJPY r 0,52 × 0,34; EURUSD 0,55 × 0,45; USDCHF 0,35 × 0,32; GBPUSD 0,37 × 0,18. Ligado em produção com reserva na realizada. Cortes da Ásia+Londres reescalados (×0,925 iene, ×0,96 euro, ×0,99 franco, ×1,01 libra).

@@ -63,7 +63,7 @@ for par, (nome, fx, fut, base_usd) in PAR.items():
             except Exception: continue
         if len(vs) >= 5: dia_iv[d] = st.median(vs)
     dv = y(fut, "2y", "1d"); dd = [(dt.datetime.fromtimestamp(t, NY).date(), o, h, l, c) for t, o, h, l, c in dv]
-    rows = []
+    rows = []; DIAS = []
     for i in range(22, len(dd)):
         d, o, h, l, c = dd[i]
         ant = [x for x in dia_iv if x < d]
@@ -72,9 +72,17 @@ for par, (nome, fx, fut, base_usd) in PAR.items():
         rr = [math.log(dd[k][4] / dd[k - 1][4]) for k in range(i - 21, i)]; s_rv = st.stdev(rr) * 1.09
         if h <= l or math.log(h / l) > 0.05: continue
         rows.append((s_dt, s_rv, math.log(h / l), abs(math.log(c / o))))
+        DIAS.append((d, s_dt, o, c))
     if len(rows) < 60: print(nome, "poucos dias", len(rows)); continue
     def cor(a, b): return st.correlation([math.log(x) for x in a], [math.log(max(x, 1e-5)) for x in b])
     sdt, srv, amp, mov = zip(*rows); m = len(rows) // 2
     print(f"{nome}: n={len(rows)} dias | vol. DTCC média {st.mean(sdt)*math.sqrt(252)*100:.1f}% × realizada {st.mean(srv)*math.sqrt(252)*100:.1f}%")
     print(f"   prevê a amplitude do dia: DTCC r={cor(sdt, amp):.2f} [{cor(sdt[:m], amp[:m]):.2f}/{cor(sdt[m:], amp[m:]):.2f}] × realizada r={cor(srv, amp):.2f} [{cor(srv[:m], amp[:m]):.2f}/{cor(srv[m:], amp[m:]):.2f}]")
     print(f"   fechou dentro de ±1σ: DTCC {sum(1 for a, b in zip(sdt, mov) if b <= a) / len(rows):.0%} × realizada {sum(1 for a, b in zip(srv, mov) if b <= a) / len(rows):.0%} (ideal 68%)")
+    qt = lambda v, p: sorted(v)[int(p * len(v))]
+    z = [b / a for a, b in zip(sdt, mov)]; za = [b / a for a, b in zip(sdt, amp)]
+    print(f"   com σ DTCC: ±2σ {sum(1 for x in z if x <= 2) / len(z):.0%} | |fech−abert| 50%≤{qt(z,.5):.2f}σ 90%≤{qt(z,.9):.2f}σ | amplitude mediana {qt(za,.5):.2f}σ")
+    sem = {}
+    for d, sg, o, c in DIAS: sem.setdefault(d.isocalendar()[:2], []).append((d, sg, o, c))
+    w = [(v[0][1] * math.sqrt(5), abs(math.log(v[-1][3] / v[0][2]))) for v in sem.values() if len(v) >= 4]
+    print(f"   semana (σ da segunda × √5): ±1σ {sum(1 for a, b in w if b <= a) / len(w):.0%} ±2σ {sum(1 for a, b in w if b <= 2 * a) / len(w):.0%} n={len(w)}")

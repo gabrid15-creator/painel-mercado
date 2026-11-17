@@ -124,7 +124,7 @@
    - **Rompimento do σ do dia** (`.mp-romp`, `rompimento.json`): preço de cada gatilho (±1σ/±1,25σ/±1,5σ), o que costuma acontecer depois e a linha "Hoje: em cima Xσ → …".
    - **Faixa esperada:**
      - ouro = GVZ, mais a CME (straddle no dinheiro da 1ª série com ≥ 3 dias úteis);
-     - moedas = vol. realizada de 21 dias × 1,09;
+     - moedas = **vol. implícita das opções de balcão (DTCC)**: `dtcc.py` → `mi_otc.pares[].vol_impl` (negócios das últimas 24 h, prazo 1–30 d, strike ≤ 1% do preço na hora, prêmio → Black; mediana; ≥ 5 negócios); `b_faixa` usa se o mi_otc tiver < 3 h; reserva: vol. realizada 21 d × 1,09. 17/11: USDJPY DTCC 6,76% × CME 6,82%;
      - etiqueta da vol. contra a média de 1/3/5 anos (pesos 50/30/20);
      - tabela **Precisão medida** visível (`faixa_backtest.json`).
    - **Conferência diária** (`mi_validacao.json`): toque real × chance prevista, faixa e 0DTE (GLD e CME separados).
@@ -170,6 +170,7 @@
 | **Dia típico em σ** (`testes/dia_tipico.py`, futuros diários 15 anos, ~3.750 dias cada) | Metade dos dias fecha a ≤ 0,55σ da abertura (moedas; ouro 0,45σ); 68% ≤ 0,85σ; 90% ≤ 1,5σ. Amplitude máx−mín mediana 1,2σ. Ouro com σ GVZ: 0,44σ / 90% ≤ 1,35σ / amplitude 1,05σ. Estável. **Na tela: bloco "Dia normal" do mapa** (`.mp-normal`, constantes `Q` no `app.js`). |
 | **Ásia + Londres → tamanho do resto do dia** (`testes/range_cedo.py`, futuros 1 h, 2 anos, ~555 dias) | Amplitude 18h→9h NY em σ × amplitude 9h→17h: r 0,30–0,50 (t 7–14), metades estáveis. Cedo no terço alto → resto grande 61–73%; terço baixo → 30–42% (acaso 50%). Ouro (σ GVZ) o mais fraco: r 0,30 (metades 0,36/0,22). Na tela a partir das 11h BRT (`mapa.amp_cedo`, medido no futuro da CME; constantes `C` no `app.js`). Diz o TAMANHO, não o formato nem a direção. |
 | **Horário em que o ouro anda menos** (`testes/horas_lateral.py`, GC 1 h 2 anos, metades estáveis) | Amplitude por hora em σ do dia: mais parado 17h–01h BRT (0,19–0,24σ/h ≈ US$ 12–15) e 14h–16h (0,24–0,27σ); mais agitado 10h–12h (0,48σ/h ≈ US$ 30) e 09h/22h (~0,38σ). Só TAMANHO: a proporção de horas "vai e volta" (5 min, 60 dias) é ~45–55% em todas as horas, sem horário mais ping-pong. Horas BRT misturam horário de verão americano (±1 h). Ainda não está na tela. |
+| **Vol. das opções de balcão (DTCC) nas moedas** (`testes/vol_dtcc.py`, 2 anos, 380–480 dias/par) | Prevê a amplitude do dia melhor que a vol. realizada nos 4 pares: r 0,35–0,55 × 0,18–0,45, metades estáveis. ±1σ dia 78–83%, ±2σ 96–99%; semana 73–83% / 97–98%. Dia normal com σ DTCC: 50% ≤ 0,43–0,57σ, 90% ≤ 1,20–1,50σ, amplitude 0,97–1,16σ (constantes `Q`; cortes `C` reescalados pela razão realizada/DTCC). Precisão na tela via `faixa_backtest.json[par].dtcc`. |
 | Regime forte | Mantém a direção por 13 semanas: DXY 91–100%, juros 57–90%. |
 
 ### Não passou (não usar como sinal)

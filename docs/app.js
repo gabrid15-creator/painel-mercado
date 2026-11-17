@@ -671,7 +671,7 @@
     }
     const dts = (D('mi_dolar').data || []).filter((r) => /^EUA \d/.test(r.serie)).map((r) => r.data).filter(Boolean).sort(), dt0 = dts[dts.length - 1];
     const hojeBR = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 10);
-    const quando = dt0 === hojeBR ? '<b>Juros dos EUA hoje (ao vivo, a cada 5 min):</b> ' : dt0 ? '<b>Juros dos EUA, fechamento de ' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(dt0 + 'T12:00:00').getDay()] + ' ' + dt0.slice(8, 10) + '/' + dt0.slice(5, 7) + ':</b> ' : '<b>Último fechamento:</b> ';
+    const quando = dt0 === hojeBR ? '<b>Juros dos EUA hoje (ao vivo):</b> ' : dt0 ? '<b>Juros dos EUA, fechamento de ' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(dt0 + 'T12:00:00').getDay()] + ' ' + dt0.slice(8, 10) + '/' + dt0.slice(5, 7) + ':</b> ' : '<b>Último fechamento:</b> ';
     const sobe = votos.filter((v) => v > 0).length, desce = votos.filter((v) => v < 0).length, rs = $('.dj-resumo');
     if (rs) rs.innerHTML = !votos.length ? quando + 'juros praticamente parados, sem pressão clara sobre o dólar.'
       : quando + (sobe > desce ? `juros americanos subindo (${sobe} de ${votos.length} séries) → <b class="mi-pos">Dólar ↑</b>: <b class="mi-neg">XAUUSD ↓ · EURUSD ↓</b> · <b class="mi-pos">USDJPY ↑ · USDCHF ↑</b>.`
@@ -822,15 +822,15 @@
     const lado = (sgn) => { for (const x of [0.5, 1, 1.5, 2]) { const L = m.ab_dia * Math.exp(sgn * x * sd); if (sgn > 0 ? m.max_dia < L : m.min_dia > L) return [x, L, chAgora(L, sd, m.ts_dia_ini, m.ts_dia_fim)]; } return null; };
     const up = lado(1), dn = lado(-1), fr1 = (r, s) => (r ? `<b>${nf(r[1], k)}</b> (${s}${fx(r[0])}σ): <b>${r[2]}%</b>` : `todos os níveis ${s === '+' ? 'acima' : 'abaixo'} já tocados`);
     // dia normal: quanto o dia anda de verdade, em σ do painel (testes/dia_tipico.py, futuros da CME, 15 anos, ~3.750 dias cada)
-    { const Q = { XAUUSD: [0.44, 1.35, 1.05], USDJPY: [0.54, 1.55, 1.18], EURUSD: [0.57, 1.52, 1.27], USDCHF: [0.56, 1.51, 1.30], GBPUSD: [0.55, 1.53, 1.23] }[atv], bx = $('.mp-normal');
+    { const Q = { XAUUSD: [0.44, 1.35, 1.05], USDJPY: [0.43, 1.20, 0.97], EURUSD: [0.54, 1.40, 1.16], USDCHF: [0.54, 1.37, 1.15], GBPUSD: [0.57, 1.50, 1.13] }[atv], bx = $('.mp-normal');   // moedas: σ das opções DTCC (testes/vol_dtcc.py, 2 anos)
       if (bx) { bx.replaceChildren(); bx.hidden = !Q; if (Q) {
         const pip = atv === 'XAUUSD' ? 1 : atv.includes('JPY') ? 0.01 : 0.0001, un = atv === 'XAUUSD' ? '' : ' pips', us = atv === 'XAUUSD' ? 'US$ ' : '';
         const pp = (x) => us + nf(m.ab_dia * (Math.exp(x * sd) - 1) / pip, 0) + un, L = (x) => nf(m.ab_dia * Math.exp(x * sd), k);
         const amp = Math.log(m.max_dia / m.min_dia) / sd;
-        const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Dia normal</b> · quanto o dia anda de verdade (futuros da CME, 15 anos)'; bx.appendChild(h);
+        const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Dia normal</b> · quanto o dia anda de verdade (' + (atv === 'XAUUSD' ? 'futuros da CME, 15 anos' : 'futuros da CME, 2 anos, com o σ das opções de balcão') + ')'; bx.appendChild(h);
         const a1 = document.createElement('p'); a1.innerHTML = '<b>Metade dos dias</b> fecha entre <b>' + L(-Q[0]) + '</b> e <b>' + L(Q[0]) + '</b> (±' + pp(Q[0]) + ' da abertura, ' + nf(Q[0], 2) + 'σ). <b>9 em cada 10</b> fecham entre ' + L(-Q[1]) + ' e ' + L(Q[1]) + ' (±' + pp(Q[1]) + ').'; bx.appendChild(a1);
         const a2 = document.createElement('p'); a2.innerHTML = 'Distância típica entre a máxima e a mínima do dia: <b>' + pp(Q[2]) + '</b>. <b>Hoje até agora:</b> ' + us + nf((m.max_dia - m.min_dia) / pip, 0) + un + ' (' + nf(amp / Q[2] * 100, 0) + '% do típico).'; bx.appendChild(a2);
-        const C = { XAUUSD: [0.81, 1.22, 0.75, 0.79, 0.95, 65, 39], USDJPY: [0.79, 1.17, 0.48, 0.62, 0.85, 73, 30], EURUSD: [0.80, 1.23, 0.72, 0.82, 1.01, 68, 35], USDCHF: [0.77, 1.12, 0.70, 0.75, 0.91, 61, 42], GBPUSD: [0.82, 1.17, 0.71, 0.81, 0.99, 68, 35] }[atv];
+        const C = { XAUUSD: [0.81, 1.22, 0.75, 0.79, 0.95, 65, 39], USDJPY: [0.73, 1.08, 0.44, 0.57, 0.79, 73, 30], EURUSD: [0.77, 1.18, 0.69, 0.79, 0.97, 68, 35], USDCHF: [0.76, 1.11, 0.69, 0.74, 0.90, 61, 42], GBPUSD: [0.83, 1.18, 0.72, 0.82, 1.00, 68, 35] }[atv];
         const a3 = document.createElement('p');
         if (C && m.amp_cedo != null) { const ce = m.amp_cedo, g = ce >= C[1] ? 2 : ce < C[0] ? 0 : 1;
           a3.innerHTML = '<b>Ásia + Londres (até 11h BRT):</b> andou ' + nf(ce, 2) + 'σ, ' + ['<b>pouco</b>', '<b>normal</b>', '<b>muito</b>'][g] + '. Daqui até o fim, o típico em dias assim é <b>' + pp(C[2 + g]) + '</b> entre a máxima e a mínima' + (g === 2 ? ' (' + C[5] + '% de chance de o resto do dia ser grande)' : g === 0 ? ' (só ' + C[6] + '% de chance de o resto do dia ser grande)' : '') + '.'; }
@@ -916,12 +916,13 @@
       } else if (atv === 'XAUUSD') fonte('CME: sem PDF do boletim carregado.');
       // precisão medida (backtest longo, mesmo método do painel): visível, sem precisar abrir o ?
       const bt = (D('faixa_backtest').data || {})[atv], bx = $('.fx-bt');
+      const dt = bt && bt.dtcc && /DTCC/.test(fr.fonte || ''), B = dt ? bt.dtcc : bt;   // moedas com σ da DTCC: mostra a precisão medida com ela
       if (bx) { bx.replaceChildren(); if (bt) {
-        const tit = document.createElement('div'); tit.className = 'fx-bt-t'; tit.innerHTML = '<b>Precisão medida</b> · quantas vezes o preço <b>fechou dentro</b> da faixa (' + (atv === 'XAUUSD' ? 'GVZ' : 'vol. 21d × 1,09') + ', desde ' + bt.dia.desde + ', ' + nf(bt.dia.n, 0) + ' dias)'; bx.appendChild(tit);
+        const tit = document.createElement('div'); tit.className = 'fx-bt-t'; tit.innerHTML = '<b>Precisão medida</b> · quantas vezes o preço <b>fechou dentro</b> da faixa (' + (atv === 'XAUUSD' ? 'GVZ' : dt ? 'opções de balcão DTCC' : 'vol. 21d × 1,09') + ', desde ' + B.dia.desde + ', ' + nf(B.dia.n, 0) + ' dias)'; bx.appendChild(tit);
         const tb = document.createElement('table'); tb.className = 'op-table'; tb.innerHTML = '<thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span><br><small>ideal 68%</small></th><th class="num"><span class="lv lv-s2">±2σ</span><br><small>ideal 95%</small></th><th class="num">Nem tocou<br><small>±1σ</small></th><th class="num">Ano<br><small>±1σ</small></th></tr></thead>';
         const bd = document.createElement('tbody'); tb.appendChild(bd);
-        for (const p of ['dia', 'semana', 'mês']) { const r = bt[p]; if (!r) continue; const tr = document.createElement('tr'); td(tr, p).style.fontWeight = 600;
-          td(tr, nf(r.s1, 0) + '%', 'num').style.fontWeight = 700; td(tr, nf(r.s2, 0) + '%', 'num').style.fontWeight = 700; td(tr, nf(r.nunca_saiu_s1, 0) + '%', 'num'); td(tr, r.s1_ano[0] + '–' + r.s1_ano[1] + '%', 'num'); bd.appendChild(tr); }
+        for (const p of ['dia', 'semana', 'mês']) { const r = B[p]; if (!r) continue; const tr = document.createElement('tr'); td(tr, p).style.fontWeight = 600;
+          td(tr, nf(r.s1, 0) + '%', 'num').style.fontWeight = 700; td(tr, nf(r.s2, 0) + '%', 'num').style.fontWeight = 700; td(tr, r.nunca_saiu_s1 == null ? '—' : nf(r.nunca_saiu_s1, 0) + '%', 'num'); td(tr, r.s1_ano ? r.s1_ano[0] + '–' + r.s1_ano[1] + '%' : '—', 'num'); bd.appendChild(tr); }
         const w = document.createElement('div'); w.className = 'tbl-x'; w.appendChild(tb); bx.appendChild(w); } }
     }
     // 0DTE (só ouro)

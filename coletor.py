@@ -570,6 +570,12 @@ def b_faixa():
             try: iv = last(closes(yahoo(idx, 0.1))); fonte = "índice " + idx.strip("^") + " (Cboe)"
             except Exception: pass
         c = closes(P[a]); px = c[max(c)]; casas = ATIVOS[a][1]
+        if iv is None and a != "XAUUSD":   # moedas: vol. implícita dos prêmios do balcão (DTCC, dtcc.py; testes/vol_dtcc.py: melhor que a realizada nos 4 pares)
+            try:
+                ot = ler("mi_otc.json")[0]; vi = next((x.get("vol_impl") for x in ot["pares"] if x["ativo"] == a), None)
+                idade = (NOW - dt.datetime.strptime(ot["meta"]["atualizado"], "%Y-%m-%d %H:%M UTC").replace(tzinfo=dt.timezone.utc)).total_seconds()
+                if vi and vi.get("iv") and idade < 3 * 3600: iv = vi["iv"]; fonte = f"opções de balcão (DTCC, {vi['negocios']} negócios nas últimas 24 h)"
+            except Exception: pass
         if iv is None:   # moedas: opções dos ETFs são pouco negociadas → vol. realizada de 21 dias × 1,09 (testado 2016+: ±1σ 72–73%, ±2σ 93–95%)
             ks_ = sorted(c)[-22:]; r_ = [math.log(c[ks_[i]] / c[ks_[i - 1]]) for i in range(1, len(ks_))]
             iv = st.stdev(r_) * math.sqrt(252) * 100 * 1.09; fonte = "vol. realizada de 21 dias + prêmio típico (testada)"

@@ -9,7 +9,7 @@ Uso: python3 dtcc.py <pasta_saida>   (roda a cada coleta, ~5 min; estado em dtcc
   campos de moeda, que vêm vazios ou trocados em ~10–20% dos negócios).
 - Tamanho em US$ milhões; "+" no tamanho = teto de divulgação (negócio maior que o mostrado).
 Saída: mi_otc.json (por par: vencimentos próximos, perfil por strike, paredes, PCR) e mi_otc_hist.json (retrato diário)."""
-import sys, os, io, csv, json, time, zipfile, urllib.request, datetime as dt
+import sys, os, io, csv, json, time, math, zipfile, urllib.request, datetime as dt
 from zoneinfo import ZoneInfo
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else "out"
@@ -134,6 +134,39 @@ est["dias"] = sorted(set(x for x in est["dias"] if x >= (HOJE - dt.timedelta(day
 for k in [k for k, v in NEG.items() if v["v"] < HOJE.isoformat()]: NEG.pop(k)
 salva("dtcc_estado.json", est)
 
+# volatilidade implícita de cada par pelos prêmios pagos (testes/vol_dtcc.py, 2 anos: prevê a amplitude do dia melhor que a vol.
+# realizada nos 4 pares, metades estáveis). Negócios das últimas 24 h, prazo 1–30 dias, strike a ≤ 1% do preço na hora do negócio.
+NDIST = __import__("statistics").NormalDist()
+def _black(S, K, T, s, call):
+    a = s * math.sqrt(T); d1 = (math.log(S / K) + a * a / 2) / a; d2 = d1 - a
+    return S * NDIST.cdf(d1) - K * NDIST.cdf(d2) if call else K * NDIST.cdf(-d2) - S * NDIST.cdf(-d1)
+def _iv(S, K, T, P, call):
+    lo, hi = 0.005, 1.0
+    if not (_black(S, K, T, lo, call) < P < _black(S, K, T, hi, call)): return None
+    for _ in range(50):
+        m = (lo + hi) / 2; lo, hi = (m, hi) if _black(S, K, T, m, call) < P else (lo, m)
+    return (lo + hi) / 2
+YSYM = {"USDJPY": "JPY%3DX", "EURUSD": "EURUSD%3DX", "USDCHF": "CHF%3DX", "GBPUSD": "GBPUSD%3DX"}
+def vol_impl(par):
+    try:
+        j = json.loads(baixa(f"https://query2.finance.yahoo.com/v8/finance/chart/{YSYM[par]}?range=5d&interval=1h"))["chart"]["result"][0]
+        spot = {t // 3600: c for t, c in zip(j["timestamp"], j["indicators"]["quote"][0]["close"]) if c}
+    except Exception: return None
+    ini = AGORA - dt.timedelta(hours=24); quote = par[3:]; ivs = []
+    for x in NEG.values():
+        if x["p"] != par or x.get("c") or not x.get("pr") or x.get("pm") not in (BASE[par], quote): continue
+        try: ts = dt.datetime.fromisoformat(x["ts"]).replace(tzinfo=dt.timezone.utc)
+        except Exception: continue
+        if ts < ini: continue
+        S = spot.get(int(ts.timestamp()) // 3600); K = x["k"]; dias = (dt.date.fromisoformat(x["v"]) - ts.date()).days
+        if not S or not 1 <= dias <= 30 or abs(math.log(K / S)) > 0.01: continue
+        base_amt = x["n"] * 1e6 if BASE[par] == "USD" else x["n"] * 1e6 / K
+        P = (x["pr"] if x["pm"] == quote else x["pr"] * S) / base_amt
+        v = _iv(S, K, (dias - 0.5) / 365, P, x["t"] == "C")
+        if v and 0.02 < v < 0.40: ivs.append(v)
+    if len(ivs) < 5: return None
+    ivs.sort(); return {"iv": round(ivs[len(ivs) // 2] * 100, 2), "negocios": len(ivs), "janela": "24 h"}
+
 # 3) resumo por par
 precos = {x["ativo"]: x["preco"] for x in ler("mi_ativos.json", []) if x.get("preco")}
 ny = AGORA.astimezone(NY); corte = ny.date() if ny.hour < 10 else ny.date() + dt.timedelta(days=1)   # corte de NY, 10h
@@ -157,7 +190,7 @@ for par in BASE:
                      "perfil": [[k, round(g[0], 1), round(g[1], 1), g[2]] for k, g in sorted(perfil.items())]})
     hoje_fluxo = [x for x in vs if x["ts"][:10] == HOJE.isoformat()]
     saida.append({"ativo": par, "preco": S, "casas": CASAS[par], "corte": corte.isoformat(), "vencimentos": venc,
-                  "hoje_negocios": len(hoje_fluxo), "hoje_mi": round(sum(x["n"] for x in hoje_fluxo), 1)})
+                  "hoje_negocios": len(hoje_fluxo), "hoje_mi": round(sum(x["n"] for x in hoje_fluxo), 1), "vol_impl": vol_impl(par)})
 meta = {"atualizado": AGORA.strftime("%Y-%m-%d %H:%M UTC"), "pacote_ate": est["slice"].get("ate"), "dias_carregados": len(est["dias"]),
         "historico_completo": pronto, "janela_dias": JANELA, "negocios_vivos": len(NEG), "pacotes_nesta_rodada": novos, "erros": est["erros"], "descartados_rodada": DESC}
 salva("mi_otc.json", [{"meta": meta, "pares": saida}])
