@@ -1,6 +1,6 @@
 # PDFs da CME pelo seu PC (Ubuntu)
 
-O PC baixa os 3 PDFs da CME de madrugada (seg a sáb, de 30 em 30 min, das 3h30 às 8h), envia ao GitHub
+O PC baixa os 3 PDFs da CME de madrugada (seg a sáb, de 30 em 30 min das 3h às 8h, e de novo às 10h e 12h para pegar a versão final), envia ao GitHub
 e dispara a leitura. O GitHub lê, confere com rigor e só publica no painel com **0 erro**.
 Se der erro, nada é publicado e o GitHub te avisa por e-mail.
 

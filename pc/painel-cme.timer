@@ -1,9 +1,9 @@
 [Unit]
-Description=PDFs da CME de madrugada (3h30 às 8h, de 30 em 30 min, seg a sáb)
+Description=PDFs da CME (preliminar de madrugada, 3h às 8h de 30 em 30 min; final às 10h e 12h), seg a sáb
 
 [Timer]
 OnCalendar=Mon..Sat *-*-* 03,04,05,06,07:00,30:00
-OnCalendar=Mon..Sat *-*-* 08:00:00
+OnCalendar=Mon..Sat *-*-* 08,10,12:00:00
 Persistent=true
 
 [Install]
