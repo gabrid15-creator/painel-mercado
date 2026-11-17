@@ -231,3 +231,9 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 17/11/2026 — Dólar e juros
 - Resumo dizia "Hoje:" mas os juros são do fechamento anterior (16/11) → agora "Juros dos EUA, fechamento de seg 16/11". Leitura só com pares e Dólar/Iene, seta + cor. Tabela dentro de .tbl-x.
+
+## 17/11/2026 — mega revisão do painel (pedido dela)
+- Dólar e juros: "hoje (ao vivo)" quando o dado é do dia; "fechamento de <dia>" antes de os juros dos EUA abrirem (Yahoo ^IRX/^FVX/^TNX diário).
+- Textos corrigidos: "mais de 90 sinais" → centenas; Faixa esperada (moedas não usam opções; precisão 71–78% conforme tabela; moedas 71–74%/94–95%); Valor justo sem "tende a subir"; ATR ≠ dia normal; COT sem "score" e sem promessas; VIX sem "ouro ganha" (correlação negativa); Radar = contexto, não sinal; PCR volume do GLD diz "último pregão" com GLD fechado.
+- Conferido e certo: max pain = teto hoje (curva achatada 357–360 no GLD, recalculado direto da Cboe); diferenciais e spreads batem; liquidez = balanço − TGA − RRP; Fed Funds +18 bps; máx./mín. Yahoo FX × futuros sem pico hoje.
+- Varredura: página inteira, 60 combinações, nada vazando.

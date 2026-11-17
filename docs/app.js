@@ -241,7 +241,7 @@
       const tr = document.createElement('tr'); td(tr, r.grupo); td(tr, nf(r.liquido, 0), 'num ' + cls(r.liquido)); td(tr, sg(r.var_semana, 0, ''), 'num ' + cls(r.var_semana));
       const c = td(tr, nf(r.indice_3a, 0), 'num'); if (r.indice_3a >= 80 || r.indice_3a <= 20) c.style.fontWeight = 600; kt.appendChild(tr);
     }
-    $('.mi-cot-n').textContent = 'Como ler: líquido = contratos comprados menos vendidos. Os nomes mudam entre relatórios (moedas e Nasdaq usam o TFF; ouro usa o desagregado), por isso o equivalente vem entre parênteses. "≈ hedge funds" (fundos alavancados ou managed money) = dinheiro especulativo grande, segue tendência: é o que o score usa. "≈ commercials" (dealers; no ouro, produtores + swap dealers) = bancos e quem faz hedge, ficam do lado oposto e costumam acertar nos extremos. Institucional = fundos de longo prazo. Varejo = só informativo, fora do score: quando o varejo está muito de um lado, o big money costuma provocar squeeze contra ele. Índice 3a acima de 80 ou abaixo de 20 = esticado. Toque na legenda para ligar ou desligar cada curva. Sai às sextas com dados da terça.' + (kr[0] ? ' Relatório de ' + br(kr[0].data) + '.' : '') + (kr[0] && kr[0].sinal_par < 0 ? ' Atenção: é o futuro da moeda contra o dólar, então comprado na moeda = vendido no ' + atv + '.' : '');
+    $('.mi-cot-n').textContent = 'Como ler: líquido = contratos comprados menos vendidos. Os nomes mudam entre relatórios (moedas e Nasdaq usam o TFF; ouro usa o desagregado), por isso o equivalente vem entre parênteses. "≈ hedge funds" (fundos alavancados ou managed money) = dinheiro especulativo grande, que costuma seguir tendência. "≈ commercials" (dealers; no ouro, produtores + swap dealers) = bancos e quem faz hedge, normalmente do lado oposto. Institucional = fundos de longo prazo. Varejo = só informativo. Índice 3a acima de 80 ou abaixo de 20 = posição esticada. É retrato, não sinal de direção. Toque na legenda para ligar ou desligar cada curva. Sai às sextas com dados da terça.' + (kr[0] ? ' Relatório de ' + br(kr[0].data) + '.' : '') + (kr[0] && kr[0].sinal_par < 0 ? ' Atenção: é o futuro da moeda contra o dólar, então comprado na moeda = vendido no ' + atv + '.' : '');
     {
       const el = $('.mi-cot-c'); el.replaceChildren(); const lg = $('.mi-cot-lg'); lg.replaceChildren();
       const CC = { especulativo: COLORS[0], commercial: COLORS[1], institucional: COLORS[2], varejo: COLORS[7] };
@@ -670,12 +670,13 @@
       t.appendChild(tr);
     }
     const dts = (D('mi_dolar').data || []).filter((r) => /^EUA \d/.test(r.serie)).map((r) => r.data).filter(Boolean).sort(), dt0 = dts[dts.length - 1];
-    const quando = dt0 ? '<b>Juros dos EUA, fechamento de ' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(dt0 + 'T12:00:00').getDay()] + ' ' + dt0.slice(8, 10) + '/' + dt0.slice(5, 7) + ':</b> ' : '<b>Último fechamento:</b> ';
+    const hojeBR = new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 10);
+    const quando = dt0 === hojeBR ? '<b>Juros dos EUA hoje (ao vivo, a cada 5 min):</b> ' : dt0 ? '<b>Juros dos EUA, fechamento de ' + ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(dt0 + 'T12:00:00').getDay()] + ' ' + dt0.slice(8, 10) + '/' + dt0.slice(5, 7) + ':</b> ' : '<b>Último fechamento:</b> ';
     const sobe = votos.filter((v) => v > 0).length, desce = votos.filter((v) => v < 0).length, rs = $('.dj-resumo');
     if (rs) rs.innerHTML = !votos.length ? quando + 'juros praticamente parados, sem pressão clara sobre o dólar.'
       : quando + (sobe > desce ? `juros americanos subindo (${sobe} de ${votos.length} séries) → <b class="mi-pos">Dólar ↑</b>: <b class="mi-neg">XAUUSD ↓ · EURUSD ↓</b> · <b class="mi-pos">USDJPY ↑ · USDCHF ↑</b>.`
         : desce > sobe ? `juros americanos caindo (${desce} de ${votos.length} séries) → <b class="mi-neg">Dólar ↓</b>: <b class="mi-pos">XAUUSD ↑ · EURUSD ↑</b> · <b class="mi-neg">USDJPY ↓ · USDCHF ↓</b>.`
-        : 'juros mistos → sem direção clara para o dólar.') + ' Os juros só fecham uma vez por dia: isto explica aquele dia, não o de hoje, e não prevê o próximo.';
+        : 'juros mistos → sem direção clara para o dólar.') + (dt0 === hojeBR ? ' Explica o dia; não prevê o próximo.' : ' O mercado de juros americano ainda não abriu hoje: isto explica aquele dia, não o de hoje, e não prevê o próximo.');
     drawAtv();
   }
 
@@ -776,7 +777,7 @@
     drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa, s1: z.s1 }, {
       casas: 0, rotulo: 'Contratos em aberto (GLD + CME)', tol: rat, lv2: { teto: cm.call_wall, piso: cm.put_wall, gamma: cm.gamma_flip, mp: cm.max_pain },
       pcrs: [['em aberto, GLD + CME', tot(z.perfil_oi || z.perfil, 1, 2) + tot(cm.perfil, fat, 2), tot(z.perfil_oi || z.perfil, 1, 1) + tot(cm.perfil, fat, 1)],
-             ['volume do dia, GLD (ao vivo)', tot(z.perfil_vol, 1, 2), tot(z.perfil_vol, 1, 1)]] });
+             [z.gld_parado ? 'volume do último pregão, GLD' : 'volume do dia, GLD (ao vivo)', tot(z.perfil_vol, 1, 2), tot(z.perfil_vol, 1, 1)]] });
   }
 
 

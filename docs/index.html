@@ -428,7 +428,7 @@
         <div class="tl-v"><span class="v mi-vix">—</span><span class="tl-u mi-vix-d">—</span></div>
         <div class="tl-gauge" aria-hidden="true"><b class="mi-vix-bar"></b></div><div class="tl-gl"><span>mínima do ano</span><span>máxima</span></div>
         <ul class="tl-l mi-vixs"></ul>
-        <span class="mi-exp">Até 15 = calmo, 20 a 30 = nervoso, acima de 30 = pânico. VIX alto pressiona o Nasdaq; iene, franco e ouro tendem a ganhar.</span></div>
+        <span class="mi-exp">Até 15 = calmo, 20 a 30 = nervoso, acima de 30 = pânico. VIX alto pressiona o Nasdaq; iene e franco tendem a ganhar.</span></div>
       <div class="op-card op-tile">
         <div class="tl-h"><span class="tl-k">DXY · índice do dólar</span><span class="tl-chip mi-dxy-chip">—</span></div>
         <div class="tl-v"><span class="v mi-dxy">—</span><span class="tl-u mi-dxy-d">—</span></div>
@@ -439,7 +439,7 @@
 
     <div class="sec-t">Macro: o que move o dólar</div>
     <section class="op-card radar"><div class="ag-top"><h2>Radar institucional</h2><span class="tl-chip ia-chip">o que as mesas olham</span></div>
-      <div class="op-note ajuda guia"><p><b>Como ler.</b> São os termômetros que as mesas de bancos e fundos olham antes do preço.</p><ul>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> São os termômetros que as mesas de bancos e fundos olham antes do preço. É contexto, não sinal: nos nossos testes, nenhum deles antecipou a direção.</p><ul>
 <li><b>Liquidez:</b> mostra se está entrando dinheiro no sistema, o combustível de Nasdaq e ouro.</li>
 <li><b>Estresse:</b> diz se o medo é pontual ou geral. VIX ÷ VIX 3 meses acima de 1 indica pânico de curto prazo; quando volta para baixo de 1, costuma marcar fundo na bolsa. MOVE alto significa juros instáveis, o que favorece dólar e iene. NFCI acima de 0 indica crédito travando, ruim para todos os ativos.</li>
 <li><b>Surpresa econômica:</b> compara os dados de cada país com o que se esperava. A moeda com surpresa positiva tende a ganhar da que tem surpresa negativa. Exemplo: EUA em +40 e zona do euro em −20 favorecem o EURUSD em queda.</li>
@@ -462,10 +462,10 @@
 <li><b>Diferencial EUA − Japão</b> subindo: o USDJPY tende a subir (carry). Caindo: o iene se fortalece.</li>
 <li><b>Diferencial EUA − Alemanha</b> subindo: o EURUSD tende a cair. Caindo: o euro se fortalece. JGB ou Bund subindo sozinhos fortalecem o iene ou o euro.</li>
 <li><b>GDPNow:</b> a previsão do PIB feita pelo Fed de Atlanta. Subindo, indica economia forte, o que sustenta juro e dólar.</li>
-<li><b>Coluna Leitura:</b> o que o movimento do dia favorece. Variação menor que 2 bps conta como neutra.</li>
+<li><b>Coluna Leitura:</b> o que o movimento do dia (ou do último fechamento, antes de os juros americanos abrirem) favorece; verde = o par tende a subir, vermelho = a cair. Variação menor que 2 bps conta como neutra.</li>
 <li><b>Testado:</b> os juros explicam o movimento do dólar no mesmo dia e na mesma semana, mas não antecipam o seguinte. Use como contexto, não como sinal de entrada.</li>
 <li><b>Atualização:</b> juros a cada 5 min (Yahoo, até ~15 min de atraso); JGB, Bund e GDPNow uma vez por dia. Variações em pontos-base (1 bp = 0,01 ponto percentual).</li></ul></div>
-      <div class="tbl-x"><table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia<br><small>bps</small></th><th class="num">5 dias<br><small>bps</small></th><th>Leitura<br><small>fechamento</small></th></tr></thead><tbody></tbody></table></div>
+      <div class="tbl-x"><table class="op-table dj-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">Dia<br><small>bps</small></th><th class="num">5 dias<br><small>bps</small></th><th>Leitura</th></tr></thead><tbody></tbody></table></div>
     </section>
 
     <div class="sec-t">Ativo: níveis e opções</div>
@@ -479,7 +479,7 @@
 <li><b>Os níveis ficam fixos</b> até a próxima abertura. Os do dia valem a noite inteira e o dia seguinte; os da semana, de domingo à noite até sexta.</li>
 <li><b>Chance agora:</b> recalculada a cada atualização, pelo preço atual e pelo tempo que falta, com a frequência real medida em cerca de 2 anos de candles de 1 h. Se o preço já subiu muito, a chance de voltar a um nível lá embaixo cai; perto do fim do dia, tudo o que está longe vai a quase 0%. Em cinza, embaixo, fica a chance que o nível tinha na abertura.</li>
 <li><b>Como usar:</b> alvo dentro dos níveis de chance alta e stop além deles. Nível de chance baixa raramente é atingido.</li>
-<li><b>Não indica direção.</b> Testamos mais de 90 sinais de direção e nenhum passou. O mapa mostra até onde o preço costuma ir para cada lado.</li></ul></div>
+<li><b>Não indica direção.</b> Testamos centenas de sinais de direção e nenhum passou. O mapa mostra até onde o preço costuma ir para cada lado.</li></ul></div>
       <div class="mp-wrap" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:16px">
         <div><h3 style="margin:0 0 4px;font-size:15px">Hoje</h3><div class="op-note mp-dia-q"></div><table class="op-table mp-t mp-dia"><thead><tr><th>Nível</th><th class="num">Preço</th><th class="num">Chance agora</th><th>Leitura</th></tr></thead><tbody></tbody></table></div>
         <div><h3 style="margin:0 0 4px;font-size:15px">Semana</h3><div class="op-note mp-sem-q"></div><table class="op-table mp-t mp-sem"><thead><tr><th>Nível</th><th class="num">Preço</th><th class="num">Chance agora</th><th>Leitura</th></tr></thead><tbody></tbody></table></div>
@@ -487,13 +487,13 @@
       <div class="mp-normal"></div>
       <div class="mp-romp"></div>
       <div class="mp-teste"><label>Teste um preço: <input type="text" inputmode="decimal" class="mp-in" placeholder="ex.: 3950" style="font:inherit;width:110px;padding:3px 6px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg)"></label> <span class="mp-out op-note"></span></div>
-  <div class="fx mp-fx"><h3 style="margin:14px 0 4px;font-size:15px">Faixa esperada pelas opções <span class="op-note" style="font-weight:400">· de onde vem o σ</span></h3>
-      <div class="op-note fx-ler"><b>Como ler:</b> até onde o preço costuma ir, calculado pelo preço das opções (volatilidade implícita). Mede <b>tamanho</b> do movimento, não direção; parte do preço atual.
+  <div class="fx mp-fx"><h3 style="margin:14px 0 4px;font-size:15px">Faixa esperada <span class="op-note" style="font-weight:400">· de onde vem o σ</span></h3>
+      <div class="op-note fx-ler"><b>Como ler:</b> até onde o preço costuma ir, calculado pela volatilidade: no ouro, pelo preço das opções (GVZ e CME); nas moedas, pela oscilação dos últimos 21 dias mais o prêmio típico (e a CME no iene). Mede <b>tamanho</b> do movimento, não direção; parte do preço atual.
         <ul style="margin:6px 0 0;padding-left:18px;line-height:1.7">
-          <li><span class="lv lv-s1">±1σ</span> faixa normal: o preço fecha dentro em ~2 de cada 3 vezes (ouro, testado: 74% na semana).</li>
+          <li><span class="lv lv-s1">±1σ</span> faixa normal: o preço fecha dentro em ~2 de cada 3 vezes (testado: veja a tabela Precisão medida abaixo, 71–78% conforme o ativo e o prazo).</li>
           <li><span class="lv lv-s2">±2σ</span> extremo: fora dela é raro (~5%). Perto dessa borda = movimento esticado.</li>
           <li><b>Etiqueta da volatilidade</b> (vol. de hoje contra a média de 1, 3 e 5 anos): <span class="lv lv-cw">bem acima</span> faixas largas, use stop maior e posição menor · <span class="lv lv-gf">acima</span> um pouco largas · <span class="lv lv-now">normal</span> tamanho de sempre · <span class="lv lv-rg">abaixo</span> faixas estreitas, mercado parado.</li>
-          <li><b>Fontes:</b> ouro tem duas (índice GVZ da Cboe e opções da CME). Moedas: volatilidade dos últimos 21 dias + prêmio típico (testada: ±1σ 72–73%, ±2σ 93–95%).</li>
+          <li><b>Fontes:</b> ouro tem duas (índice GVZ da Cboe e opções da CME). Moedas: volatilidade dos últimos 21 dias + prêmio típico (testada: ±1σ 71–74%, ±2σ 94–95%).</li>
         </ul></div>
       <table class="op-table fx-t"><thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span> normal</th><th class="num"><span class="lv lv-s2">±2σ</span> extremo</th></tr></thead><tbody></tbody></table>
         <div class="fx-bt"></div>
@@ -578,9 +578,9 @@
     </div>
     <section class="op-tiles">
       <div class="op-card op-tile"><span class="tl-k">Preço</span><span class="v mi-a" data-f="preco">—</span><ul class="tl-l mi-a-var"></ul><span class="mi-exp">Último preço e variação em 1 dia, 5 dias (semana), 20 dias (mês) e no ano.</span></div>
-      <div class="op-card op-tile"><span class="tl-k">Valor justo pelos juros</span><span class="v mi-a" data-f="vj_valor">—</span><ul class="tl-l mi-a-vj"></ul><span class="mi-exp">Preço que o ativo "deveria" ter pelo fator de juros que mais o explica no último ano. Abaixo do justo = barato (tende a subir até ele), acima = caro. z além de ±2 = muito esticado. Só confie se o R² for 0,3 ou mais.</span></div>
+      <div class="op-card op-tile"><span class="tl-k">Valor justo pelos juros</span><span class="v mi-a" data-f="vj_valor">—</span><ul class="tl-l mi-a-vj"></ul><span class="mi-exp">Preço que o ativo "deveria" ter pelo fator de juros que mais o explica no último ano. Abaixo do justo = mais barato do que os juros explicam; acima = mais caro. É retrato: não foi aprovado como sinal de direção. z além de ±2 = muito esticado. Só confie se o R² for 0,3 ou mais.</span></div>
       <div class="op-card op-tile"><span class="tl-k">Sazonalidade do mês (10 anos)</span><span class="v mi-a" data-f="saz_mes10_media">—</span><ul class="tl-l mi-a-saz"></ul><span class="mi-exp">Retorno médio deste mês nos últimos 10 anos (o mercado mudou muito em 20) e em quantos anos ele subiu. Só tem vantagem se subiu ou caiu em 60% ou mais dos anos.</span></div>
-      <div class="op-card op-tile"><span class="tl-k">Oscilação média diária (ATR 14)</span><span class="v mi-a" data-f="atr14">—</span><ul class="tl-l mi-a-52"></ul><span class="mi-exp">Quanto o ativo anda num dia normal. Use para o tamanho do stop e do alvo; um dia que anda 2x isso é fora do comum. Abaixo, a mínima e a máxima das últimas 52 semanas.</span></div>
+      <div class="op-card op-tile"><span class="tl-k">Oscilação média diária (ATR 14)</span><span class="v mi-a" data-f="atr14">—</span><ul class="tl-l mi-a-52"></ul><span class="mi-exp">Média da distância entre a máxima e a mínima dos últimos 14 dias, com os dias fortes incluídos: por isso fica acima do dia normal do mapa. Um dia que anda 2x isso é fora do comum. Abaixo, a mínima e a máxima das últimas 52 semanas.</span></div>
     </section>
 
     <div class="op-grid">
@@ -635,7 +635,7 @@
         <li><b>VIX / HYG:</b> medo em ações e saúde do crédito. VIX subindo e HYG caindo juntos = aversão a risco: Nasdaq cai, iene e franco tendem a subir.</li>
         <li><b>Petróleo:</b> alta forte pressiona inflação e juros; Europa e Japão importam energia, então petróleo caro pesa no euro e no iene.</li>
       </ul>
-      <div class="op-tablebox"><table class="op-table mi-macro-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">1 dia</th><th class="num">5 dias</th><th class="num">20 dias</th><th class="num">Percentil 1a</th></tr></thead><tbody></tbody></table></div>
+      <div class="op-tablebox tbl-x"><table class="op-table mi-macro-t"><thead><tr><th>Série</th><th class="num">Valor</th><th class="num">1 dia</th><th class="num">5 dias</th><th class="num">20 dias</th><th class="num">Percentil 1a</th></tr></thead><tbody></tbody></table></div>
       <h3 class="mi-hist-t">—</h3>
       <div class="mi-chart mi-hist"></div>
     </section>
@@ -700,6 +700,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261117a"></script>
+<script src="app.js?v=20261117b"></script>
 </body>
 </html>
