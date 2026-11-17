@@ -43,14 +43,20 @@ for par, (nome, fx, fut, base_usd) in PAR.items():
                 dias = (ex - ts.date()).days
                 if not S or not (1 <= dias <= 30) or abs(math.log(K / S)) > 0.01: continue
                 fis = r.get("UPI FISN", "").split()   # "NA/O Van Call JPY USD": call na 1ª moeda
-                cx = fis[3] if len(fis) > 3 else ""; call = (cx == base)
-                if cx not in (base, quote): continue
+                if len(fis) < 5 or fis[2] != "Call" or fis[3] not in (base, quote): continue
+                call = fis[3] == base
+                cc = r.get("Call currency", "")   # mesmo filtro do dtcc.py: nome do produto e campo "Call currency" têm de concordar
+                if (cc == base) != call or cc not in (base, quote): continue
+                # quantidade na moeda base pela conta (cotada = base × strike), porque os rótulos às vezes vêm trocados
+                base_amt = None
+                for qa, qb in (("Call amount", "Put amount"), ("Notional amount-Leg 1", "Notional amount-Leg 2")):
+                    va, vb = num(r.get(qa)), num(r.get(qb))
+                    if not va or not vb: continue
+                    if abs(vb / va / K - 1) < 0.06: base_amt = va; break
+                    if abs(va / vb / K - 1) < 0.06: base_amt = vb; break
                 pr, pc = num(r.get("Option Premium Amount")), r.get("Option Premium Currency")
-                nots = {r.get("Notional currency-Leg 1"): num(r.get("Notional amount-Leg 1")), r.get("Notional currency-Leg 2"): num(r.get("Notional amount-Leg 2"))}
-                if not pr or pc not in nots or not nots.get(pc): continue
-                frac = pr / nots[pc]
-                P = frac * S if pc == base else frac * K if pc == quote else None
-                if P is None: continue
+                if not base_amt or not pr or pc not in (base, quote): continue
+                P = (pr if pc == quote else pr * S) / base_amt   # prêmio por unidade da base, na moeda cotada
                 T = (dias - 0.5) / 365
                 v = iv(S, K, T, P, call)
                 if v and 0.02 < v < 0.40: vs.append(v)
