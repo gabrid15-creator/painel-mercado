@@ -1,0 +1,32 @@
+USD/JPY ≥US$50mi, a partir do negócio: 5min -0.07pb t=-0.6 [-0.11/-0.02] acerto 47% n=769 | 15min -0.15pb t=-0.8 [-0.06/-0.23] acerto 48% n=765 | 30min +0.05pb t=+0.2 [+0.26/-0.17] acerto 50% n=760 | 60min +0.37pb t=+1.2 [+0.47/+0.26] acerto 51% n=745
+USD/JPY ≥US$50mi, a partir do publicação: 5min -0.13pb t=-1.1 [-0.25/-0.00] acerto 47% n=767 | 15min -0.25pb t=-1.4 [-0.28/-0.23] acerto 48% n=764 | 30min +0.01pb t=+0.0 [+0.22/-0.20] acerto 50% n=759 | 60min +0.37pb t=+1.2 [+0.52/+0.22] acerto 50% n=745
+USD/JPY ≥US$200mi, a partir do negócio: 5min n=15 | 15min n=15 | 30min n=15 | 60min n=15
+USD/JPY ≥US$200mi, a partir do publicação: 5min n=15 | 15min n=15 | 30min n=15 | 60min n=15
+USD/JPY SEQUÊNCIA ≥US$100mi em 15 min, a partir do disparo: 5min -0.24pb t=-0.9 [+0.06/-0.54] acerto 42% n=125 | 15min -0.97pb t=-2.0 [-0.44/-1.50] acerto 45% n=124 | 30min -0.00pb t=-0.0 [+0.53/-0.54] acerto 49% n=124 | 60min +0.06pb t=+0.1 [+0.36/-0.23] acerto 49% n=117
+USD/JPY SEQUÊNCIA ≥US$100mi em 15 min, a partir do publicação: 5min -0.17pb t=-0.6 [-0.08/-0.25] acerto 44% n=125 | 15min -0.96pb t=-1.9 [-0.48/-1.44] acerto 46% n=124 | 30min -0.06pb t=-0.1 [+0.63/-0.74] acerto 50% n=124 | 60min +0.06pb t=+0.1 [+0.30/-0.18] acerto 49% n=117
+USD/JPY SEQUÊNCIA ≥US$300mi em 15 min, a partir do disparo: 5min -0.35pb t=-1.0 [-0.36/-0.34] acerto 33% n=27 | 15min -0.96pb t=-1.2 [-0.95/-0.97] acerto 50% n=26 | 30min -0.90pb t=-1.0 [-1.39/-0.45] acerto 42% n=27 | 60min +0.52pb t=+0.4 [+0.05/+0.95] acerto 48% n=27
+USD/JPY SEQUÊNCIA ≥US$300mi em 15 min, a partir do publicação: 5min -0.52pb t=-1.2 [-0.78/-0.29] acerto 36% n=27 | 15min -0.38pb t=-0.4 [-0.41/-0.35] acerto 52% n=27 | 30min -0.32pb t=-0.3 [-1.09/+0.39] acerto 42% n=27 | 60min +1.07pb t=+0.8 [+0.40/+1.68] acerto 52% n=27
+EUR/USD ≥US$50mi, a partir do negócio: 5min +0.04pb t=+0.8 [+0.02/+0.07] acerto 51% n=2110 | 15min +0.05pb t=+0.5 [-0.15/+0.25] acerto 50% n=2098 | 30min -0.13pb t=-1.0 [-0.27/+0.02] acerto 50% n=2076 | 60min -0.29pb t=-1.6 [-0.07/-0.52] acerto 49% n=1998
+EUR/USD ≥US$50mi, a partir do publicação: 5min +0.03pb t=+0.5 [+0.02/+0.03] acerto 51% n=2108 | 15min +0.03pb t=+0.3 [-0.13/+0.19] acerto 50% n=2096 | 30min -0.08pb t=-0.6 [-0.14/-0.01] acerto 50% n=2073 | 60min -0.32pb t=-1.7 [-0.11/-0.53] acerto 49% n=1998
+EUR/USD ≥US$200mi, a partir do negócio: 5min +0.34pb t=+1.4 [+0.33/+0.36] acerto 56% n=152 | 15min +0.31pb t=+0.9 [+0.15/+0.48] acerto 56% n=152 | 30min -0.77pb t=-1.4 [-1.17/-0.38] acerto 49% n=151 | 60min -1.21pb t=-1.5 [-0.95/-1.46] acerto 49% n=151
+EUR/USD ≥US$200mi, a partir do publicação: 5min +0.27pb t=+1.1 [+0.34/+0.19] acerto 55% n=152 | 15min +0.05pb t=+0.1 [-0.09/+0.18] acerto 54% n=152 | 30min -0.94pb t=-1.7 [-1.39/-0.50] acerto 47% n=151 | 60min -1.54pb t=-1.9 [-1.28/-1.80] acerto 48% n=151
+EUR/USD SEQUÊNCIA ≥US$100mi em 15 min, a partir do disparo: 5min +0.19pb t=+1.0 [-0.13/+0.51] acerto 51% n=222 | 15min +0.03pb t=+0.1 [-0.37/+0.42] acerto 48% n=222 | 30min +0.14pb t=+0.3 [+0.22/+0.06] acerto 50% n=219 | 60min -0.69pb t=-1.1 [+0.65/-2.03] acerto 45% n=210
+EUR/USD SEQUÊNCIA ≥US$100mi em 15 min, a partir do publicação: 5min +0.09pb t=+0.5 [-0.07/+0.24] acerto 49% n=222 | 15min -0.04pb t=-0.2 [-0.22/+0.13] acerto 49% n=222 | 30min +0.17pb t=+0.4 [+0.40/-0.05] acerto 51% n=219 | 60min -0.67pb t=-1.1 [+0.60/-1.93] acerto 46% n=212
+EUR/USD SEQUÊNCIA ≥US$300mi em 15 min, a partir do disparo: 5min -0.34pb t=-1.2 [-0.37/-0.31] acerto 43% n=107 | 15min -0.19pb t=-0.5 [-0.82/+0.42] acerto 49% n=107 | 30min -1.57pb t=-2.6 [-2.76/-0.38] acerto 47% n=106 | 60min -2.92pb t=-2.9 [-3.14/-2.72] acerto 41% n=103
+EUR/USD SEQUÊNCIA ≥US$300mi em 15 min, a partir do publicação: 5min -0.30pb t=-1.1 [-0.07/-0.53] acerto 44% n=107 | 15min -0.09pb t=-0.2 [-0.49/+0.29] acerto 48% n=107 | 30min -1.42pb t=-2.1 [-2.24/-0.60] acerto 45% n=106 | 60min -2.93pb t=-2.9 [-3.15/-2.71] acerto 41% n=103
+USD/CHF ≥US$50mi, a partir do negócio: 5min -0.02pb t=-0.1 [-0.01/-0.04] acerto 46% n=88 | 15min -0.56pb t=-1.4 [-0.52/-0.59] acerto 48% n=88 | 30min -0.21pb t=-0.4 [-0.63/+0.21] acerto 52% n=88 | 60min -2.58pb t=-1.8 [-5.12/-0.04] acerto 45% n=86
+USD/CHF ≥US$50mi, a partir do publicação: 5min -0.07pb t=-0.3 [+0.01/-0.15] acerto 44% n=88 | 15min -0.71pb t=-1.8 [-0.70/-0.72] acerto 46% n=87 | 30min -0.15pb t=-0.3 [-0.49/+0.18] acerto 55% n=87 | 60min -2.98pb t=-2.0 [-5.87/-0.16] acerto 40% n=85
+USD/CHF ≥US$200mi, a partir do negócio: 5min n=0 | 15min n=0 | 30min n=0 | 60min n=0
+USD/CHF ≥US$200mi, a partir do publicação: 5min n=0 | 15min n=0 | 30min n=0 | 60min n=0
+USD/CHF SEQUÊNCIA ≥US$100mi em 15 min, a partir do disparo: 5min n=11 | 15min n=11 | 30min n=10 | 60min n=10
+USD/CHF SEQUÊNCIA ≥US$100mi em 15 min, a partir do publicação: 5min n=11 | 15min n=11 | 30min n=10 | 60min n=10
+USD/CHF SEQUÊNCIA ≥US$300mi em 15 min, a partir do disparo: 5min n=0 | 15min n=0 | 30min n=0 | 60min n=0
+USD/CHF SEQUÊNCIA ≥US$300mi em 15 min, a partir do publicação: 5min n=0 | 15min n=0 | 30min n=0 | 60min n=0
+GBP/USD ≥US$50mi, a partir do negócio: 5min +0.16pb t=+1.2 [+0.10/+0.22] acerto 54% n=330 | 15min +0.23pb t=+0.8 [-0.01/+0.47] acerto 54% n=329 | 30min +0.23pb t=+0.6 [+0.18/+0.27] acerto 52% n=322 | 60min -0.06pb t=-0.1 [-0.08/-0.04] acerto 50% n=317
+GBP/USD ≥US$50mi, a partir do publicação: 5min +0.14pb t=+1.1 [+0.04/+0.25] acerto 53% n=330 | 15min +0.12pb t=+0.5 [-0.06/+0.30] acerto 52% n=328 | 30min +0.20pb t=+0.5 [+0.32/+0.08] acerto 53% n=321 | 60min -0.06pb t=-0.1 [+0.09/-0.20] acerto 50% n=317
+GBP/USD ≥US$200mi, a partir do negócio: 5min n=0 | 15min n=0 | 30min n=0 | 60min n=0
+GBP/USD ≥US$200mi, a partir do publicação: 5min n=0 | 15min n=0 | 30min n=0 | 60min n=0
+GBP/USD SEQUÊNCIA ≥US$100mi em 15 min, a partir do disparo: 5min +0.33pb t=+0.7 [+0.61/+0.06] acerto 56% n=45 | 15min -0.07pb t=-0.1 [+0.27/-0.40] acerto 59% n=45 | 30min -0.70pb t=-0.8 [-1.74/+0.34] acerto 45% n=44 | 60min -1.63pb t=-1.3 [-2.73/-0.54] acerto 47% n=42
+GBP/USD SEQUÊNCIA ≥US$100mi em 15 min, a partir do publicação: 5min -0.02pb t=-0.0 [+0.30/-0.33] acerto 49% n=45 | 15min -0.44pb t=-0.6 [-0.21/-0.66] acerto 52% n=45 | 30min -0.79pb t=-0.9 [-1.57/-0.00] acerto 45% n=44 | 60min -1.90pb t=-1.3 [-2.17/-1.64] acerto 51% n=42
+GBP/USD SEQUÊNCIA ≥US$300mi em 15 min, a partir do disparo: 5min n=13 | 15min n=13 | 30min n=12 | 60min n=11
+GBP/USD SEQUÊNCIA ≥US$300mi em 15 min, a partir do publicação: 5min n=13 | 15min n=13 | 30min n=12 | 60min n=11

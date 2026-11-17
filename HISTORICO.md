@@ -253,3 +253,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 17/11/2026 — fluxo DTCC × direção
 - 32 testes, nada (ver resultado). 1ª rodada tinha erro (lia só "Call" no FISN e descartava "Put"); corrigido antes de concluir. Obs.: `vol_dtcc.py` também só lia "Call" no FISN (metade dos negócios, tipos certos) — o teste de σ continua válido; o `dtcc.py` de produção lê os dois.
+
+## 17/11/2026 — scalp pelo fluxo DTCC
+- Ela quer viés de minutos (agressão do MM), não do dia. Testado negócio grande isolado e sequências de 15 min, 5 min (60 d) e 1 h (2 anos): nada. Resultados em `testes/scalp_dtcc_resultado_2026-11-17.txt` e `_1h_`.
