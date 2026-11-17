@@ -250,3 +250,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 ## 17/11/2026 — métricas das moedas com σ DTCC
 - Pedido dela: medir todas as métricas das moedas com CME/DTCC. CME iene sem histórico (só desde 11/2026). Refeito com DTCC (2 anos): toque dia/semana, fecha dentro, curva agora, rompimento. Antigos (vol. realizada, 1996+/2001+) substituídos; resultados em `testes/metricas_dtcc_resultado_2026-11-17.txt`.
 - Também: título "Mapa de opções"; linha da hora no ouro.
+
+## 17/11/2026 — fluxo DTCC × direção
+- 32 testes, nada (ver resultado). 1ª rodada tinha erro (lia só "Call" no FISN e descartava "Put"); corrigido antes de concluir. Obs.: `vol_dtcc.py` também só lia "Call" no FISN (metade dos negócios, tipos certos) — o teste de σ continua válido; o `dtcc.py` de produção lê os dois.
