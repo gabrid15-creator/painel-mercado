@@ -240,3 +240,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 17/11/2026 — robô da CME no PC dela
 - curl no PC dela: 000 (HTTP/2) e 403 (HTTP/1.1, JSON da CME). Ela pediu para usar navegador. `baixar_cme.sh` agora abre o Brave em perfil separado, baixa os 3 PDFs (prefs: always_open_pdf_externally, pasta temp), fecha com pkill do perfil. Headless não baixa; precisa tela (DISPLAY/XAUTHORITY/Wayland achados sozinhos). Teste local com Chromium + Xvfb: 3 PDFs baixados.
+
+## 17/11/2026 — horários de lateralidade no ouro
+- Ver `testes/horas_lateral_resultado_2026-11-17.txt`. Amplitude/hora varia 2,5× (01h 0,19σ × 10h 0,48σ); eficiência por hora não difere (0,21–0,38, n≈50, ruído). Blocos: eficiência depende do nº de barras, não comparável entre blocos.
