@@ -59,7 +59,21 @@ if _cf and _pf:
                 k, st_, de = float(r.group(1)), float(r.group(2)), float(r.group(4))
                 if abs(k / Fref - 1) > 0.05 or st_ <= 0: continue
                 cp = "C" if (de > 0.5) == (k < Fref) else "P"
-                bl.append({"k": k, "cp": cp, "s": st_, "oi": int(r.group(5)), "iv": _b76(Fref, k, cp, st_, T)})
+                bl.append({"k": k, "cp": cp, "s": st_, "oi": int(r.group(5)), "iv": _b76(Fref, k, cp, st_, T), "de": de})
+        # strike colado no preço: call e put com delta quase 0,5 → o delta não separa (18/11, GWR 3865: 0,5002 × 0,4999 trocados).
+        # Resolve pela paridade: a troca que deixa K + C − P igual à mediana dos outros strikes.
+        _ref = []
+        for k in {x["k"] for x in bl}:
+            cc = [x for x in bl if x["k"] == k and x["cp"] == "C"]; pp = [x for x in bl if x["k"] == k and x["cp"] == "P"]
+            if len(cc) == 1 and len(pp) == 1 and abs(k / Fref - 1) < 0.01 and abs(cc[0]["de"] - 0.5) > 0.02: _ref.append(k + cc[0]["s"] - pp[0]["s"])
+        if len(_ref) >= 2:
+            fm = _st.median(_ref)
+            for k in {x["k"] for x in bl}:
+                dup = [x for x in bl if x["k"] == k and abs(x["de"] - 0.5) <= 0.02]
+                if len(dup) == 2 and {x["cp"] for x in dup} == {"C", "P"}:
+                    c_, p_ = (dup[0], dup[1]) if dup[0]["cp"] == "C" else (dup[1], dup[0])
+                    if abs(k + p_["s"] - c_["s"] - fm) < abs(k + c_["s"] - p_["s"] - fm):
+                        c_["cp"], p_["cp"] = "P", "C"; c_["iv"] = _b76(Fref, k, "P", c_["s"], T); p_["iv"] = _b76(Fref, k, "C", p_["s"], T)
         atm = [x["iv"] for x in bl if abs(x["k"] / Fref - 1) < 0.01]
         if not atm: continue
         base = min(atm)

@@ -262,3 +262,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 18/11/2026 — robô da CME pegou boletim velho
 - 3h: veio o boletim de 16/11 (já processado), hash diferente → enviou e marcou PRELIM → não tentou mais até 10h. Corrigido: compara a data do boletim com o dia útil anterior; auto-atualização do script.
+
+## 18/11/2026 — leitor do ouro: call/put trocadas no strike colado ao preço
+- Boletim de 17/11 (robô, 08:38): conferência barrou GWR 19/11 (K+C−P 3865,8 × 3864,2). Strike 3865 tinha deltas 0,5002 e 0,4999 → classificação por delta trocou call e put. `cme_pdf.py`: quando o delta está a ≤ 0,02 de 0,5, decide pela paridade (mediana dos outros strikes). 17/11 e 16/11 com 0 erro.
