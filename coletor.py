@@ -624,13 +624,13 @@ def b_faixa():
                          "s2": [rnd(px * math.exp(-2 * ivc / 100 * math.sqrt(n / 252)), casas), rnd(px * math.exp(2 * ivc / 100 * math.sqrt(n / 252)), casas)]}
                         for f, n in zip(fx, (1, 5, 21))]}
             except Exception as e: STATUS.append({"bloco": "Faixa CME " + a, "ok": False, "msg": str(e)[:120]})
-        # aberturas do dia (17h NY) e da semana, e máxima/mínima desde então, para o mapa de probabilidades
+        # aberturas do dia (18h NY, todos os ativos: reabertura da CME; pedido dela 18/11, bate com o candle da corretora) e da semana, e máxima/mínima desde então, para o mapa de probabilidades
         try:
             j = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ATIVOS[a][0])}?range=10d&interval=1h"))["chart"]["result"][0]
             q = j["indicators"]["quote"][0]; NYz = ZoneInfo("America/New_York")
             fz = SPOT["fator"] if a == "XAUUSD" else 1   # ouro no à vista
             bars = [(dt.datetime.fromtimestamp(t, NYz), o * fz, h * fz, l * fz) for t, o, h, l in zip(j["timestamp"], q["open"], q["high"], q["low"]) if o and h and l]
-            sess = lambda d: (d + dt.timedelta(hours=7)).date()   # dia de negociação começa 17h NY
+            sess = lambda d: (d + dt.timedelta(hours=6)).date()   # dia de negociação começa 18h NY (20h BRT; 19h no horário de verão americano)
             hoje_s = sess(bars[-1][0]); dia = [b for b in bars if sess(b[0]) == hoje_s]
             seg = hoje_s - dt.timedelta(days=hoje_s.weekday()); sem = [b for b in bars if sess(b[0]) >= seg]
             # σ congelado na 1ª coleta da sessão (dia) e da semana: os níveis são projetados na abertura e não mudam até a próxima
@@ -638,7 +638,16 @@ def b_faixa():
             if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
             if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
             sd = FIXO[kd]["sd"]
-            hab = 18 if a == "XAUUSD" else 17   # ouro: a CME reabre às 18h de NY; moedas viram o dia às 17h
+            ab_sem = sem[0][1] if sem else None
+            if a != "XAUUSD" and sem and sem[0][0].hour != 18:   # Yahoo FX sem o domingo 18h–19h NY: abertura pelo futuro × razão à vista/futuro na 1ª hora comum
+                try:
+                    fsym = {"EURUSD": ("6E=F", 1), "GBPUSD": ("6B=F", 1), "USDJPY": ("6J=F", -1), "USDCHF": ("6S=F", -1)}[a]
+                    jw = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(fsym[0])}?range=10d&interval=1h"))["chart"]["result"][0]
+                    fo = {dt.datetime.fromtimestamp(t, NYz).replace(minute=0): o for t, o in zip(jw["timestamp"], jw["indicators"]["quote"][0]["open"]) if o}
+                    abre = dt.datetime.combine(seg - dt.timedelta(days=1), dt.time(18), NYz); f18 = fo.get(abre); fc = fo.get(sem[0][0].replace(minute=0))
+                    if f18 and fc: ab_sem = sem[0][1] * (f18 / fc) ** fsym[1]
+                except Exception: pass
+            hab = 18   # todos abrem às 18h de NY (CME reabre; mesmo horário dos testes)
             hb = lambda d: dt.datetime.combine(d, dt.time(hab), NYz).astimezone(BRT).strftime("%a %d/%m %Hh").replace("Mon", "seg").replace("Tue", "ter").replace("Wed", "qua").replace("Thu", "qui").replace("Fri", "sex").replace("Sat", "sáb").replace("Sun", "dom")
             # amplitude da Ásia + Londres (18h → 9h NY) em σ do dia, só depois das 9h NY (testes/range_cedo.py: prevê o tamanho do resto do dia)
             # medida no FUTURO da CME (máx./mín. do Yahoo FX têm picos falsos); amplitude em log não depende da cotação (6J = 1/USDJPY)
@@ -658,7 +667,7 @@ def b_faixa():
                            "sem_ini": hb(seg - dt.timedelta(days=1)),
                            "sem_fim": dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).astimezone(BRT).strftime("sex %d/%m %Hh"),   # fechamento de sexta (17h NY) para todos
                            "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
-                           "ab_sem": rnd(sem[0][1], casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas),
+                           "ab_sem": rnd(ab_sem, casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas),
                            # horários (ms) de início e fim, para a chance "agora" (preço atual e tempo que falta)
                            "ts_dia_ini": int(dt.datetime.combine(hoje_s - dt.timedelta(days=3 if hoje_s.weekday() == 0 else 1), dt.time(hab), NYz).timestamp() * 1000),
                            "ts_dia_fim": int(dt.datetime.combine(hoje_s, dt.time(hab), NYz).timestamp() * 1000),
@@ -1020,7 +1029,7 @@ b_0dte_iene()
 def b_valid():
     # confere o que o painel projetou contra o que aconteceu: toque dos níveis do mapa, faixa das opções e 0DTE
     tb = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "toque_tabela.json")))
-    hoje = NOW.astimezone(ZoneInfo("America/New_York")); hs = (hoje + dt.timedelta(hours=7)).date(); seg = hs - dt.timedelta(days=hs.weekday())
+    hoje = NOW.astimezone(ZoneInfo("America/New_York")); hs = (hoje + dt.timedelta(hours=6)).date(); seg = hs - dt.timedelta(days=hs.weekday())
     mh = ler("mi_mapa_hist.json"); out = {"atualizado": NOW.strftime("%d/%m %H:%M"), "mapa": [], "faixa": [], "zdte": None}
     for a in [x for x in tb if not x.startswith("_")]:
         for tp in ("dia", "sem"):

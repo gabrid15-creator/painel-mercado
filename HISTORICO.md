@@ -256,3 +256,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 17/11/2026 — scalp pelo fluxo DTCC
 - Ela quer viés de minutos (agressão do MM), não do dia. Testado negócio grande isolado e sequências de 15 min, 5 min (60 d) e 1 h (2 anos): nada. Resultados em `testes/scalp_dtcc_resultado_2026-11-17.txt` e `_1h_`.
+
+## 18/11/2026 — abertura do dia e da semana
+- Ela mandou o candle de abertura do USDJPY (TradingView em horário de NY, 18:00): O 159,445 H 159,488 L 159,421 C 159,486. Yahoo 20h BRT: O 159,41 H 159,488 L 159,396 C 159,486 (máx. e fech. iguais). Painel abria moedas às 17h NY (19h BRT, 159,354) → agora 18h NY para todos (`sess` +6 h, `hab` 18, `b_valid` idem). Semana: Yahoo FX começa domingo 19h NY → estimada pelo futuro (USDJPY 159,818 × antes 159,78).
