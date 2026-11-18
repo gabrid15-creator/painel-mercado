@@ -259,3 +259,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 18/11/2026 — abertura do dia e da semana
 - Ela mandou o candle de abertura do USDJPY (TradingView em horário de NY, 18:00): O 159,445 H 159,488 L 159,421 C 159,486. Yahoo 20h BRT: O 159,41 H 159,488 L 159,396 C 159,486 (máx. e fech. iguais). Painel abria moedas às 17h NY (19h BRT, 159,354) → agora 18h NY para todos (`sess` +6 h, `hab` 18, `b_valid` idem). Semana: Yahoo FX começa domingo 19h NY → estimada pelo futuro (USDJPY 159,818 × antes 159,78).
+
+## 18/11/2026 — robô da CME pegou boletim velho
+- 3h: veio o boletim de 16/11 (já processado), hash diferente → enviou e marcou PRELIM → não tentou mais até 10h. Corrigido: compara a data do boletim com o dia útil anterior; auto-atualização do script.
