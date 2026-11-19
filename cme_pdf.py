@@ -21,11 +21,21 @@ curtas = {c for c, v in VENC.items() if v > pregao and uteis(pregao, v) <= 2}
 semana = min((c for c, v in VENC.items() if (v - pregao).days >= 3), key=lambda c: VENC[c], default=None)
 usar = curtas | ({semana} if semana else set())
 rx = re.compile(r"^(\d{3,5})\s.*?\s(\d+\.\d+)\s+(UNCH|NEW|[+-]\s?\d+\.\d+)\s+(\.\d+|1\.0+|----)\s+\S+\s+\S+\s+\S+\s+\S+\s+(\d+)\s+(UNCH|[+-]\s?\d+)$")
-rows, cur = [], None
+rows, cur, mes, fechado = [], None, None, set()
 for l in txt.splitlines():
     h = re.match(r"^(OG\d?) (PUT|CALL)\s+(COMEX )?GOLD OPTIONS", l)
-    if h: cur = (h.group(1), h.group(2)) if h.group(1) in usar else None; continue
-    if re.match(r"^[A-Z0-9]{2,4} (PUT|CALL|MON|TUE|WED|THU|FRI|OPT)\b", l): cur = None; continue
+    if h:
+        novo = (h.group(1), h.group(2)) if h.group(1) in usar else None
+        if novo in fechado: novo = None   # já passou do 1º mês desta série: as páginas seguintes são de outros meses
+        if novo != cur: mes = None   # bloco novo (a mesma série pode continuar na página seguinte com o cabeçalho repetido)
+        cur = novo; continue
+    if re.match(r"^[A-Z0-9]{2,4} (PUT|CALL|MON|TUE|WED|THU|FRI|OPT)\b", l): cur = None; mes = None; continue
+    # o bloco mensal (OG) traz vários meses (DEC26, JAN27…): só vale o 1º mês, que é o do vencimento (19/11: misturava e a paridade quebrava)
+    mm_ = re.match(r"^([A-Z]{3}\d{2})\s*$", l.strip())
+    if mm_ and cur:
+        if mes is None: mes = mm_.group(1)
+        elif mm_.group(1) != mes: fechado.add(cur); cur = None
+        continue
     r = rx.match(l) if cur else None
     if r: rows.append({"venc": VENC[cur[0]].isoformat(), "tipo": "Call" if cur[1] == "CALL" else "Put", "strike": float(r.group(1)),
                        "settle": float(r.group(2)), "delta": None if r.group(4) == "----" else float(r.group(4)), "oi": int(r.group(5))})
@@ -41,7 +51,8 @@ def _b76(Fx, k, cp, prem, T):
     return sg
 DIA = {"GMW": 0, "GWT": 1, "GWW": 2, "GWR": 3}
 SEM = []
-_cf = {x["strike"]: x["settle"] for x in rows if x["tipo"] == "Call"}; _pf = {x["strike"]: x["settle"] for x in rows if x["tipo"] == "Put"}
+_vf0 = min((x["venc"] for x in rows), default=None)   # referência só com o vencimento mais próximo (misturar dois vencimentos dava futuro e vol. errados)
+_cf = {x["strike"]: x["settle"] for x in rows if x["tipo"] == "Call" and x["venc"] == _vf0}; _pf = {x["strike"]: x["settle"] for x in rows if x["tipo"] == "Put" and x["venc"] == _vf0}
 if _cf and _pf:
     _k = min((k for k in _cf if k in _pf), key=lambda k: abs(_cf[k] - _pf[k])); Fref = _k + _cf[_k] - _pf[_k]
     _vf = min(x["venc"] for x in rows); _Tf = max((dt.date.fromisoformat(_vf) - pregao).days, 1) / 365

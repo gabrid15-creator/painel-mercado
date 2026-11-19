@@ -265,3 +265,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 18/11/2026 — leitor do ouro: call/put trocadas no strike colado ao preço
 - Boletim de 17/11 (robô, 08:38): conferência barrou GWR 19/11 (K+C−P 3865,8 × 3864,2). Strike 3865 tinha deltas 0,5002 e 0,4999 → classificação por delta trocou call e put. `cme_pdf.py`: quando o delta está a ≤ 0,02 de 0,5, decide pela paridade (mediana dos outros strikes). 17/11 e 16/11 com 0 erro.
+
+## 19/11/2026 — leitor do ouro: vencimento mensal (OG, 24/11) entrou na janela
+- O bloco OG traz vários meses (DEC26, JAN27…, com o cabeçalho repetido a cada página) → o leitor misturava → paridade quebrada. Agora só o 1º mês do bloco (`fechado`). A referência (futuro/vol.) usava strikes de 2 vencimentos misturados → GWR descartada (vol. 3%); agora só o vencimento mais próximo. Boletim 18/11 (enviado por ela, só ouro) com 0 erro; 16/11 e 17/11 seguem com 0 erro. Robô não disparou nada desde 18/11 08:38 → pedir o log.
