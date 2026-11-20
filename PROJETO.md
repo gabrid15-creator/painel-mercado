@@ -116,6 +116,7 @@
    - Dólar e juros: bps no cabeçalho, coluna "Leitura (fechamento)" só com Dólar/Iene e os pares (XAUUSD, EURUSD, USDJPY) com seta, verde = sobe, vermelho = cai (17/11). Resumo diz a data do fechamento dos juros dos EUA (não é "hoje"). Descreve o fechamento, não prevê.
    - Fed Funds usa o contrato fixo do mês (ex.: ZQZ26.CBT).
 3. **Ativo, níveis e opções** (o seletor gruda no topo):
+   - **"O que olhar hoje"** (20/11, pedido dela: painel confuso; `drawRS()`, `.op-card.rs`): σ do dia em pips/US$, dia normal (= grade) e stop (90%), níveis −1σ/normal/abertura/normal/+1σ com ✓, "Agora" (posição em σ + rompimento), resto do dia (Ásia+Londres), hora (ouro), "Direção: nenhum sinal comprovado". O mapa detalhado (tabelas, faixa, rompimento, precisão, conferência) fica em `details.mp-det` recolhido.
    - **Mapa "até onde o preço deve ir":**
      - tabelas Hoje e Semana, níveis ±0,5/1/1,5/2σ a partir da abertura;
      - "chance agora": z = distância log ÷ (σ × √fração restante), com a curva real medida em 2 anos de 1 h (`toque_tabela.json`);

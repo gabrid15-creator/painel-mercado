@@ -176,7 +176,7 @@
     { const sp = ((D('mi_geral').data || [])[0] || {}).ouro_spot; let e = $('.sc-spot'); if (!e) { e = document.createElement('span'); e.className = 'sc-spot'; $('.sc-nome').after(e); }
       e.textContent = atv === 'XAUUSD' && sp && sp.base_usd ? ' (régua da Vantage · futuro − US$ ' + nf(sp.base_usd, 1) + ')' : ''; }
     const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) : '';
-    drawMapa();
+    drawMapa(); drawRS();
 
     // ativo
     const a = A.status === 'ok' ? A.data.find((r) => r.ativo === atv) : null; const cs = CASAS[atv];
@@ -783,6 +783,41 @@
 
 
   // mapa de probabilidades: níveis em σ a partir da abertura do dia/semana, com a frequência real de toque (2 anos, 1 h)
+  // "O que olhar hoje": resumo de 1 card só com o que passou em teste (pedido dela 20/11)
+  function drawRS() {
+    const bx = $('.rs-corpo'); if (!bx) return; bx.replaceChildren(); $('.rs-nome').textContent = atv + ' · ' + NOME[atv];
+    const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), m = fr && fr.mapa;
+    if (!m) { bx.textContent = 'Sem dados para este ativo.'; return; }
+    const sd = m.sd_dia, ab = m.ab_dia, k = CASAS[atv], P = m.preco || fr.preco;
+    const Q = { XAUUSD: [0.44, 1.35], USDJPY: [0.43, 1.20], EURUSD: [0.54, 1.40], USDCHF: [0.54, 1.37], GBPUSD: [0.57, 1.50] }[atv] || [0.5, 1.4];
+    const pip = atv === 'XAUUSD' ? 1 : atv.includes('JPY') ? 0.01 : 0.0001, un = atv === 'XAUUSD' ? '' : ' pips', us = atv === 'XAUUSD' ? 'US$ ' : '';
+    const pp = (x) => us + nf(ab * (Math.exp(x * sd) - 1) / pip, 0) + un, L = (x) => ab * Math.exp(x * sd);
+    const lin = (html) => { const p = document.createElement('p'); p.className = 'rs-l'; p.innerHTML = html; bx.appendChild(p); };
+    lin('<b>σ (sigma) do dia:</b> <span class="rs-n">±' + pp(1) + '</span> · dia forte (8 em cada 10 dias fecham dentro)');
+    lin('<b>Dia normal:</b> <span class="rs-n">±' + pp(Q[0]) + '</span> · metade dos dias fecha dentro: <b>tamanho da grade</b>. Stop além de ±' + pp(Q[1]) + ' (só 1 em cada 10 dias fecha além).');
+    // níveis do dia
+    const tb = document.createElement('table'); tb.className = 'op-table rs-t'; const tr1 = document.createElement('tr'), tr2 = document.createElement('tr');
+    for (const [x, nm, c] of [[-1, '−1σ', 'lv-pw'], [-Q[0], 'normal −', 'lv-s1'], [0, 'abertura', 'lv-now'], [Q[0], 'normal +', 'lv-s1'], [1, '+1σ', 'lv-cw']]) {
+      const th = document.createElement('th'); th.className = 'num'; th.innerHTML = '<span class="lv ' + c + '">' + nm + '</span>'; tr1.appendChild(th);
+      const v = L(x), toc = x > 0 ? m.max_dia >= v : x < 0 ? m.min_dia <= v : false; td(tr2, nf(v, k) + (toc ? ' ✓' : ''), 'num').style.fontWeight = 600; }
+    tb.innerHTML = '<thead></thead><tbody></tbody>'; tb.tHead.appendChild(tr1); tb.tBodies[0].appendChild(tr2);
+    const w = document.createElement('div'); w.className = 'tbl-x'; w.appendChild(tb); bx.appendChild(w);
+    // agora: posição em σ e o que costuma acontecer (rompimento medido)
+    const R = (D('rompimento').data || {})[atv], z = Math.log(P / ab) / sd, eU = Math.log(m.max_dia / ab) / sd, eD = -Math.log(m.min_dia / ab) / sd, e = Math.max(eU, eD);
+    const pc = (x) => (x ? nf(x[0], 0) + '%' : '—');
+    const sit = !R ? '' : e >= 1.5 ? 'passou de 1,5σ: rompimento forte, <b>' + pc(R.passou_15_fecha_fora) + '</b> das vezes fecha fora do 1σ' : e >= 1.25 ? 'passou de 1,25σ: rompimento confirmado, <b>' + pc(R.passou_125_fecha_fora) + '</b> fecha fora do 1σ (tendência; cuidado com a grade)' : e >= 1 ? 'tocou o 1σ: cara ou coroa, ' + pc(R.tocou_1s_fecha_fora) + ' fecha fora' : 'ainda dentro do 1σ: dia normal até agora';
+    lin('<b>Agora:</b> ' + nf(P, k) + ' (' + (z >= 0 ? '+' : '') + nf(z, 2) + 'σ da abertura) · ' + sit + '.');
+    // tamanho do resto do dia (Ásia + Londres) e hora (ouro)
+    const C = { XAUUSD: [0.81, 1.22, 65, 39], USDJPY: [0.73, 1.08, 73, 30], EURUSD: [0.77, 1.18, 68, 35], USDCHF: [0.76, 1.11, 61, 42], GBPUSD: [0.83, 1.18, 68, 35] }[atv];
+    if (C && m.amp_cedo != null) { const g = m.amp_cedo >= C[1] ? 2 : m.amp_cedo < C[0] ? 0 : 1;
+      lin('<b>Resto do dia:</b> ' + ['tende a ser <b>pequeno</b> (Ásia e Londres andaram pouco; só ' + C[3] + '% de chance de ser grande)', 'tamanho <b>normal</b>', 'tende a ser <b>grande</b> (Ásia e Londres andaram muito; ' + C[2] + '% de chance)'][g] + '.'); }
+    else lin('<b>Resto do dia:</b> a leitura sai às 11h de Brasília.');
+    if (atv === 'XAUUSD') { const HR = [0.231, 0.190, 0.274, 0.280, 0.288, 0.296, 0.267, 0.263, 0.290, 0.393, 0.482, 0.481, 0.399, 0.322, 0.271, 0.254, 0.243, 0.210, 0.215, 0.242, 0.231, 0.281, 0.377, 0.288];
+      const hb = +new Date(Date.now() - 3 * 3600000).toISOString().slice(11, 13), v = HR[hb];
+      lin('<b>Esta hora (' + hb + 'h):</b> ' + (v < 0.25 ? 'parada' : v > 0.35 ? 'agitada' : 'normal') + ', costuma andar ~' + pp(v) + '. Mais agitado 10h–12h; mais parado 17h–1h.'); }
+    lin('<b>Direção (compra ou venda):</b> <span class="mi-neg">nenhum sinal comprovado</span>. Opere pelos níveis acima; o 0DTE e os demais cards são retrato, não previsão.');
+  }
+
   function drawMapa() {
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), tb = (D('toque_tabela').data || {})[atv];
     const ok = fr && fr.mapa && tb; $('.mp-wrap').hidden = !ok; $('.mp-teste').hidden = !ok; $('.mp-resumo').hidden = !ok;

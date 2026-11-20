@@ -268,3 +268,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 19/11/2026 — leitor do ouro: vencimento mensal (OG, 24/11) entrou na janela
 - O bloco OG traz vários meses (DEC26, JAN27…, com o cabeçalho repetido a cada página) → o leitor misturava → paridade quebrada. Agora só o 1º mês do bloco (`fechado`). A referência (futuro/vol.) usava strikes de 2 vencimentos misturados → GWR descartada (vol. 3%); agora só o vencimento mais próximo. Boletim 18/11 (enviado por ela, só ouro) com 0 erro; 16/11 e 17/11 seguem com 0 erro. Robô não disparou nada desde 18/11 08:38 → pedir o log.
+
+## 20/11/2026 — card "O que olhar hoje"
+- Ela achou o painel confuso ("qual sigma olhar"). Novo card no topo do ativo com só o comprovado; detalhes do mapa recolhidos. Varredura 60 combinações ok.

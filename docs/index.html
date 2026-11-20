@@ -388,6 +388,7 @@
   .otc-teste { margin: 0; font-size: 13px; line-height: 1.55; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--color-warn) 12%, transparent); }
   .sc-spot { font-size: 13px; font-weight: 500; color: var(--color-fg-muted); }
   .mp-normal { margin-top: 12px; } .mp-normal p { margin: 2px 0; font-size: 14px; line-height: 1.55; }
+  .rs-l { margin: 4px 0; font-size: 15px; line-height: 1.55; } .rs-n { font-size: 22px; font-weight: 700; } .rs-t td, .rs-t th { padding: 4px 8px; } .mp-det > summary { cursor: pointer; font-weight: 600; margin: 10px 0 6px; color: var(--color-fg-muted); }
   .mp-romp { margin-top: 12px; } .mp-romp-t { font-size: 13px; color: var(--color-fg-muted); margin-bottom: 4px; } .mp-romp-t b { color: var(--color-fg); }
   .mp-romp-agora { margin: 2px 0 6px; font-size: 14px; line-height: 1.55; }
   .romp-t th { text-transform: none; letter-spacing: 0; font-size: 12px; } .romp-t td, .romp-t th { padding-left: 4px; padding-right: 4px; } .romp-t td:nth-child(2), .romp-t td:nth-child(3) { white-space: nowrap; } .op-table.romp-t thead th { text-transform: none; letter-spacing: 0; }
@@ -471,9 +472,21 @@
     <div class="sec-t">Ativo: níveis e opções</div>
     <div class="ativos-fixo"><span class="tl-k">Escolha o ativo</span><div class="ativos" role="group" aria-label="Ativo"></div></div>
 
+    <section class="op-card rs">
+      <div class="ag-top"><h2>O que olhar hoje · <span class="rs-nome">—</span></h2><span class="tl-chip ia-chip">só o que passou em teste</span></div>
+      <div class="rs-corpo"></div>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> Resumo do dia em um card, só com o que foi comprovado em teste estatístico.</p><ul>
+<li><b>σ (sigma) do dia:</b> o tamanho de um dia forte, tirado do preço das opções. Cerca de 8 em cada 10 dias fecham dentro de ±1σ da abertura.</li>
+<li><b>Dia normal:</b> metade dos dias fecha dentro dessa faixa. Bom tamanho para a grade do robô.</li>
+<li><b>Níveis:</b> calculados na abertura das 20h de Brasília e fixos até a próxima. ✓ = já tocado hoje.</li>
+<li><b>Agora:</b> onde o preço está em relação aos níveis e o que costuma acontecer a partir daí (rompimento medido em anos de dados).</li>
+<li><b>Direção:</b> nenhum sinal de compra ou venda passou nos testes até hoje; os níveis dizem até onde vai, não para que lado.</li></ul></div>
+    </section>
+
     <section class="op-card mp">
       <div class="ag-top"><h2>Mapa de opções · <span class="sc-nome">—</span> · até onde o preço deve ir</h2><span class="tl-chip ia-chip mp-chip">—</span></div>
       <div class="ia-atv"><div class="ia-h"><span class="tl-chip ia-chip">✦ Leitura da IA</span><span class="ia-quando mi-ia-atv-q"></span></div><p class="mi-ia-txt mi-ia-atv">—</p></div>
+      <details class="mp-det"><summary>Ver detalhes: tabelas de chance, faixa, rompimento e precisão medida</summary>
       <p class="mp-resumo" style="margin:0;font-size:15px;line-height:1.5"></p>
       <div class="op-note ajuda guia"><p><b>Como funciona.</b> Na abertura do dia de negociação, o painel pega a volatilidade esperada e projeta níveis acima e abaixo do preço de abertura. A abertura é às 20h de Brasília (18h de Nova York) para todos os ativos, quando a CME reabre: é o mesmo candle de abertura da corretora no gráfico em horário de NY (uma hora antes no horário de verão americano).</p><ul>
 <li><b>Os níveis ficam fixos</b> até a próxima abertura. Os do dia valem a noite inteira e o dia seguinte; os da semana, de domingo à noite até sexta.</li>
@@ -499,6 +512,7 @@
         <div class="fx-bt"></div>
     </div>
       <p class="op-note mp-val" style="margin-top:10px"></p>
+      </details>
     </section>
 
     <div class="atv-cards">
@@ -700,6 +714,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261118a"></script>
+<script src="app.js?v=20261120a"></script>
 </body>
 </html>
