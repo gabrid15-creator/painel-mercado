@@ -70,7 +70,7 @@ for r in rows:
 for r in rows: r.pop("_par", None); r.pop("_cab", None)
 if len(rows) < 10: sys.exit(f"poucas linhas ({len(rows)}): confira se são os PDFs de iene (Section33 e Section34)")
 nome = f"cme/iene_{pregao.isoformat()}.json"
-json.dump({"iene_cadeia": rows, "iene_boletim": [{"data_pregao": pregao.isoformat(), "situacao": situ, "fonte": "CME Daily Bulletin, Sections 33/34"}]},
+json.dump({"iene_cadeia": rows, "iene_boletim": [{"data_pregao": pregao.isoformat(), "situacao": situ, "recebido_em": __import__("datetime").datetime.now(__import__("zoneinfo").ZoneInfo("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M"), "fonte": "CME Daily Bulletin, Sections 33/34"}]},
           open(nome, "w"), ensure_ascii=False, separators=(",", ":"))
 print(nome, situ, len(rows), "linhas")
 from collections import Counter

@@ -116,7 +116,7 @@ for v, f in F.items():
             x.update({"futuro": f, "data_pregao": pregao.isoformat(), "strike": int(x["strike"]) if x["strike"] % 1 == 0 else x["strike"]}); sel.append(x)
 if len(sel) < 10: sys.exit(f"poucas linhas ({len(sel)}): confira se é o PDF certo (Section 64)")
 out = {"ouro_cadeia": sel, "ouro_boletim": [{"data_pregao": pregao.isoformat(), "futuro": F[min(F)], "futuro_vencimento": "",
-       "situacao": situ, "fonte": "CME Daily Bulletin, Section 64 (PDF enviado pela usuária)"}]}
+       "situacao": situ, "recebido_em": __import__("datetime").datetime.now(__import__("zoneinfo").ZoneInfo("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M"), "fonte": "CME Daily Bulletin, Section 64 (PDF enviado pela usuária)"}]}
 nome = f"cme/opcoes_{pregao.isoformat()}.json"
 json.dump(out, open(nome, "w"), ensure_ascii=False, separators=(",", ":"))
 print(nome, situ, "futuro", F, "linhas", len(sel))

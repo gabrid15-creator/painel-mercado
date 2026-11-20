@@ -110,6 +110,7 @@
 
 ## 4. O que está no painel (aba Mercado, de cima para baixo)
 
+0. **Cabeçalho "Dados de …"**: mostra também "CME: boletim de dd/mm (preliminar/final), chegou dd/mm hh:mm" (`cmeInfo()`, campo `recebido_em` gravado pelos leitores; 20/11).
 1. **Panorama do dia:** leitura da IA; Fear & Greed, red folder, VIX, DXY.
 2. **Macro, o que move o dólar:**
    - Radar institucional: liquidez, estresse, surpresa, regime EUA.

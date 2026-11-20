@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento', 'ouro_boletim', 'iene_boletim'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -166,7 +166,7 @@
       const fx = faixa('DXY', v); $('.mi-dxy-bar').style.width = (fx != null ? fx : (dx ? dx.pctil_1a : 0)) + '%';
       if (dx) { li(ul, '5 dias', sg(dx.var_5d), cls(dx.var_5d)); li(ul, '20 dias (tendência)', sg(dx.var_20d), cls(dx.var_20d)); li(ul, 'Percentil no ano', nf(dx.pctil_1a, 0) + '%'); }
     }
-    $('.mi-take').textContent = g ? 'Dados de ' + br(g.gerado_em) + ' (Brasília)' + (g.red_hoje ? ' · ' + g.red_hoje + ' evento(s) red folder hoje' : '') : 'Carregando…';
+    $('.mi-take').textContent = g ? 'Dados de ' + br(g.gerado_em) + ' (Brasília)' + (g.red_hoje ? ' · ' + g.red_hoje + ' evento(s) red folder hoje' : '') + cmeInfo() : 'Carregando…';
     $('.hj-up').textContent = g ? 'atualizado ' + br(g.gerado_em) : '';
 
     // score + IA
@@ -783,6 +783,12 @@
 
 
   // mapa de probabilidades: níveis em σ a partir da abertura do dia/semana, com a frequência real de toque (2 anos, 1 h)
+  // boletim da CME: de que pregão é e quando chegou (para ver que o robô do PC está pegando de madrugada)
+  function cmeInfo() {
+    const b = (D('ouro_boletim').data || [])[0]; if (!b || !b.data_pregao) return '';
+    const sit = b.situacao === 'FINAL' ? 'final' : 'preliminar';
+    return ' · CME: boletim de ' + br(b.data_pregao).slice(0, 5) + ' (' + sit + ')' + (b.recebido_em ? ', chegou ' + b.recebido_em.slice(8, 10) + '/' + b.recebido_em.slice(5, 7) + ' ' + b.recebido_em.slice(11, 16) : '');
+  }
   // "O que olhar hoje": resumo de 1 card só com o que passou em teste (pedido dela 20/11)
   function drawRS() {
     const bx = $('.rs-corpo'); if (!bx) return; bx.replaceChildren(); $('.rs-nome').textContent = atv + ' · ' + NOME[atv];
