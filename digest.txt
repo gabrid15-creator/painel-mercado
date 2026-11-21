@@ -1,0 +1,65 @@
+Data 21/11/2026 15:05 BRT. F&G 10.0, VIX pctil 100.0, DXY 20d 1.964%
+
+EURUSD: preço 1.09697 (1d -0.02%, 5d -0.73%, 20d -2.24%)
+  vol. implícita/esperada 5.31% (abaixo do normal); dia ±1σ 1.09331–1.10065, ±2σ 1.08966–1.10434; semana ±1σ 1.0888–1.10521, ±2σ 1.08068–1.11351; mês ±1σ 1.08029–1.11392, ±2σ 1.06385–1.13112
+  regime 26 semanas: DXY corr -0.83; EUA 2a corr -0.38; EUA 10a corr -0.29; Juro real 10a corr -0.43
+
+GBPUSD: preço 1.30818 (1d -0.04%, 5d -1.02%, 20d -2.21%)
+  vol. implícita/esperada 5.62% (bem abaixo do normal); dia ±1σ 1.30356–1.31282, ±2σ 1.29895–1.31748; semana ±1σ 1.29787–1.31858, ±2σ 1.28763–1.32906; mês ±1σ 1.28713–1.32958, ±2σ 1.26642–1.35132
+
+USDJPY: preço 159.707 (1d 0.2%, 5d -0.11%, 20d 2.05%)
+  vol. implícita/esperada 7.86% (abaixo do normal); dia ±1σ 158.918–160.5, ±2σ 158.133–161.296; semana ±1σ 157.949–161.485, ±2σ 156.209–163.283; mês ±1σ 156.124–163.372, ±2σ 152.622–167.121
+  regime 26 semanas: DXY corr 0.68; EUA 2a corr 0.3; EUA 10a corr 0.22; Juro real 10a corr 0.34
+
+USDCHF: preço 0.8441 (1d 0.07%, 5d 0.98%, 20d 2.96%)
+  vol. implícita/esperada 7.18% (normal); dia ±1σ 0.84029–0.84792, ±2σ 0.8365–0.85177; semana ±1σ 0.83561–0.85267, ±2σ 0.82721–0.86134; mês ±1σ 0.8268–0.86177, ±2σ 0.80985–0.8798
+  regime 26 semanas: DXY corr 0.69; EUA 2a corr 0.5; EUA 10a corr 0.36; Juro real 10a corr 0.49
+
+XAUUSD: preço 3508.9 (1d -4.62%, 5d -9.54%, 20d -12.29%)
+  vol. implícita/esperada 34.8% (bem acima do normal); dia ±1σ 3432.82–3586.67, ±2σ 3358.38–3666.17; semana ±1σ 3341.04–3685.19, ±2σ 3181.22–3870.33; mês ±1σ 3173.53–3879.71, ±2σ 2870.21–4289.72
+  regime 26 semanas: DXY corr -0.4; EUA 2a corr -0.25; EUA 10a corr -0.25; Juro real 10a corr -0.28
+  0DTE GLD (2026-11-20): teto 3707.6, piso 3598.6, gamma flip None, faixa do dia [3603.0, 3707.1], gamma negativo (movimentos tendem a acelerar)
+
+NAS100: preço 25029.0 (1d -5.61%, 5d -10.43%, 20d -13.57%)
+
+Radar institucional e juros: Liquidez líquida Fed 5848.737 (20d 1.194%, pctil 1a 74.0); VIX ÷ VIX 3 meses 1.16 (20d 0.21p.p., pctil 1a 100.0); MOVE (vol. de Treasuries) 106.31 (20d -0.496%, pctil 1a 96.0); Condições financeiras (NFCI) -0.478 (20d 0.034p.p., pctil 1a 83.0); US2Y 4.63 (20d -0.02p.p., pctil 1a 84.0); US10Y 4.92 (20d -0.04p.p., pctil 1a 82.0); Juro real 10a 2.77 (20d 0.13p.p., pctil 1a 91.0); Spread 2a EUA−Alemanha 1.55 (20d 0.01p.p., pctil 1a 80.0)
+Últimos dados oficiais dos EUA (período de referência): Non-Farm Employment Change 2026-10 = 165.0K; Unemployment Rate 2026-10 = 4.1%; Average Hourly Earnings m/m 2026-10 = 0.37%; CPI m/m 2026-10 = 0.35%; Core CPI m/m 2026-10 = 0.296%; CPI y/y 2026-10 = 3.913%; PPI m/m 2026-10 = 0.348%; Core PPI m/m 2026-10 = 0.326%; Unemployment Claims 2026-11-14 = 203.0K; Retail Sales m/m 2026-10 = 0.212%; Core Retail Sales m/m 2026-10 = 0.628%; Core PCE Price Index m/m 2026-09 = 0.317%; JOLTS Job Openings 2026-09 = 7.523M; Advance GDP q/q 2026-07 = 3.4%
+
+Red folder da semana (BRT):
+  2026-11-16 14:00 USD Fed Chairman Warsh Speaks prev  ant 
+  2026-11-17 10:30 USD Core Retail Sales m/m prev 0.4% ant 0.9%
+  2026-11-17 10:30 USD Retail Sales m/m prev 0.1% ant 0.8%
+  2026-11-18 04:00 GBP CPI y/y prev 3.6% ant 3.5%
+  2026-11-18 12:00 GBP BOE Gov Bailey Speaks prev  ant 
+  2026-11-18 16:00 USD FOMC Meeting Minutes prev  ant 
+Manchetes:
+  [Foreign Policy Journal] Qualcomm (NASDAQ: QCOM) Carries A Premium Valuation Even As Earnings Face Two More Years Of Pressure
+  [24/7 Wall St.] The Nasdaq-100 Is Now Just 49 Points From a Bear Market
+  [Traders Union] Bitcoin rises as Federal Reserve rate hike expectations and risk-off sentiment curb demand for volatile assets
+  [Foreign Policy Journal] GTA VI's $2.36 Billion Launch Day Puts Streaming Giants Netflix (NASDAQ: NFLX) And Disney (NYSE: DIS) On Notice
+  [Traders Union] Nasdaq lists AnthropicAI: Will NDAQ hold $102.61 support?
+  [Seeking Alpha] Nvidia: This Has Gone Too Far
+  [Seeking Alpha] SA Asks: Who's the best-positioned cybersecurity provider right now? (MSFT:NASDAQ)
+  [Foreign Policy Journal] Lululemon Athletica (NASDAQ: LULU) Stock Trades At A Deep Discount To Colgate-Palmolive (NYSE: CL), But The Bargain May Come With Strings Attached
+  [CryptoRank] Stock Market Crash: Nasdaq, S&P 500 Suffer Worst Weekly Losses in Years
+  [Foreign Policy Journal] ChronoScale (NASDAQ: CHRN) CEO's New $7.5 Billion Data Center Deal Funnels $200 Million To Supermicro (SMCI) Amid Chip Smuggling Fallout
+  [Benzinga] Micron Technology Analysis - Where's the Bottom for MU? - Micron Technology (NASDAQ:MU)
+  [Seeking Alpha] Apple: The Hidden Risk Behind My Downgrade (NASDAQ:AAPL)
+  [Foreign Policy Journal] QuantumScape (NASDAQ: QS) Sits On $819M War Chest Even As Shares Crater 26.5% Post-Earnings
+  [The Globe and Mail] The Nasdaq Just Triggered a Correction. 1 Move I'm Making Right Now -- and 1 I'm Avoiding
+  [FOREX.com] Gold Price Forecast: XAU/USD Breaks Multi-Year Uptrend in Worst Week Since March
+  [Yahoo Finance] Is AvePoint, Inc. (NASDAQ:AVPT) an Emerging AI Infrastructure Play Under $25?
+  [Los Angeles Times] Letters to the Editor: White House hearing on Fed governor seems to be nothing more than kangaroo court
+  [Seeking Alpha] HACK Vs. CIBR: Pure-Play Beats Diversified For 2027 (NASDAQ:CIBR)
+  [Seeking Alpha] Anthropic: IPO Priced To Pop, Use Caution Though (NASDAQ:ANT)
+  [Yahoo Finance] Is Hut 8 Corp. (NASDAQ: HUT) Priced for Too Much AI Growth?
+  [KSHB 41 Kansas City] S&P 500 sinks 3.7% and the Nasdaq composite goes negative for the year
+  [Cryptonews.net] ECB seeks industry partners for tokenized deposits, securities experiments
+  [The Defiant] Nasdaq Composite vs. Nasdaq-100: What Each Measures
+  [Foreign Policy Journal] Analyst Downgrades Hit Summit Therapeutics (NASDAQ: SMMT), PepsiCo (NASDAQ: PEP) And USA Rare Earth (NASDAQ: USAR)
+  [The Motley Fool] We May Be Witnessing Wall Street's Biggest Bubble Burst in Real Time (and I'm Not Talking About Artificial Intelligence)
+  [صحيفة مال] Trump: Interest rates are too high because the US Federal Reserve is "politicized"
+  [ChartMill] Western Digital (NASDAQ:WDC) Shows High Growth and Improving Fundamentals
+  [Foreign Policy Journal] Rocket Lab's (NASDAQ: RKLB) $3.6 Billion Backlog Points To Accelerating Growth Despite Q3 Earnings Miss
+  [ChartMill] Seagate Technology Holdings (NASDAQ:STX): An Undervalued Value Stock With Strong Forward Earnings Power
+  [Memeburn] Anthropic's Nasdaq Debut: Founders Cash Out $2B as the Stock Swings From $83 to Below $100
