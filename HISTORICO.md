@@ -271,3 +271,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 20/11/2026 — card "O que olhar hoje"
 - Ela achou o painel confuso ("qual sigma olhar"). Novo card no topo do ativo com só o comprovado; detalhes do mapa recolhidos. Varredura 60 combinações ok.
+
+## 23/11/2026 — leitor do ouro: semanal que não existe no dia do vencimento mensal
+- Boletim de 20/11 (robô, 03:00 de segunda): barrado — GWT "24/11" não existe (24/11 é o vencimento mensal OG; o bloco GWT só traz dezembro) e o leitor misturava dezembro com 24/11. Regra: dia = VENC["OG"] → pula a semanal. 17/11 e 18/11 inalterados; 20/11 com 0 erro. (Fim de semana: nada puxado de sáb 21/11 porque o boletim de sexta só sai em seg de madrugada? — confirmar no log do PC.)

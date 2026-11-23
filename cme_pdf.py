@@ -61,6 +61,9 @@ if _cf and _pf:
         v = pregao + dt.timedelta(days=1)
         while v.weekday() != wd: v += dt.timedelta(days=1)
         if uteis(pregao, v) > 2: continue
+        # no dia do vencimento mensal (OG) não existe a semanal desse dia da semana (ex.: GWT 24/11/2026 não existe: o bloco GWT só traz dezembro).
+        # Sem esta regra o bloco de dezembro entrava como se fosse 24/11 e quebrava a paridade (23/11/2026).
+        if "OG" in VENC and v == VENC["OG"]: print("semanal", cod, v, "não existe: é o dia do vencimento mensal (OG)"); continue
         T = (v - pregao).days / 365
         bl, cur2 = [], False
         for l in txt.splitlines():
