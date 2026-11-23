@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 NY = ZoneInfo("America/New_York")
 IV = json.load(open(sys.argv[1])); OUTF = sys.argv[2]
 FUT = {"USDJPY": ("6J%3DF", -1), "EURUSD": ("6E%3DF", 1), "USDCHF": ("6S%3DF", -1), "GBPUSD": ("6B%3DF", 1)}
-K = [0.25, 0.5, 0.75, 1, 1.25, 1.5]; ZB = [0.1, 0.25, 0.5, 0.75, 1, 1.25]
+K = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 2.5]; ZB = [0.1, 0.25, 0.5, 0.75, 1, 1.25]
 def baixa(s):
     u = f"https://query2.finance.yahoo.com/v8/finance/chart/{s}?range=730d&interval=1h"
     j = json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"}), timeout=30).read())["chart"]["result"][0]

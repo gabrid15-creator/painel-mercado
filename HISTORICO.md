@@ -274,3 +274,7 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 23/11/2026 — leitor do ouro: semanal que não existe no dia do vencimento mensal
 - Boletim de 20/11 (robô, 03:00 de segunda): barrado — GWT "24/11" não existe (24/11 é o vencimento mensal OG; o bloco GWT só traz dezembro) e o leitor misturava dezembro com 24/11. Regra: dia = VENC["OG"] → pula a semanal. 17/11 e 18/11 inalterados; 20/11 com 0 erro. (Fim de semana: nada puxado de sáb 21/11 porque o boletim de sexta só sai em seg de madrugada? — confirmar no log do PC.)
+
+## 23/11/2026 — painel sem atualizar (0DTE e conferência)
+- **0DTE do GLD parado desde sex 20/11 17:20 NY:** a Cboe (cdn.cboe.com → cdn-api.cboe.com) passou a devolver 403 do Cloudflare ("you have been blocked") para o servidor da coleta. Não vamos driblar o bloqueio. Reserva legítima: opções do GLD pela API pública do Yahoo (`gld_yahoo()`, crumb do próprio site; formato igual ao da Cboe; sem delta → só afeta o skew do mi_pcr_hist). Aviso no card 0DTE quando a fonte falha. Não testável no ambiente do Claude (Yahoo options bloqueado lá): conferir na coleta seguinte.
+- **"Backtest diário: 2 is not in list" desde 17/11:** minha refação do `toque_tabela.json` das moedas (σ DTCC) tinha só k até 1,5; o código e o mapa precisam de 2 e 2,5 → ±2σ das moedas ficava vazio e a conferência diária não rodava. `testes/metricas_dtcc.py` agora gera k até 2,5.

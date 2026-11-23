@@ -705,12 +705,43 @@ def gregas(lst, S, T):
     return {"gex_usd_1pct": rnd(gx / 1e6, 2), "charm_usd_ate_venc": rnd(ch_ / 1e6, 2), "vanna_usd_vol_menos1": rnd(va / 1e6, 2), "unid": "US$ milhões"}
 
 
+def gld_yahoo():
+    """Cadeia de opções do GLD pelo Yahoo (API pública, com o 'crumb' que o próprio site do Yahoo usa), no mesmo formato da Cboe.
+    Reserva para quando a Cboe recusa o acesso (23/11/2026: a Cboe passou a devolver 403 para o servidor da coleta)."""
+    import http.cookiejar
+    NYz = ZoneInfo("America/New_York"); op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+    def rq(u):
+        if restante() <= 5: raise Estourou("limite total de 4 min atingido")
+        return op.open(urllib.request.Request(u, headers=UA), timeout=min(15, max(2, restante() - 2))).read()
+    try: rq("https://fc.yahoo.com")
+    except Exception: pass   # responde 404 mas grava o cookie
+    crumb = rq("https://query1.finance.yahoo.com/v1/test/getcrumb").decode().strip()
+    base = f"https://query2.finance.yahoo.com/v7/finance/options/GLD?crumb={urllib.parse.quote(crumb)}"
+    r0 = json.loads(rq(base))["optionChain"]["result"][0]; q = r0["quote"]
+    datas = [d for d in r0["expirationDates"] if d <= time.time() + 40 * 86400]
+    cad = {r0["options"][0]["expirationDate"]: r0["options"][0]}
+    for d in datas:
+        if d in cad: continue
+        try: cad[d] = json.loads(rq(base + f"&date={d}"))["optionChain"]["result"][0]["options"][0]
+        except Exception: continue
+    ops = []
+    for ex in cad.values():
+        for lado in ("calls", "puts"):
+            for o in ex.get(lado, []):
+                ops.append({"option": o["contractSymbol"], "open_interest": o.get("openInterest") or 0, "volume": o.get("volume") or 0, "iv": o.get("impliedVolatility") or 0,
+                            "bid": o.get("bid") or 0, "ask": o.get("ask") or 0, "last_trade_price": o.get("lastPrice") or 0, "delta": 0})
+    if len(ops) < 50: raise ValueError(f"cadeia do Yahoo incompleta ({len(ops)} opções)")
+    lt = dt.datetime.fromtimestamp(q["regularMarketTime"], NYz).replace(tzinfo=None).isoformat()
+    return {"current_price": q["regularMarketPrice"], "close": q["regularMarketPrice"], "last_trade_time": lt, "options": ops, "_fonte": "Yahoo"}
+
 @bloco("0DTE ouro (GLD)")
 def b_0dte():
     # opções do GLD que vencem hoje (ou no próximo pregão): faixa do dia pelo straddle, paredes, gamma flip e max pain,
     # convertidos para o preço do ouro (XAUUSD). Grava um retrato por dia para validar depois.
     NY = ZoneInfo("America/New_York"); ny = NOW.astimezone(NY)
-    j = json.loads(get("https://cdn.cboe.com/api/global/delayed_quotes/options/GLD.json"))["data"]
+    try: j = json.loads(get("https://cdn.cboe.com/api/global/delayed_quotes/options/GLD.json"))["data"]; j["_fonte"] = "Cboe"
+    except Exception as e_cboe:   # Cboe bloqueou (403 desde 20–23/11/2026): usa o Yahoo e avisa no status
+        j = gld_yahoo(); STATUS.append({"bloco": "0DTE: fonte do GLD", "ok": True, "msg": "Cboe recusou (" + str(e_cboe)[:60] + "); usando Yahoo"})
     S = j["current_price"]; ops = []
     # fora do pregão regular a Cboe mostra preço de pré/pós-mercado em current_price, mas last_trade_time continua o do fechamento:
     # nesse caso usa o FECHAMENTO oficial, para casar com o ouro do mesmo instante (razão GLD → ouro mais abaixo)

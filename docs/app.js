@@ -1009,7 +1009,8 @@
     }
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
-      $('.z0-chip').textContent = 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + (z.gld_parado ? 'fechado (' + z.gld_parado.slice(0, 5) + ')' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
+      const sg0 = (D('mi_status').data || []).find((x) => /0DTE ouro/.test(x.bloco) && !x.ok);   // fonte do GLD falhou na última coleta: avisa em vez de parecer ao vivo
+      $('.z0-chip').textContent = (sg0 ? '⚠ sem atualizar (fonte do GLD recusou o acesso) · retrato de ' + (z.atualizado || '') + ' · ' : '') + 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + (z.gld_parado ? 'fechado (' + z.gld_parado.slice(0, 5) + ')' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
       const n1 = (v) => (v == null ? '—' : nf(v, 1));
       const m = z.cme || {};
       const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],
