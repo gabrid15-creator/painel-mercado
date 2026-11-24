@@ -132,6 +132,8 @@
      - tabela **Precisão medida** visível (`faixa_backtest.json`).
    - **Conferência diária** (`mi_validacao.json`): toque real × chance prevista, faixa e 0DTE (GLD e CME separados).
    - **0DTE ouro:** só a **borboleta** (`drawBorb`).
+     - **Níveis fixos do dia (24/11/2026, pedido dela: teto/piso/flip mudavam a cada coleta):** teto, piso, max pain, gamma flip (GLD e CME) e faixa são calculados **só com contratos em aberto** (sem o volume do dia); 9h30–10h NY = calibra (mediana das coletas), **10h NY = fixa até o vencimento** (`mi_0dte_fixo.json`; campo `fixacao` no `mi_0dte`; valores ao vivo ficam em `vivo`, `cwv/pwv/gfv` no `mi_0dte_dia`). Ao vivo: preço, regime de gamma agora, barras/volume. O retrato de validação (`mi_0dte_hist`) e a foto da manhã do diário passam a ser os níveis fixos das 10h NY (antes: 1ª coleta, com OI + volume; dias 12–23/11 têm outra definição).
+     - **Uma só leitura:** `faixas` dia/semana do `mi_faixa` (e da CME) agora saem do preço de ABERTURA com σ congelado = igual ao mapa e à leitura da IA (antes saíam do preço de agora). A IA recebe os mesmos níveis e é instruída a não calcular outra faixa.
      - Grade de strikes do GLD em ±max(1,3%, 1,15σ).
      - Barras: clara = contratos em aberto GLD + CME (equivalente GLD); escura = volume do dia do GLD (ao vivo). Verde = calls, vermelho = puts.
      - Níveis do GLD tracejados, mais ±1σ; níveis da CME pontilhados.

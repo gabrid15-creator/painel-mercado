@@ -821,6 +821,8 @@
     if (atv === 'XAUUSD') { const HR = [0.231, 0.190, 0.274, 0.280, 0.288, 0.296, 0.267, 0.263, 0.290, 0.393, 0.482, 0.481, 0.399, 0.322, 0.271, 0.254, 0.243, 0.210, 0.215, 0.242, 0.231, 0.281, 0.377, 0.288];
       const hb = +new Date(Date.now() - 3 * 3600000).toISOString().slice(11, 13), v = HR[hb];
       lin('<b>Esta hora (' + hb + 'h):</b> ' + (v < 0.25 ? 'parada' : v > 0.35 ? 'agitada' : 'normal') + ', costuma andar ~' + pp(v) + '. Mais agitado 10h–12h; mais parado 17h–1h.'); }
+    { const z0 = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;   // paredes das opções do dia: os mesmos números do card 0DTE (fixos desde as 10h de NY)
+      if (z0 && z0.call_wall) lin('<b>Paredes das opções do dia</b> (' + (z0.fixacao || '') + '): <span class="lv lv-cw">teto</span> <b>' + nf(z0.call_wall, 0) + '</b> · <span class="lv lv-gf">gamma flip</span> <b>' + nf(z0.gamma_flip, 0) + '</b> · <span class="lv lv-pw">piso</span> <b>' + nf(z0.put_wall, 0) + '</b>. Acima do flip o mercado tende a segurar; abaixo, a acelerar (retrato, não previsão).'); }
     lin('<b>Direção (compra ou venda):</b> <span class="mi-neg">nenhum sinal comprovado</span>. Opere pelos níveis acima; o 0DTE e os demais cards são retrato, não previsão.');
   }
 
@@ -1010,7 +1012,7 @@
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
       const sg0 = (D('mi_status').data || []).find((x) => /0DTE ouro/.test(x.bloco) && !x.ok);   // fonte do GLD falhou na última coleta: avisa em vez de parecer ao vivo
-      $('.z0-chip').textContent = (sg0 ? '⚠ sem atualizar (fonte do GLD recusou o acesso) · retrato de ' + (z.atualizado || '') + ' · ' : '') + 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + ' · GLD ' + (z.gld_parado ? 'fechado (' + z.gld_parado.slice(0, 5) + ')' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
+      $('.z0-chip').textContent = (sg0 ? '⚠ sem atualizar (fonte do GLD recusou o acesso) · retrato de ' + (z.atualizado || '') + ' · ' : '') + 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + (z.fixacao ? ' · níveis: ' + z.fixacao : '') + ' · GLD ' + (z.gld_parado ? 'fechado (' + z.gld_parado.slice(0, 5) + ')' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
       const n1 = (v) => (v == null ? '—' : nf(v, 1));
       const m = z.cme || {};
       const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],

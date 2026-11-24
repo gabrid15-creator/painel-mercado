@@ -48,6 +48,7 @@ prompt = (
     "- GERAL: o ambiente agora (volatilidade alta ou baixa, estresse no radar institucional) e o próximo evento que pode aumentar o movimento.\n"
     "- Cada ativo: quanto ele deve andar hoje e na semana (faixa ±1σ com os preços), se a volatilidade está acima ou abaixo do normal, o que o move agora (regime com DXY/juros) "
     "e o evento de risco mais próximo. No ouro, cite teto, piso e gamma flip do 0DTE se houver.\n"
+    "IMPORTANTE: os níveis do dia e da semana (±1σ, ±2σ) e os do 0DTE (teto, piso, gamma flip, max pain, faixa) são FIXOS: foram definidos na abertura (20h de Brasília) e às 10h de NY. Cite-os exatamente como estão nos dados e não calcule outra faixa; só o preço e o regime de gamma agora mudam durante o dia.\n"
     "Use só o que está nos dados; não invente números nem eventos. Trate eventos que já passaram como passados e os futuros como futuros, comparando com a data e hora acima.\n"
     'Responda APENAS com um JSON: uma lista de 7 objetos {"ativo": ..., "texto": ...}, na ordem ' + ", ".join(ATIVOS) + ".\n\nDADOS:\n" + dig)
 
