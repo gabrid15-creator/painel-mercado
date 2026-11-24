@@ -52,7 +52,7 @@
   .op-tip .t { color: var(--cds-text-secondary); }
   .op-tablebox { max-height: 28rem; overflow: auto; }
   .op-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  .op-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: 600; color: var(--color-fg-muted); padding: 4px 8px; border-bottom: 1px solid var(--color-border-line); font-size: 12px; }
+  .op-table th { position: static; background: var(--color-panel); text-align: left; font-weight: 600; color: var(--color-fg-muted); padding: 4px 8px; border-bottom: 1px solid var(--color-border-line); font-size: 12px; }
   .op-table td { padding: 4px 8px; border-bottom: 1px solid var(--color-border-line); }
   .num { text-align: right; }
   .op-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--color-border-line); margin-bottom: var(--cds-gap-lg); }
@@ -171,7 +171,7 @@
   .op-tile .v { font-size: 30px; letter-spacing: -.01em; }
   .op-tile > .s:first-child { text-transform: uppercase; letter-spacing: .06em; font-size: 11px; font-weight: 600; }
   /* topo de vidro */
-  .topo { background: color-mix(in srgb, var(--color-bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+  .topo { background: var(--color-bg); }   /* opaco: com 82% de transparência o texto das tabelas aparecia "hachurado" por baixo (24/11) */
   .hj-bar { box-shadow: var(--shadow-card); }
   .brand { display: inline-flex; align-items: center; gap: 8px; margin-right: 10px; padding-right: 12px; border-right: 1px solid var(--color-border-line); }
   .brand img { border-radius: 6px; display: block; } .brand b { font-family: var(--font-anthropic-serif); font-weight: 500; font-size: 16px; }
@@ -234,6 +234,8 @@
     .ai-t th:nth-child(4), .ai-t td:nth-child(4) { display: none; } .ai-t td, .ai-t th { padding-left: 4px; padding-right: 4px; }
     .ag-cur { display: inline-block; font-size: 10px; font-weight: 600; padding: 0 5px; margin-right: 5px; border-radius: 4px; background: color-mix(in srgb, var(--color-fg) 10%, transparent); color: var(--color-fg-muted); }
     .mi-ag-t td, .mi-ag-t th { padding-left: 4px; padding-right: 4px; }
+    .mi-ag-t tr.mi-hoje td:first-child { padding-left: 12px; }
+    @media (max-width: 360px) { .mi-ag-t { font-size: 13px; } .mi-ag-t td.ag-at a, .mi-ag-t td.ag-at .ag-box { padding: 3px 6px; font-size: 13px; } .mi-ag-t td:first-child, .mi-ag-t tr.mi-hoje td:first-child { font-size: 12.5px; white-space: normal; } .mi-ag-t { table-layout: fixed; width: 100%; } .mi-ag-t th:nth-child(1) { width: 3.3rem; } .mi-ag-t th:nth-child(4) { width: 3.2rem; } .mi-ag-t th:nth-child(6) { width: 4.2rem; } .mi-ag-t td { overflow-wrap: anywhere; } .mi-ag-t thead th { font-size: 10px; letter-spacing: 0; padding-left: 2px; padding-right: 2px; } }
     .op-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; width: 100%; } .op-tab { white-space: nowrap; padding: 6px 12px; }
     .ag-box { font-size: 13px; }
   }
@@ -290,6 +292,7 @@
   /* agenda: dia de hoje */
   .mi-ag-t tr.mi-hoje td { background: color-mix(in srgb, var(--accent) 13%, var(--color-panel)); }
   .mi-ag-t tr.mi-hoje td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 700; color: var(--accent); }
+  .mi-ag-t tr.mi-hoje td:first-child { padding-left: 12px; white-space: nowrap; }   /* o texto "hoje 12:00" encostava na tira laranja (24/11) */
   .mi-ag-t tr.mi-hoje:hover td { background: color-mix(in srgb, var(--accent) 19%, var(--color-panel)); }
   .mi-ag-t tr.mi-hoje.mi-red td:first-child { color: var(--accent); }
   .mi-ag-t tr.ag-passou td { opacity: 1; } .mi-ag-t tr.ag-passou:not(.mi-red) td:not(.ag-at) { color: color-mix(in srgb, var(--color-fg) 62%, transparent); }
@@ -317,7 +320,7 @@
   .op-card[hidden] { display: none; }
   #sec-gb { margin-top: 28px; }
   .atv-cards { display: flex; flex-direction: column; gap: var(--cds-gap-lg, 16px); }
-  .ativos-fixo { position: sticky; top: var(--topo-h, 96px); z-index: 15; display: flex; flex-direction: column; gap: 6px; padding: 8px 0; margin: -8px 0; background: color-mix(in srgb, var(--color-bg) 85%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); }
+  .ativos-fixo { position: sticky; top: var(--topo-h, 96px); z-index: 15; display: flex; flex-direction: column; gap: 6px; padding: 8px 0; margin: -8px 0; background: var(--color-bg); }
   .ativos-fixo.preso { box-shadow: 0 10px 16px -14px rgba(0,0,0,.6); border-bottom: 1px solid var(--color-border-line); }
   .ia-vies { font-size: 12px; padding: 3px 12px; letter-spacing: .04em; text-transform: uppercase; }
   .mi-exp b { color: var(--color-fg); font-weight: 600; }
@@ -729,6 +732,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261124b"></script>
+<script src="app.js?v=20261124g"></script>
 </body>
 </html>

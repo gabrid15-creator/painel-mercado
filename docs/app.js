@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento', 'ouro_boletim', 'iene_boletim', 'lateralidade'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento', 'ouro_boletim', 'iene_boletim', 'lateralidade', 'padrao'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -789,6 +789,12 @@
     const sit = b.situacao === 'FINAL' ? 'final' : 'preliminar';
     return ' · CME: boletim de ' + br(b.data_pregao).slice(0, 5) + ' (' + sit + ')' + (b.recebido_em ? ', chegou ' + b.recebido_em.slice(8, 10) + '/' + b.recebido_em.slice(5, 7) + ' ' + b.recebido_em.slice(11, 16) : '');
   }
+  // números fixos do painel (fonte única: docs/data/padrao.json); os literais abaixo só valem se o arquivo não carregar
+  const QN0 = { XAUUSD: [0.44, 1.35, 1.05], USDJPY: [0.43, 1.20, 0.97], EURUSD: [0.54, 1.40, 1.16], USDCHF: [0.54, 1.37, 1.15], GBPUSD: [0.57, 1.50, 1.13] };
+  const CC0 = { XAUUSD: [0.81, 1.22, 0.75, 0.79, 0.95, 65, 39], USDJPY: [0.73, 1.08, 0.44, 0.57, 0.79, 73, 30], EURUSD: [0.77, 1.18, 0.69, 0.79, 0.97, 68, 35], USDCHF: [0.76, 1.11, 0.69, 0.74, 0.90, 61, 42], GBPUSD: [0.83, 1.18, 0.72, 0.82, 1.00, 68, 35] };
+  const qNormal = (a) => { const d = ((D('padrao').data || {}).dia_normal || {})[a]; return d ? [d.q50, d.q90, d.amplitude_tipica] : QN0[a]; };
+  const cCedo = (a) => { const d = ((D('padrao').data || {}).cedo || {})[a]; return d ? [d.corte_baixo, d.corte_alto, d.resto_se_baixo, d.resto_se_medio, d.resto_se_alto, d.p_grande_se_alto, d.p_grande_se_baixo] : CC0[a]; };
+  const hOuro = () => ((D('padrao').data || {}).hora_ouro_sigma_dia) || [0.231, 0.190, 0.274, 0.280, 0.288, 0.296, 0.267, 0.263, 0.290, 0.393, 0.482, 0.481, 0.399, 0.322, 0.271, 0.254, 0.243, 0.210, 0.215, 0.242, 0.231, 0.281, 0.377, 0.288];
   // Mapa de lateralidade: igual para os 5 ativos (testes/lateralidade.py e lateralidade2.py, 24/11/2026)
   function drawLat() {
     const bx = $('.lat-corpo'); if (!bx) return; bx.replaceChildren(); $('.lat-nome').textContent = atv + ' · ' + NOME[atv];
@@ -829,7 +835,7 @@
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), m = fr && fr.mapa;
     if (!m) { bx.textContent = 'Sem dados para este ativo.'; return; }
     const sd = m.sd_dia, ab = m.ab_dia, k = CASAS[atv], P = m.preco || fr.preco;
-    const Q = { XAUUSD: [0.44, 1.35], USDJPY: [0.43, 1.20], EURUSD: [0.54, 1.40], USDCHF: [0.54, 1.37], GBPUSD: [0.57, 1.50] }[atv] || [0.5, 1.4];
+    const Q = qNormal(atv) || [0.5, 1.4];
     const pip = atv === 'XAUUSD' ? 1 : atv.includes('JPY') ? 0.01 : 0.0001, un = atv === 'XAUUSD' ? '' : ' pips', us = atv === 'XAUUSD' ? 'US$ ' : '';
     const pp = (x) => us + nf(ab * (Math.exp(x * sd) - 1) / pip, 0) + un, L = (x) => ab * Math.exp(x * sd);
     const lin = (html) => { const p = document.createElement('p'); p.className = 'rs-l'; p.innerHTML = html; bx.appendChild(p); };
@@ -848,11 +854,11 @@
     const sit = !R ? '' : e >= 1.5 ? 'passou de 1,5σ: rompimento forte, <b>' + pc(R.passou_15_fecha_fora) + '</b> das vezes fecha fora do 1σ' : e >= 1.25 ? 'passou de 1,25σ: rompimento confirmado, <b>' + pc(R.passou_125_fecha_fora) + '</b> fecha fora do 1σ (tendência; cuidado com a grade)' : e >= 1 ? 'tocou o 1σ: cara ou coroa, ' + pc(R.tocou_1s_fecha_fora) + ' fecha fora' : 'ainda dentro do 1σ: dia normal até agora';
     lin('<b>Agora:</b> ' + nf(P, k) + ' (' + (z >= 0 ? '+' : '') + nf(z, 2) + 'σ da abertura) · ' + sit + '.');
     // tamanho do resto do dia (Ásia + Londres) e hora (ouro)
-    const C = { XAUUSD: [0.81, 1.22, 65, 39], USDJPY: [0.73, 1.08, 73, 30], EURUSD: [0.77, 1.18, 68, 35], USDCHF: [0.76, 1.11, 61, 42], GBPUSD: [0.83, 1.18, 68, 35] }[atv];
+    const Cc = cCedo(atv), C = Cc && [Cc[0], Cc[1], Cc[5], Cc[6]];
     if (C && m.amp_cedo != null) { const g = m.amp_cedo >= C[1] ? 2 : m.amp_cedo < C[0] ? 0 : 1;
       lin('<b>Resto do dia:</b> ' + ['tende a ser <b>pequeno</b> (Ásia e Londres andaram pouco; só ' + C[3] + '% de chance de ser grande)', 'tamanho <b>normal</b>', 'tende a ser <b>grande</b> (Ásia e Londres andaram muito; ' + C[2] + '% de chance)'][g] + '.'); }
     else lin('<b>Resto do dia:</b> a leitura sai às 11h de Brasília.');
-    if (atv === 'XAUUSD') { const HR = [0.231, 0.190, 0.274, 0.280, 0.288, 0.296, 0.267, 0.263, 0.290, 0.393, 0.482, 0.481, 0.399, 0.322, 0.271, 0.254, 0.243, 0.210, 0.215, 0.242, 0.231, 0.281, 0.377, 0.288];
+    if (atv === 'XAUUSD') { const HR = hOuro();
       const hb = +new Date(Date.now() - 3 * 3600000).toISOString().slice(11, 13), v = HR[hb];
       lin('<b>Esta hora (' + hb + 'h):</b> ' + (v < 0.25 ? 'parada' : v > 0.35 ? 'agitada' : 'normal') + ', costuma andar ~' + pp(v) + '. Mais agitado 10h–12h; mais parado 17h–1h.'); }
     { const z0 = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;   // paredes das opções do dia: os mesmos números do card 0DTE (fixos desde as 10h de NY)
@@ -899,7 +905,7 @@
     const lado = (sgn) => { for (const x of [0.5, 1, 1.5, 2]) { const L = m.ab_dia * Math.exp(sgn * x * sd); if (sgn > 0 ? m.max_dia < L : m.min_dia > L) return [x, L, chAgora(L, sd, m.ts_dia_ini, m.ts_dia_fim)]; } return null; };
     const up = lado(1), dn = lado(-1), fr1 = (r, s) => (r ? `<b>${nf(r[1], k)}</b> (${s}${fx(r[0])}σ): <b>${r[2]}%</b>` : `todos os níveis ${s === '+' ? 'acima' : 'abaixo'} já tocados`);
     // dia normal: quanto o dia anda de verdade, em σ do painel (testes/dia_tipico.py, futuros da CME, 15 anos, ~3.750 dias cada)
-    { const Q = { XAUUSD: [0.44, 1.35, 1.05], USDJPY: [0.43, 1.20, 0.97], EURUSD: [0.54, 1.40, 1.16], USDCHF: [0.54, 1.37, 1.15], GBPUSD: [0.57, 1.50, 1.13] }[atv], bx = $('.mp-normal');   // moedas: σ das opções DTCC (testes/vol_dtcc.py, 2 anos)
+    { const Q = qNormal(atv), bx = $('.mp-normal');   // moedas: σ das opções DTCC (testes/vol_dtcc.py, 2 anos)
       if (bx) { bx.replaceChildren(); bx.hidden = !Q; if (Q) {
         const pip = atv === 'XAUUSD' ? 1 : atv.includes('JPY') ? 0.01 : 0.0001, un = atv === 'XAUUSD' ? '' : ' pips', us = atv === 'XAUUSD' ? 'US$ ' : '';
         const pp = (x) => us + nf(m.ab_dia * (Math.exp(x * sd) - 1) / pip, 0) + un, L = (x) => nf(m.ab_dia * Math.exp(x * sd), k);
@@ -908,11 +914,11 @@
         const a1 = document.createElement('p'); a1.innerHTML = '<b>Metade dos dias</b> fecha entre <b>' + L(-Q[0]) + '</b> e <b>' + L(Q[0]) + '</b> (±' + pp(Q[0]) + ' da abertura, ' + nf(Q[0], 2) + 'σ). <b>9 em cada 10</b> fecham entre ' + L(-Q[1]) + ' e ' + L(Q[1]) + ' (±' + pp(Q[1]) + ').'; bx.appendChild(a1);
         const a2 = document.createElement('p'); a2.innerHTML = 'Distância típica entre a máxima e a mínima do dia: <b>' + pp(Q[2]) + '</b>. <b>Hoje até agora:</b> ' + us + nf((m.max_dia - m.min_dia) / pip, 0) + un + ' (' + nf(amp / Q[2] * 100, 0) + '% do típico).'; bx.appendChild(a2);
         if (atv === 'XAUUSD') {   // quanto o ouro anda em cada hora (testes/horas_lateral.py, GC 1 h, 2 anos, em σ do dia; hora de Brasília)
-          const HR = [0.231, 0.190, 0.274, 0.280, 0.288, 0.296, 0.267, 0.263, 0.290, 0.393, 0.482, 0.481, 0.399, 0.322, 0.271, 0.254, 0.243, 0.210, 0.215, 0.242, 0.231, 0.281, 0.377, 0.288];
+          const HR = hOuro();
           const hb = +new Date(Date.now() - 3 * 3600000).toISOString().slice(11, 13), v = HR[hb];
           const a4 = document.createElement('p'); a4.innerHTML = '<b>Agora (' + hb + 'h):</b> hora ' + (v < 0.25 ? '<b>parada</b>' : v > 0.35 ? '<b>agitada</b>' : '<b>normal</b>') + ', o ouro costuma andar cerca de <b>' + pp(v) + '</b> nesta hora. Mais agitado: 10h–12h (' + pp(0.48) + '/h); mais parado: 17h–1h (' + pp(0.21) + '/h). Mostra o tamanho, não o formato: nenhum horário é mais "vai e volta" que outro.';
           bx.appendChild(a4); }
-        const C = { XAUUSD: [0.81, 1.22, 0.75, 0.79, 0.95, 65, 39], USDJPY: [0.73, 1.08, 0.44, 0.57, 0.79, 73, 30], EURUSD: [0.77, 1.18, 0.69, 0.79, 0.97, 68, 35], USDCHF: [0.76, 1.11, 0.69, 0.74, 0.90, 61, 42], GBPUSD: [0.83, 1.18, 0.72, 0.82, 1.00, 68, 35] }[atv];
+        const C = cCedo(atv);
         const a3 = document.createElement('p');
         if (C && m.amp_cedo != null) { const ce = m.amp_cedo, g = ce >= C[1] ? 2 : ce < C[0] ? 0 : 1;
           a3.innerHTML = '<b>Ásia + Londres (até 11h BRT):</b> andou ' + nf(ce, 2) + 'σ, ' + ['<b>pouco</b>', '<b>normal</b>', '<b>muito</b>'][g] + '. Daqui até o fim, o típico em dias assim é <b>' + pp(C[2 + g]) + '</b> entre a máxima e a mínima' + (g === 2 ? ' (' + C[5] + '% de chance de o resto do dia ser grande)' : g === 0 ? ' (só ' + C[6] + '% de chance de o resto do dia ser grande)' : '') + '.'; }

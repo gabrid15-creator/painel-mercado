@@ -285,3 +285,7 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 24/11/2026 — mapa de lateralidade (painel inteiro, 5 ativos)
 - Pedido: mapear quando o mercado fica lateral (dia da semana, hora, semana do mês, época do ano, semana de notícia). Armadilha achada: as barras diárias do Yahoo (futuros) são por dia-calendário de NY → "segunda mais estreita" (87–96% × 105–109%) era artefato; na sessão real 18h→17h NY (1 h, 2 anos) não há efeito (p 0,03–0,9). Payroll e persistência passam com folga. Notícias (FOMC/CPI) sem calendário histórico grátis: passa a ser registrado todo dia (`mi_lateral_diario.json`). Card novo igual para os 5 ativos.
+
+## 24/11/2026 — padronização, bug visual da agenda
+- IA: roteiro único por ativo + `padrao.json` (antes cada texto citava coisas diferentes). Digest com [σ]/[DIA]/[SEMANA]/[AGORA]/[LATERALIDADE]/[RESTO DO DIA]/[OPÇÕES] para todos.
+- Visual: (1) barra do topo e a barra dos ativos eram translúcidas (82–85% + blur) e o texto das tabelas aparecia "hachurado" por baixo; agora opacas; cabeçalho de tabela só gruda dentro de caixas com rolagem. (2) Agenda da semana: o texto "hoje 12:00" encostava na tira laranja do dia; recuo de 12px. (3) Agenda em 340 px passava da largura do cartão: tabela de colunas fixas.

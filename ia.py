@@ -46,8 +46,10 @@ prompt = (
     "Portanto NÃO dê viés de alta ou de baixa, não diga que o preço tende a subir ou cair e não use palavras como bullish/bearish/altista/baixista.\n"
     "Escreva em português do Brasil, direto ao ponto, 2 a 3 frases por item:\n"
     "- GERAL: o ambiente agora (volatilidade alta ou baixa, estresse no radar institucional) e o próximo evento que pode aumentar o movimento.\n"
-    "- Cada ativo: quanto ele deve andar hoje e na semana (faixa ±1σ com os preços), se a volatilidade está acima ou abaixo do normal, o que o move agora (regime com DXY/juros) "
-    "e o evento de risco mais próximo. No ouro, cite teto, piso e gamma flip do 0DTE se houver.\n"
+    "- Cada ativo (TODOS com o MESMO roteiro e a mesma ordem, mudando só o que é específico do ativo): (1) o σ do dia FIXO, em preços (±1σ e o dia normal) e onde o preço está agora em σ da abertura; "
+    "(2) o σ da semana FIXO, em preços; (3) lateralidade: se ontem foi estreito, normal ou largo e o que isso diz sobre hoje, payroll se for o caso, e o resto do dia (Ásia+Londres); "
+    "(4) o que move o ativo agora (regime com DXY/juros) e o evento de risco mais próximo; (5) opções: ouro cita teto, piso, gamma flip e max pain do 0DTE (GLD e CME); iene cita o 0DTE da CME; os demais dizem que o σ vem das opções de balcão. "
+    "Use os números das linhas [DIA], [SEMANA], [AGORA], [LATERALIDADE], [RESTO DO DIA] e [OPÇÕES] exatamente como estão, sem recalcular.\n"
     "IMPORTANTE: os níveis do dia e da semana (±1σ, ±2σ) e os do 0DTE (teto, piso, gamma flip, max pain, faixa) são FIXOS: foram definidos na abertura (20h de Brasília) e às 10h de NY. Cite-os exatamente como estão nos dados e não calcule outra faixa; só o preço e o regime de gamma agora mudam durante o dia.\n"
     "Use só o que está nos dados; não invente números nem eventos. Trate eventos que já passaram como passados e os futuros como futuros, comparando com a data e hora acima.\n"
     'Responda APENAS com um JSON: uma lista de 7 objetos {"ativo": ..., "texto": ...}, na ordem ' + ", ".join(ATIVOS) + ".\n\nDADOS:\n" + dig)

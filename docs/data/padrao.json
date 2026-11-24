@@ -1,0 +1,103 @@
+{
+ "_nota": "Fonte única dos números fixos do painel e da leitura da IA (testes/dia_tipico.py, vol_dtcc.py, range_cedo.py, horas_lateral.py). Mudou aqui, muda na tela e na IA.",
+ "dia_normal": {
+  "XAUUSD": {
+   "q50": 0.44,
+   "q90": 1.35,
+   "amplitude_tipica": 1.05
+  },
+  "USDJPY": {
+   "q50": 0.43,
+   "q90": 1.2,
+   "amplitude_tipica": 0.97
+  },
+  "EURUSD": {
+   "q50": 0.54,
+   "q90": 1.4,
+   "amplitude_tipica": 1.16
+  },
+  "USDCHF": {
+   "q50": 0.54,
+   "q90": 1.37,
+   "amplitude_tipica": 1.15
+  },
+  "GBPUSD": {
+   "q50": 0.57,
+   "q90": 1.5,
+   "amplitude_tipica": 1.13
+  }
+ },
+ "cedo": {
+  "XAUUSD": {
+   "corte_baixo": 0.81,
+   "corte_alto": 1.22,
+   "resto_se_baixo": 0.75,
+   "resto_se_medio": 0.79,
+   "resto_se_alto": 0.95,
+   "p_grande_se_alto": 65,
+   "p_grande_se_baixo": 39
+  },
+  "USDJPY": {
+   "corte_baixo": 0.73,
+   "corte_alto": 1.08,
+   "resto_se_baixo": 0.44,
+   "resto_se_medio": 0.57,
+   "resto_se_alto": 0.79,
+   "p_grande_se_alto": 73,
+   "p_grande_se_baixo": 30
+  },
+  "EURUSD": {
+   "corte_baixo": 0.77,
+   "corte_alto": 1.18,
+   "resto_se_baixo": 0.69,
+   "resto_se_medio": 0.79,
+   "resto_se_alto": 0.97,
+   "p_grande_se_alto": 68,
+   "p_grande_se_baixo": 35
+  },
+  "USDCHF": {
+   "corte_baixo": 0.76,
+   "corte_alto": 1.11,
+   "resto_se_baixo": 0.69,
+   "resto_se_medio": 0.74,
+   "resto_se_alto": 0.9,
+   "p_grande_se_alto": 61,
+   "p_grande_se_baixo": 42
+  },
+  "GBPUSD": {
+   "corte_baixo": 0.83,
+   "corte_alto": 1.18,
+   "resto_se_baixo": 0.72,
+   "resto_se_medio": 0.82,
+   "resto_se_alto": 1.0,
+   "p_grande_se_alto": 68,
+   "p_grande_se_baixo": 35
+  }
+ },
+ "hora_ouro_sigma_dia": [
+  0.231,
+  0.19,
+  0.274,
+  0.28,
+  0.288,
+  0.296,
+  0.267,
+  0.263,
+  0.29,
+  0.393,
+  0.482,
+  0.481,
+  0.399,
+  0.322,
+  0.271,
+  0.254,
+  0.243,
+  0.21,
+  0.215,
+  0.242,
+  0.231,
+  0.281,
+  0.377,
+  0.288
+ ]
+}

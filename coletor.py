@@ -1381,10 +1381,32 @@ def b_score():
             r = at[x["ativo"]]
             f.write(f"\n{x['ativo']}: preço {r['preco']} (1d {r['var_1d']}%, 5d {r['var_5d']}%, 20d {r['var_20d']}%)\n")
             fx_ = next((y for y in ler("mi_faixa.json") if y["ativo"] == x["ativo"]), None)
-            if fx_:
-                f.write(f"  vol. implícita/esperada {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}); " + "; ".join(f"{y['prazo']}{' (FIXA desde a abertura' + (', abertura ' + str(fx_['mapa']['ab_dia' if y['prazo'] == 'dia' else 'ab_sem'])) + ')' if y.get('fixo') and fx_.get('mapa') else ''} ±1σ {y['s1'][0]}–{y['s1'][1]}, ±2σ {y['s2'][0]}–{y['s2'][1]}" for y in fx_["faixas"]) + "\n")
+            if fx_:   # MESMO roteiro para todos os ativos (pedido dela 24/11/2026): σ, dia fixo, semana fixa, agora, lateralidade, resto do dia
+                m_ = fx_.get("mapa") or {}; pd_ = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "padrao.json")))
+                lt_ = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "lateralidade.json"))).get(x["ativo"]) or {}
+                dn_ = (pd_.get("dia_normal") or {}).get(x["ativo"]); ce_ = (pd_.get("cedo") or {}).get(x["ativo"]); cs_ = fx_["preco"]
+                f.write(f"  [σ] fonte: {fx_.get('fonte')}; vol. {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}). Teste: o dia fecha dentro de ±1σ em ~78–83% das vezes e de ±2σ em ~96–99%.\n")
+                if m_.get("ab_dia"):
+                    ab, sd = m_["ab_dia"], m_["sd_dia"]; fd = fx_["faixas"][0]; fs = fx_["faixas"][1]; z_ = math.log(m_["preco"] / ab) / sd
+                    f.write(f"  [DIA, FIXO desde a abertura {m_.get('dia_ini')}] abertura {ab}; ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}")
+                    if dn_: f.write(f"; dia normal (metade dos dias) ±{dn_['q50']}σ = {ab * (math.exp(dn_['q50'] * sd) - 1):.5g}; 9 em 10 dias dentro de ±{dn_['q90']}σ")
+                    f.write(f"\n  [SEMANA, FIXA] abertura {m_['ab_sem']}; ±1σ {fs['s1'][0]}–{fs['s1'][1]}; ±2σ {fs['s2'][0]}–{fs['s2'][1]}\n")
+                    f.write(f"  [AGORA] preço {m_['preco']} = {z_:+.2f}σ da abertura; máx. do dia {m_['max_dia']} ({math.log(m_['max_dia'] / ab) / sd:+.2f}σ), mín. {m_['min_dia']} ({math.log(m_['min_dia'] / ab) / sd:+.2f}σ)\n")
+                if lt_:
+                    P_ = lt_.get("persistencia") or {}; lt2 = fx_.get("lateral") or {}; hoje_ = NOW.date(); wd = hoje_.weekday()
+                    pay_dia = wd == 4 and hoje_.day <= 7; pay_sem = wd < 5 and (hoje_ + dt.timedelta(days=4 - wd)).day <= 7
+                    f.write(f"  [LATERALIDADE] em {lt_['dias']} dias: {lt_['pct_estreito']}% estreitos, {lt_['pct_largo']}% largos. ")
+                    if lt2.get("estado"): f.write(f"Ontem foi {lt2['estado']} ({lt2['rel'] * 100:.0f}% do normal): chance de hoje ser estreito {P_.get('estreito_hoje_dado_estreito_ontem') if lt2['estado'] == 'estreito' else P_.get('estreito_hoje_dado_largo_ontem') if lt2['estado'] == 'largo' else lt_['pct_estreito']}% (média {lt_['pct_estreito']}%). ")
+                    f.write(("HOJE É DIA DE PAYROLL (1ª sexta): dia estreito é raro. " if pay_dia else "Esta é a semana do payroll. " if pay_sem else "") + "Dia da semana e semana do mês não mudam nada.\n")
+                if ce_ and m_.get("amp_cedo") is not None:
+                    g_ = 2 if m_["amp_cedo"] >= ce_["corte_alto"] else 0 if m_["amp_cedo"] < ce_["corte_baixo"] else 1
+                    f.write(f"  [RESTO DO DIA] Ásia+Londres andaram {m_['amp_cedo']}σ: {['pouco (resto tende a ser pequeno)', 'normal', 'muito (resto tende a ser grande)'][g_]}.\n")
             rg_ = next((y for y in ler("mi_regime.json") if y["ativo"] == x["ativo"]), None)
             if rg_: f.write("  regime 26 semanas: " + "; ".join(f"{y['fator']} corr {y['corr26']}{' (quebrou)' if y['quebrou'] else ''}" for y in rg_["fatores"]) + "\n")
+            if x["ativo"] in ("EURUSD", "GBPUSD", "USDCHF"): f.write("  [OPÇÕES] sem 0DTE próprio; o σ vem das opções de balcão (DTCC, negócios das últimas 24 h).\n")
+            if x["ativo"] == "USDJPY":
+                zj_ = (ler("mi_0dte_iene.json") or [{}])[0]
+                if zj_ and zj_.get("vencimento"): f.write(f"  [OPÇÕES] 0DTE do iene na CME (vence {zj_.get('vencimento')}): teto {zj_.get('call_wall')}, piso {zj_.get('put_wall')}, gamma flip {zj_.get('gamma_flip')}, max pain {zj_.get('max_pain')}, faixa {zj_.get('faixa')}.\n")
             if x["ativo"] == "XAUUSD":
                 z_ = (ler("mi_0dte.json") or [{}])[0]
                 if z_: f.write(f"  0DTE GLD ({z_.get('vencimento')}; níveis {z_.get('fixacao')}): teto {z_.get('call_wall')}, piso {z_.get('put_wall')}, gamma flip {z_.get('gamma_flip')}, max pain {z_.get('max_pain')}, faixa do dia {z_.get('faixa')}; regime de gamma agora: {z_.get('regime')}\n")
