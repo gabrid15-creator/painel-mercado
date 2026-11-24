@@ -543,7 +543,8 @@
 <li><span class="lv lv-cw">Teto</span> é onde há mais calls (resistência); <span class="lv lv-pw">Piso</span>, onde há mais puts (suporte).</li>
 <li><span class="lv lv-gf">Gamma flip</span>: acima dele, os bancos tendem a segurar o preço; abaixo, a acelerar.</li>
 <li><span class="lv lv-mp">Max pain</span>: o preço em que os compradores de opções mais perdem.</li>
-<li><span class="lv lv-rg">Faixa</span>: o movimento que o mercado paga até o vencimento. O <span class="lv lv-s1">±1σ</span> cobre cerca de 68% dos casos.</li>
+<li><span class="lv lv-s1">Faixa do dia ±1σ</span>: a mesma faixa do mapa e do card "O que olhar hoje" (σ do GVZ, fixo na abertura das 20h de Brasília). É a faixa com teste: o dia fecha dentro dela em 78% a 83% das vezes. A coluna da CME é a opção de 1 dia do ajuste de ontem, que mede o mesmo dia por outro caminho: as duas costumam ter o mesmo tamanho.</li>
+<li><span class="lv lv-rg">O que falta andar</span>: o straddle do GLD que vence hoje às 16h de NY, centrado no preço de agora. Mostra só o movimento que o mercado ainda espera até o vencimento. Ele encolhe ao longo do dia (por isso é bem mais estreito que a faixa do dia) e muda de centro com o preço. <b>Não é a faixa do dia.</b></li>
 <li><b>Régua:</b> todos os preços estão na régua do XAUUSD da Vantage (futuro da CME menos US$ 6,5, calibrado em 16/11). GLD e CME são convertidos para ela.</li>
 <li><b>GLD:</b> ao vivo, com 15 min de atraso, das 11h30 às 18h. Com o GLD fechado (noite e fim de semana), os níveis dele ficam os do último pregão, e o regime de gamma é recalculado com o ouro ao vivo.</li>
 <li><b>CME:</b> fechamento do pregão anterior, tirado do PDF do boletim, com vencimentos de todos os dias. Cada número é conferido pela paridade antes de ser publicado.</li>
@@ -554,7 +555,7 @@
 <li><b>Barra clara:</b> contratos em aberto do GLD e da CME somados. A CME entra em equivalente GLD (um contrato de 100 onças vale cerca de 11 do GLD).</li>
 <li><b>Barra escura, por dentro:</b> o volume negociado hoje no GLD, onde está a briga agora. O número mostra "em aberto | volume".</li>
 <li><b>Barra grande</b> significa muita gente posicionada ali; o preço costuma reagir por perto.</li>
-<li><b>Linhas:</b> a cheia é o preço; as tracejadas, os níveis do GLD (ao vivo) e o ±1σ; as pontilhadas, os níveis da CME (fixos no dia). A faixa dourada ✓ marca onde GLD e CME concordam, e a sombra azul é a faixa até o vencimento.</li>
+<li><b>Linhas:</b> a cheia é o preço; as tracejadas, os níveis do GLD (fixos desde as 10h de NY) e o ±1σ do dia (σ fixo da abertura); as pontilhadas, os níveis da CME (fixos no dia). A faixa dourada ✓ marca onde GLD e CME concordam, e a sombra azul é o que falta andar até o vencimento (ao vivo).</li>
 <li><b>Níveis fixos:</b> teto, piso, gamma flip, max pain e faixa são calculados só com os contratos em aberto, que não mudam durante o dia. Das 9h30 às 10h de NY o painel calibra (mediana das leituras); às 10h de NY eles ficam <b>fixos até o vencimento</b>. Só o preço, o regime de gamma de agora e as barras de volume (escuras) continuam ao vivo. Os níveis da CME também são fixos (boletim do dia anterior).</li>
 <li><b>PCR</b> (puts ÷ calls), embaixo: acima de 1, <b style="color:#c8443a">+Puts</b> (mais proteção ou aposta na queda); abaixo de 1, <b style="color:#1f8a5b">+Calls</b>. É um retrato do posicionamento: o PCR foi testado e, sozinho, não prevê direção.</li></ul></div>
       <div class="mi-chart z0b-chart"></div>
@@ -565,7 +566,7 @@
 <li><span class="lv lv-cw">Teto</span> é onde há mais calls (resistência); <span class="lv lv-pw">Piso</span>, onde há mais puts (suporte).</li>
 <li><span class="lv lv-gf">Gamma flip</span>: acima dele, os bancos tendem a segurar o preço; abaixo, a acelerar.</li>
 <li><span class="lv lv-mp">Max pain</span>: o preço em que os compradores de opções mais perdem.</li>
-<li><span class="lv lv-rg">Faixa</span>: o movimento que o mercado paga até o vencimento. O <span class="lv lv-s1">±1σ</span> cobre cerca de 68% dos casos.</li>
+<li><span class="lv lv-s1">Faixa do dia ±1σ</span>: a mesma faixa do mapa e do card "O que olhar hoje" (σ das opções de balcão, fixo na abertura das 20h de Brasília); o dia fecha dentro dela em 78% a 83% das vezes. <span class="lv lv-rg">Faixa até o vencimento</span> e o <span class="lv lv-s1">±1σ</span> logo abaixo são o movimento que a opção da CME paga até o vencimento da série (pode ser de vários dias), não a faixa do dia.</li>
 <li><b>CME:</b> fechamento do pregão anterior, tirado do PDF do boletim. Não muda durante o dia, porque o ETF de iene quase não negocia e não há fonte ao vivo. Cada número é conferido pela paridade antes de ser publicado.</li>
 <li>As séries de segunda a quinta costumam ter poucos contratos; as de sexta e de quarta, mais.</li>
 <li><b>Precisão:</b> ainda sem teste. Ela começa a ser medida depois de uns 30 vencimentos.</li></ul></div>
@@ -732,6 +733,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261124g"></script>
+<script src="app.js?v=20261125b"></script>
 </body>
 </html>

@@ -765,7 +765,9 @@
   function drawZ0b(z) {
     const el = $('.z0b-chart'); if (!el) return;
     const rat = z.gld && z.ouro ? z.ouro / z.gld : 10.9, fat = rat;   // 1 contrato CME (100 oz) ≈ ouro ÷ GLD contratos do GLD
-    const g0 = Math.round(z.ouro / rat), sig = z.s1 ? Math.max(z.ouro - z.s1[0], z.s1[1] - z.ouro) : z.ouro * 0.01;
+    // ±1σ do gráfico = a faixa do DIA (σ fixo da abertura, a que tem teste); a sombra azul = o que falta andar até as 16h NY (straddle do GLD, ao vivo)
+    const fxg = (D('mi_faixa').data || []).find((r) => r.ativo === 'XAUUSD'), s1g = (fxg && fxg.faixas && fxg.faixas[0] && fxg.faixas[0].s1) || z.s1, faixaViva = (z.vivo && z.vivo.faixa) || z.faixa;
+    const g0 = Math.round(z.ouro / rat), sig = s1g ? Math.max(z.ouro - s1g[0], s1g[1] - z.ouro) : z.ouro * 0.01;
     const meia = Math.max(z.ouro * 0.013, sig * 1.15), ini = Math.floor((z.ouro - meia) / rat), fim = Math.ceil((z.ouro + meia) / rat), grid = new Map();   // ±1σ cabe no gráfico
     for (let g = ini; g <= fim; g++) grid.set(g, { k: g * rat, c: 0, p: 0, gc: 0, gp: 0, mc: 0, mp: 0, vc: 0, vp: 0 });
     const soma = (lst, f, cb) => { for (const [k, c, p] of lst || []) { const b = grid.get(Math.round(k / rat)); if (b) cb(b, Math.round(c * f), Math.round(p * f)); } };
@@ -774,7 +776,7 @@
     soma(z.perfil_vol, 1, (b, c, p) => { b.vc += c; b.vp += p; });
     const rows = [...grid.values()].map((b) => [b.k, b.c, b.p, ['Em aberto GLD: ' + nf(b.gc, 0) + ' calls / ' + nf(b.gp, 0) + ' puts', 'Em aberto CME: ' + nf(b.mc, 0) + ' calls / ' + nf(b.mp, 0) + ' puts (equivalente GLD)'], b.vc, b.vp]);
     const tot = (lst, f, i) => d3.sum(lst || [], (r) => Math.round(r[i] * f)), cm = z.cme || {};
-    drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: z.faixa, s1: z.s1 }, {
+    drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: faixaViva, s1: s1g }, {
       casas: 0, rotulo: 'Contratos em aberto (GLD + CME)', tol: rat, lv2: { teto: cm.call_wall, piso: cm.put_wall, gamma: cm.gamma_flip, mp: cm.max_pain },
       pcrs: [['em aberto, GLD + CME', tot(z.perfil_oi || z.perfil, 1, 2) + tot(cm.perfil, fat, 2), tot(z.perfil_oi || z.perfil, 1, 1) + tot(cm.perfil, fat, 1)],
              [z.gld_parado ? 'volume do último pregão, GLD' : 'volume do dia, GLD (ao vivo)', tot(z.perfil_vol, 1, 2), tot(z.perfil_vol, 1, 1)]] });
@@ -1024,7 +1026,8 @@
         .filter((x) => x[1] != null).sort((a, b) => b[1] - a[1]);
       const hd = document.createElement('tr'); td(hd, ''); td(hd, 'CME (ajuste ' + br(zj.pregao).slice(0, 5) + ')', 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       for (const [nm, v, c] of niv) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, n3(v), 'num').style.fontWeight = 600; t.appendChild(tr); }
-      for (const [nm, v, c] of [['Faixa até o vencimento' + (zj.faixa_pct ? ' (±' + nf(zj.faixa_pct, 2) + '%)' : ''), zj.faixa, 'lv-rg'], ['±1σ', zj.s1, 'lv-s1']]) {
+      const fxj = (D('mi_faixa').data || []).find((r) => r.ativo === 'USDJPY'), s1j = fxj && fxj.faixas && fxj.faixas[0] && fxj.faixas[0].s1;
+      for (const [nm, v, c] of [...(s1j ? [['Faixa do dia ±1σ (σ fixo da abertura)', s1j, 'lv-s1']] : []), ['Faixa até o vencimento' + (zj.faixa_pct ? ' (±' + nf(zj.faixa_pct, 2) + '%)' : ''), zj.faixa, 'lv-rg'], ['±1σ até o vencimento', zj.s1, 'lv-s1']]) {
         const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v ? n3(v[0]) + ' – ' + n3(v[1]) : 'sem par call/put no dinheiro', 'num').style.fontWeight = 600; t.appendChild(tr); }
       const tr = document.createElement('tr'); td(tr, 'Regime: ' + (zj.regime || '—')); td(tr, nf(zj.abertos, 0) + ' em aberto · ' + zj.n_strikes + ' strikes' + (zj.n_strikes < 10 ? ' (poucos: leia com cautela)' : ''), 'num'); t.appendChild(tr);
       drawZ0j(zj);
@@ -1058,8 +1061,13 @@
       const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],
         ['Max pain', z.max_pain, 'lv-mp', m.max_pain], ['Piso (put wall)', z.put_wall, 'lv-pw', m.put_wall]].filter((x) => x[1] != null).sort((x, y) => y[1] - x[1]);   // escada: do mais alto ao mais baixo
       const lin = [...niv.map(([nm, v, c, k]) => [nm, n1(v), c, k == null ? '—' : n1(k)]),
-        ['Faixa até o vencimento (±' + nf(z.faixa_pct, 2) + '%' + (m.faixa_pct ? ' · CME ±' + nf(m.faixa_pct, 2) + '%' : '') + ')', n1(z.faixa[0]) + ' – ' + n1(z.faixa[1]), 'lv-rg', m.faixa ? n1(m.faixa[0]) + ' – ' + n1(m.faixa[1]) : '—']];
-      if (z.s1) lin.push(['±1σ', n1(z.s1[0]) + ' – ' + n1(z.s1[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
+        ];
+      // Faixa do DIA (a que tem teste): o σ fixo da abertura, o mesmo do mapa e do "O que olhar hoje"; na coluna da CME, a opção de 1 dia do ajuste de ontem (mesmo dia, outro caminho)
+      const fxo = (D('mi_faixa').data || []).find((r) => r.ativo === 'XAUUSD'), s1d = fxo && fxo.faixas && fxo.faixas[0] && fxo.faixas[0].s1;
+      if (s1d) lin.push(['Faixa do dia ±1σ (σ fixo da abertura)', n1(s1d[0]) + ' – ' + n1(s1d[1]), 'lv-s1', m.s1 ? n1(m.s1[0]) + ' – ' + n1(m.s1[1]) : '—']);
+      // O que FALTA andar até as 16h de NY (straddle do GLD que vence hoje, ao vivo): encolhe com o tempo; não é a faixa do dia
+      const vv = z.vivo && z.vivo.faixa ? z.vivo.faixa : z.faixa;
+      if (vv) lin.push(['O que falta andar até o vencimento (GLD, ao vivo)', n1(vv[0]) + ' – ' + n1(vv[1]), 'lv-rg', '—']);
       const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, z.gld_parado ? 'GLD (último pregão)' : cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       const tol = z.gld ? z.ouro / z.gld : z.ouro * 0.003;   // 1 strike do GLD em preço de ouro (~US$ 11): GLD e CME "concordam" se ficam a até 1 degrau
       const par = { 'Teto (call wall)': [z.call_wall, m.call_wall], 'Piso (put wall)': [z.put_wall, m.put_wall], 'Gamma flip': [z.gamma_flip, m.gamma_flip], 'Max pain': [z.max_pain, m.max_pain] };

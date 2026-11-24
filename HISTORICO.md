@@ -289,3 +289,7 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 ## 24/11/2026 — padronização, bug visual da agenda
 - IA: roteiro único por ativo + `padrao.json` (antes cada texto citava coisas diferentes). Digest com [σ]/[DIA]/[SEMANA]/[AGORA]/[LATERALIDADE]/[RESTO DO DIA]/[OPÇÕES] para todos.
 - Visual: (1) barra do topo e a barra dos ativos eram translúcidas (82–85% + blur) e o texto das tabelas aparecia "hachurado" por baixo; agora opacas; cabeçalho de tabela só gruda dentro de caixas com rolagem. (2) Agenda da semana: o texto "hoje 12:00" encostava na tira laranja do dia; recuo de 12px. (3) Agenda em 340 px passava da largura do cartão: tabela de colunas fixas.
+
+## 25/11/2026 — faixas do 0DTE explicadas
+- A "faixa até o vencimento" do GLD é o straddle ATM do que vence hoje às 16h NY: só o que FALTA andar desde o instante medido, centrada no preço daquele instante. Hoje foi fixada às 12:32 NY (T≈3,5 h → ±0,55%, 39 pontos) enquanto o ouro já tinha caído 82 pontos desde a abertura (−1σ) → "fora" por construção. A CME mede 1 dia inteiro (ajuste de ontem → vencimento): ±1,54% (112 pontos), centrada no ajuste (3.644,8). O σ da abertura (±1,97% = ±72) e o ±1σ da CME (±70) têm o mesmo tamanho: são a faixa do dia.
+- Card: linha "Faixa do dia ±1σ" (GLD col. = σ fixo; CME col. = CME ±1σ) e "O que falta andar (ao vivo)"; gráfico ±1σ = do dia, sombra = o que falta andar.
