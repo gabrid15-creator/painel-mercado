@@ -684,11 +684,42 @@ def b_faixa():
             _recentra(row["faixas"][0], mp["ab_dia"], mp["sd_dia"]); _recentra(row["faixas"][1], mp["ab_sem"], mp["sd_sem"])
             if row.get("cme"):
                 for fxl, base in ((row["cme"]["faixas"][0], mp["ab_dia"]), (row["cme"]["faixas"][1], mp["ab_sem"])): _recentra(fxl, base, None, row["cme"]["iv"])
+            # lateralidade: o dia de ONTEM foi estreito, normal ou largo? (testes/lateralidade.py: ontem estreito → hoje estreito 28–41%; ontem largo → 16–22%).
+            # Barras diárias dos futuros (as mesmas do teste); só dias completos; 1 vez por sessão.
+            try:
+                kl = f"lat|{a}|{hoje_s}"
+                if kl not in FIXO:
+                    fs_ = {"EURUSD": "6E=F", "GBPUSD": "6B=F", "USDJPY": "6J=F", "USDCHF": "6S=F", "XAUUSD": "GC=F"}[a]
+                    jd = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(fs_)}?range=60d&interval=1d"))["chart"]["result"][0]; qd = jd["indicators"]["quote"][0]
+                    bs = [(dt.datetime.fromtimestamp(t, NYz).date(), h_, l_) for t, h_, l_ in zip(jd["timestamp"], qd["high"], qd["low"]) if h_ and l_ and h_ > l_]
+                    bs = [x for x in bs if x[0] < NOW.astimezone(NYz).date()]
+                    if len(bs) >= 22:
+                        am_ = [math.log(h_ / l_) for _, h_, l_ in bs]; rel_ = am_[-1] / st.mean(am_[-21:-1])
+                        FIXO[kl] = {"ontem": bs[-1][0].isoformat(), "rel": rnd(rel_, 2), "estado": "estreito" if rel_ <= 0.70 else "largo" if rel_ >= 1.40 else "normal"}
+                if kl in FIXO: row["lateral"] = FIXO[kl]
+            except Exception: pass
             MH[f"{a}|dia|{hoje_s}"] = {"ativo": a, "tipo": "dia", "ini": str(hoje_s), "ab": mp["ab_dia"], "sd": mp["sd_dia"], "max": mp["max_dia"], "min": mp["min_dia"]}
             MH[f"{a}|sem|{seg}"] = {"ativo": a, "tipo": "sem", "ini": str(seg), "ab": mp["ab_sem"], "sd": mp["sd_sem"], "max": mp["max_sem"], "min": mp["min_sem"]}
         except Exception as e: STATUS.append({"bloco": "Mapa " + a, "ok": False, "msg": str(e)[:120]})
         rows.append(row)
         hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
+    # DIÁRIO DE LATERALIDADE (24/11/2026, pedido dela: acompanhar quando o mercado fica lateral, inclusive em dia de notícia): 1 registro por sessão
+    # (atualizado a cada coleta entre 16h e 18h NY; o último fica com a sessão completa). Amplitude do dia em σ, corpo e os red folders do dia.
+    try:
+        nyN = NOW.astimezone(ZoneInfo("America/New_York")); mn = nyN.hour * 60 + nyN.minute
+        if nyN.weekday() < 5 and 16 * 60 <= mn < 18 * 60:
+            ld = {x["dia"]: x for x in ler("mi_lateral_diario.json")}
+            sessN = (nyN + dt.timedelta(hours=6)).date().isoformat()
+            red = [f"{x['hora']} {x['moeda']} {x['evento']}" for x in ler("mi_agenda.json") if x.get("data") == NOW.date().isoformat() and x.get("impacto") == "Alto"]
+            at_ = {}
+            for r_ in rows:
+                m_ = r_.get("mapa") or {}
+                if m_.get("ab_dia") and m_.get("sd_dia"):
+                    am = math.log(m_["max_dia"] / m_["min_dia"]); at_[r_["ativo"]] = {"abertura": m_["ab_dia"], "max": m_["max_dia"], "min": m_["min_dia"], "fechamento": m_["preco"],
+                        "sigma_pct": rnd(m_["sd_dia"] * 100, 3), "amplitude_sigma": rnd(am / m_["sd_dia"], 2), "corpo_pct_amplitude": rnd(abs(math.log(m_["preco"] / m_["ab_dia"])) / am * 100, 0) if am else None}
+            ld[sessN] = {"dia": sessN, "semana_dia": nyN.strftime("%a"), "red_folder": red, "ativos": at_, "atualizado": nyN.strftime("%H:%M") + " NY"}
+            save("mi_lateral_diario.json", sorted(ld.values(), key=lambda x: x["dia"])[-800:])
+    except Exception as e: STATUS.append({"bloco": "Diário de lateralidade", "ok": False, "msg": str(e)[:120]})
     if not rows: raise ValueError("sem volatilidade")
     corte_ = str(NOW.date() - dt.timedelta(days=21))   # guarda 3 semanas por data (o corte antigo por ordem alfabética podia apagar o EURUSD do dia)
     save("mapa_fixo.json", [{k: v for k, v in sorted(FIXO.items()) if k.rsplit("|", 1)[1] >= corte_}])

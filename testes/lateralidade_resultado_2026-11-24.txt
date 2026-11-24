@@ -1,0 +1,24 @@
+75 testes (5 ativos × 3 definições × 5 cortes); corte de p = 0.00067
+PASSOU: XAUUSD estreito × dia do payroll (1ª sexta) taxa geral 31.0 % {'1ª sexta': '13.3% [14.1/12.3] n=166', 'outros': '31.9% [37.6/26.1] n=3475'} p=4.1e-07
+PASSOU: XAUUSD largo × semana de payroll taxa geral 19.2 % {'outras': '16.9% [19.1/14.8] n=2806', 'semana do payroll': '26.8% [34.3/19.3] n=835'} p=1.8e-10
+PASSOU: XAUUSD largo × dia do payroll (1ª sexta) taxa geral 19.2 % {'1ª sexta': '41.6% [51.8/30.9] n=166', 'outros': '18.1% [21.2/15.1] n=3475'} p=6.9e-14
+PASSOU: USDJPY estreito × mês do ano taxa geral 30.2 % {'1': '26.0% [22.8/29.6] n=304', '2': '26.5% [23.4/30.1] n=287', '3': '25.5% [28.5/22.1] n=326', '4': '38.1% [33.3/43.4] n=310', '5': '32.5% [25.1/41.1] n=317', '6': '27.6% [26.4/28.8] n=315', '7': '30.1% [33.1/27.5] n=319', '8': '32.0% [28.2/35.4] n=331', '9': '28.8% [27.0/30.3] n=306', '10': '38.8% [32.0/44.6] n=330', '11': '18.2% [22.5/14.4] n=302', '12': '37.1% [35.3/38.9] n=299'} p=1.7e-08
+PASSOU: USDJPY estreito × semana de payroll taxa geral 30.2 % {'outras': '31.7% [28.9/34.5] n=2899', 'semana do payroll': '25.0% [25.6/24.5] n=847'} p=2.1e-04
+PASSOU: USDJPY estreito × dia do payroll (1ª sexta) taxa geral 30.2 % {'1ª sexta': '12.0% [9.5/14.5] n=167', 'outros': '31.0% [29.0/33.0] n=3579'} p=1.6e-07
+PASSOU: USDJPY largo × semana de payroll taxa geral 17.1 % {'outras': '15.7% [15.9/15.5] n=2899', 'semana do payroll': '21.7% [19.2/24.2] n=847'} p=4.1e-05
+PASSOU: USDJPY largo × dia do payroll (1ª sexta) taxa geral 17.1 % {'1ª sexta': '36.5% [34.5/38.6] n=167', 'outros': '16.1% [15.8/16.5] n=3579'} p=7.8e-12
+PASSOU: EURUSD estreito × semana de payroll taxa geral 24.2 % {'outras': '25.7% [25.2/26.2] n=2903', 'semana do payroll': '18.9% [19.6/18.1] n=848'} p=4.4e-05
+PASSOU: EURUSD estreito × dia do payroll (1ª sexta) taxa geral 24.2 % {'1ª sexta': '8.9% [3.5/14.5] n=168', 'outros': '24.9% [24.9/24.8] n=3583'} p=2.4e-06
+PASSOU: EURUSD largo × dia do payroll (1ª sexta) taxa geral 15.1 % {'1ª sexta': '25.6% [22.4/28.9] n=168', 'outros': '14.6% [14.0/15.3] n=3583'} p=1.0e-04
+PASSOU: USDCHF estreito × semana de payroll taxa geral 23.9 % {'outras': '25.9% [25.6/26.2] n=2903', 'semana do payroll': '17.2% [19.4/15.1] n=848'} p=1.8e-07
+PASSOU: USDCHF estreito × dia do payroll (1ª sexta) taxa geral 23.9 % {'1ª sexta': '6.5% [4.7/8.4] n=168', 'outros': '24.8% [25.1/24.4] n=3583'} p=6.5e-08
+PASSOU: USDCHF largo × semana de payroll taxa geral 15.0 % {'outras': '13.5% [13.8/13.2] n=2903', 'semana do payroll': '20.2% [17.0/23.3] n=848'} p=1.8e-06
+PASSOU: USDCHF largo × dia do payroll (1ª sexta) taxa geral 15.0 % {'1ª sexta': '29.2% [25.9/32.5] n=168', 'outros': '14.3% [14.0/14.7] n=3583'} p=1.5e-07
+PASSOU: GBPUSD estreito × semana de payroll taxa geral 27.0 % {'outras': '28.5% [26.4/30.5] n=2897', 'semana do payroll': '22.1% [20.8/23.3] n=848'} p=2.1e-04
+PASSOU: GBPUSD estreito × dia do payroll (1ª sexta) taxa geral 27.0 % {'1ª sexta': '11.9% [9.4/14.5] n=168', 'outros': '27.7% [25.9/29.6] n=3577'} p=6.3e-06
+PASSOU: GBPUSD largo × dia do payroll (1ª sexta) taxa geral 16.9 % {'1ª sexta': '27.4% [27.1/27.7] n=168', 'outros': '16.4% [15.6/17.2] n=3577'} p=2.0e-04
+XAUUSD 3641 dias | estreito 31.0 % largo 19.2 % corpo pequeno 24.4 % | amplitude por dia None | persistência {'estreito_hoje_dado_estreito_ontem': 36.2, 'estreito_hoje_dado_largo_ontem': 22.3}
+USDJPY 3746 dias | estreito 30.2 % largo 17.1 % corpo pequeno 22.0 % | amplitude por dia None | persistência {'estreito_hoje_dado_estreito_ontem': 41.1, 'estreito_hoje_dado_largo_ontem': 18.3}
+EURUSD 3751 dias | estreito 24.2 % largo 15.1 % corpo pequeno 24.9 % | amplitude por dia None | persistência {'estreito_hoje_dado_estreito_ontem': 28.3, 'estreito_hoje_dado_largo_ontem': 18.0}
+USDCHF 3751 dias | estreito 23.9 % largo 15.0 % corpo pequeno 26.3 % | amplitude por dia None | persistência {'estreito_hoje_dado_estreito_ontem': 29.6, 'estreito_hoje_dado_largo_ontem': 19.0}
+GBPUSD 3745 dias | estreito 27.0 % largo 16.9 % corpo pequeno 23.2 % | amplitude por dia None | persistência {'estreito_hoje_dado_estreito_ontem': 35.0, 'estreito_hoje_dado_largo_ontem': 16.5}

@@ -389,6 +389,7 @@
   .sc-spot { font-size: 13px; font-weight: 500; color: var(--color-fg-muted); }
   .mp-normal { margin-top: 12px; } .mp-normal p { margin: 2px 0; font-size: 14px; line-height: 1.55; }
   .rs-l { margin: 4px 0; font-size: 15px; line-height: 1.55; } .rs-n { font-size: 22px; font-weight: 700; } .rs-t td, .rs-t th { padding: 4px 8px; } .mp-det > summary { cursor: pointer; font-weight: 600; margin: 10px 0 6px; color: var(--color-fg-muted); }
+  .lat-l { margin: 4px 0; font-size: 15px; line-height: 1.55; } .lat-t td, .lat-t th { padding: 4px 8px; }
   .mp-romp { margin-top: 12px; } .mp-romp-t { font-size: 13px; color: var(--color-fg-muted); margin-bottom: 4px; } .mp-romp-t b { color: var(--color-fg); }
   .mp-romp-agora { margin: 2px 0 6px; font-size: 14px; line-height: 1.55; }
   .romp-t th { text-transform: none; letter-spacing: 0; font-size: 12px; } .romp-t td, .romp-t th { padding-left: 4px; padding-right: 4px; } .romp-t td:nth-child(2), .romp-t td:nth-child(3) { white-space: nowrap; } .op-table.romp-t thead th { text-transform: none; letter-spacing: 0; }
@@ -481,6 +482,19 @@
 <li><b>Níveis:</b> calculados na abertura das 20h de Brasília e fixos até a próxima. ✓ = já tocado hoje.</li>
 <li><b>Agora:</b> onde o preço está em relação aos níveis e o que costuma acontecer a partir daí (rompimento medido em anos de dados).</li>
 <li><b>Direção:</b> nenhum sinal de compra ou venda passou nos testes até hoje; os níveis dizem até onde vai, não para que lado.</li></ul></div>
+    </section>
+
+    <section class="op-card lat">
+      <div class="ag-top"><h2>Quando o mercado fica lateral · <span class="lat-nome">—</span></h2><span class="tl-chip ia-chip">mapa medido em anos de dados</span></div>
+      <div class="lat-corpo"></div>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> Mostra com que frequência o dia fica estreito (lateral) e em que situações isso muda, igual para todos os ativos.</p><ul>
+<li><b>Dia estreito:</b> o dia andou 70% ou menos do que costuma andar (média dos 20 dias anteriores). <b>Dia largo:</b> 140% ou mais. <b>Corpo pequeno:</b> fechou perto da abertura (até 25% da amplitude do dia), o clássico vai-e-volta.</li>
+<li><b>Ontem:</b> a volatilidade se repete. Depois de um dia estreito, a chance de outro é maior; depois de um dia largo, é menor.</li>
+<li><b>Payroll:</b> no dia do payroll (1ª sexta do mês) o dia raramente fica estreito. Só aparece o que passou no teste, com correção pelo número de testes e estabilidade nas duas metades do período.</li>
+<li><b>Horas:</b> horário de Brasília, em 2 anos de dados. No horário de verão americano os horários vêm 1 hora mais cedo.</li>
+<li><b>Dia da semana e semana do mês:</b> testados na sessão real (18h a 17h de NY); nenhuma diferença comprovada.</li>
+<li><b>Notícias (FOMC, CPI):</b> ainda sem histórico. O painel passou a registrar todo dia a amplitude e os red folders para medir.</li>
+<li>Mostra o <b>tamanho</b> do dia, não a direção.</li></ul></div>
     </section>
 
     <section class="op-card mp">
@@ -715,6 +729,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261124a"></script>
+<script src="app.js?v=20261124b"></script>
 </body>
 </html>

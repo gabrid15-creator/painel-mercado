@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento', 'ouro_boletim', 'iene_boletim'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento', 'ouro_boletim', 'iene_boletim', 'lateralidade'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -176,7 +176,7 @@
     { const sp = ((D('mi_geral').data || [])[0] || {}).ouro_spot; let e = $('.sc-spot'); if (!e) { e = document.createElement('span'); e.className = 'sc-spot'; $('.sc-nome').after(e); }
       e.textContent = atv === 'XAUUSD' && sp && sp.base_usd ? ' (régua da Vantage · futuro − US$ ' + nf(sp.base_usd, 1) + ')' : ''; }
     const ia1 = ia(atv); $('.mi-ia-atv').textContent = ia1 ? ia1.texto : '—'; $('.mi-ia-atv-q').textContent = ia1 ? 'escrita em ' + br(ia1.gerado_em) : '';
-    drawMapa(); drawRS();
+    drawMapa(); drawRS(); drawLat();
 
     // ativo
     const a = A.status === 'ok' ? A.data.find((r) => r.ativo === atv) : null; const cs = CASAS[atv];
@@ -789,6 +789,40 @@
     const sit = b.situacao === 'FINAL' ? 'final' : 'preliminar';
     return ' · CME: boletim de ' + br(b.data_pregao).slice(0, 5) + ' (' + sit + ')' + (b.recebido_em ? ', chegou ' + b.recebido_em.slice(8, 10) + '/' + b.recebido_em.slice(5, 7) + ' ' + b.recebido_em.slice(11, 16) : '');
   }
+  // Mapa de lateralidade: igual para os 5 ativos (testes/lateralidade.py e lateralidade2.py, 24/11/2026)
+  function drawLat() {
+    const bx = $('.lat-corpo'); if (!bx) return; bx.replaceChildren(); $('.lat-nome').textContent = atv + ' · ' + NOME[atv];
+    const L = (D('lateralidade').data || {})[atv]; if (!L) { bx.textContent = 'Sem mapa para este ativo.'; return; }
+    const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), lat = fr && fr.lateral;
+    const lin = (html) => { const p = document.createElement('p'); p.className = 'lat-l'; p.innerHTML = html; bx.appendChild(p); }, f0 = (x) => nf(x, 0) + '%';
+    const normal = Math.round(100 - L.pct_estreito - L.pct_largo);
+    lin('<b>De cada 100 dias:</b> <b>' + f0(L.pct_estreito) + '</b> estreitos (laterais) · ' + f0(normal) + ' normais · <b>' + f0(L.pct_largo) + '</b> largos. <b>' + f0(L.pct_corpo_pequeno) + '</b> fecham perto da abertura (vai-e-volta). Base: ' + nf(L.dias, 0) + ' dias desde ' + L.desde.slice(0, 4) + '.');
+    // ontem → hoje
+    const P = L.persistencia || {}, base = L.pct_estreito;
+    if (lat && lat.estado) { const pe = lat.estado === 'estreito' ? P.estreito_hoje_dado_estreito_ontem : lat.estado === 'largo' ? P.estreito_hoje_dado_largo_ontem : null;
+      lin('<b>Ontem foi ' + lat.estado + '</b> (' + nf(lat.rel * 100, 0) + '% do normal)' + (pe != null ? ' → chance de hoje ser estreito: <b>' + f0(pe) + '</b> (média ' + f0(base) + ').' : ' → sem vantagem: a chance de hoje ser estreito fica perto da média (' + f0(base) + ').')); }
+    lin('<span class="op-note">Depois de um dia estreito: ' + f0(P.estreito_hoje_dado_estreito_ontem) + ' de chance de outro dia estreito. Depois de um dia largo: ' + f0(P.estreito_hoje_dado_largo_ontem) + '.</span>');
+    // payroll / calendário de hoje (data de Brasília)
+    const hj = new Date(Date.now() - 3 * 3600000), dsem = hj.getUTCDay(), dia = hj.getUTCDate();
+    const diaPay = dsem === 5 && dia <= 7, semPay = dsem >= 1 && dsem <= 5 && new Date(hj.getTime() + (5 - dsem) * 86400000).getUTCDate() <= 7;   // 1ª sexta do mês (dia ≤ 7) e a semana dela
+    const pd = L.payroll_dia;
+    if (pd && pd.comprovado) lin(diaPay ? '<b>Hoje é dia de payroll (1ª sexta):</b> dia estreito em só <b>' + f0(pd.estreito['1ª sexta']) + '</b> das vezes (normal ' + f0(pd.estreito.outros) + ') e largo em <b>' + f0(pd.largo['1ª sexta']) + '</b> (normal ' + f0(pd.largo.outros) + '). Lateralidade é rara hoje.'
+      : '<span class="op-note">Dia de payroll (1ª sexta do mês): estreito só ' + f0(pd.estreito['1ª sexta']) + ' das vezes (normal ' + f0(pd.estreito.outros) + '); largo ' + f0(pd.largo['1ª sexta']) + ' (normal ' + f0(pd.largo.outros) + ').' + (semPay ? ' <b>Esta é a semana do payroll.</b>' : '') + '</span>');
+    const ps = L.payroll_semana; if (ps && ps.comprovado) lin('<span class="op-note">Semana do payroll: dias estreitos ' + f0(ps.estreito['semana do payroll']) + ' (outras semanas ' + f0(ps.estreito.outras) + ')' + (semPay ? ' <b>(esta semana)</b>' : '') + '.</span>');
+    const vs = L.vencimento_semana; if (vs && vs.comprovado) lin('<span class="op-note">Semana do vencimento mensal das opções: estreito ' + f0(vs.estreito['semana do vencimento']) + ' (outras ' + f0(vs.estreito.outras) + ').</span>');
+    const um = L.ultima_semana_mes; if (um && um.comprovado) lin('<span class="op-note">Última semana do mês: estreito ' + f0(um.estreito['última semana']) + ' (outras ' + f0(um.estreito.outras) + ').</span>');
+    // horas (Brasília)
+    const hs = Object.entries(L.horas || {}), hb = String(hj.getUTCHours()).padStart(2, '0') + 'h', hn = (L.horas || {})[hb];
+    if (hs.length) { const par = hs.slice().sort((a, b) => b[1].parada - a[1].parada).slice(0, 3), ag = hs.slice().sort((a, b) => b[1].agitada - a[1].agitada).slice(0, 3);
+      lin('<b>Horas (Brasília):</b> mais paradas <b>' + par.map((x) => x[0] + ' (' + f0(x[1].parada) + ')').join(', ') + '</b> · mais agitadas <b>' + ag.map((x) => x[0] + ' (' + f0(x[1].agitada) + ')').join(', ') + '</b>.' + (hn ? ' Agora (' + hb + '): parada em ' + f0(hn.parada) + ' das vezes, agitada em ' + f0(hn.agitada) + '.' : ''));
+      const tb = document.createElement('table'); tb.className = 'op-table lat-t'; tb.innerHTML = '<thead><tr><th>Hora</th>' + hs.map((x) => '<th class="num">' + x[0].slice(0, 2) + '</th>').join('') + '</tr></thead><tbody><tr><th>% parada</th>' + hs.map((x) => '<td class="num" style="' + (x[1].parada >= 25 ? 'font-weight:700;color:var(--color-pos,#1f8a5b)' : '') + '">' + nf(x[1].parada, 0) + '</td>').join('') + '</tr><tr><th>% agitada</th>' + hs.map((x) => '<td class="num" style="' + (x[1].agitada >= 25 ? 'font-weight:700;color:var(--color-neg,#c8443a)' : '') + '">' + nf(x[1].agitada, 0) + '</td>').join('') + '</tr></tbody>';
+      const w = document.createElement('div'); w.className = 'tbl-x'; w.appendChild(tb); bx.appendChild(w); }
+    if (L.mes_estreito) { const ms = Object.entries(L.mes_estreito).map(([m, v]) => [+m, v]), nm = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      const alto = ms.filter((x) => x[1] >= base + 6).map((x) => nm[x[0] - 1] + ' ' + f0(x[1])), baixo = ms.filter((x) => x[1] <= base - 6).map((x) => nm[x[0] - 1] + ' ' + f0(x[1]));
+      lin('<b>Meses (só neste ativo passou no teste):</b> mais laterais ' + (alto.join(', ') || '—') + ' · menos laterais ' + (baixo.join(', ') || '—') + ' (média ' + f0(base) + ').'); }
+    lin('<span class="op-note">Dia da semana, semana do mês' + (L.mes_estreito ? '' : ' e mês') + ': nenhuma diferença comprovada em teste. Notícias (FOMC, CPI): em medição, o painel registra todo dia.</span>');
+  }
+
   // "O que olhar hoje": resumo de 1 card só com o que passou em teste (pedido dela 20/11)
   function drawRS() {
     const bx = $('.rs-corpo'); if (!bx) return; bx.replaceChildren(); $('.rs-nome').textContent = atv + ' · ' + NOME[atv];
