@@ -904,7 +904,7 @@ def b_0dte():
             for k in ("faixa", "s1"): o_[k] = [mediana([a_[k][i] for a_ in am if a_.get(k)]) for i in (0, 1)]
             return o_
         row["vivo"] = {k: row[k] for k in ("call_wall", "put_wall", "gamma_flip", "max_pain", "faixa", "s1")} | {"cme_flip": cm_.get("gamma_flip")}
-        uso = None; row["fixacao"] = "provisório (fora do pregão)"
+        uso = None; row["fixacao"] = "provisório até as 10:00 NY"
         if dia_ok and 9 * 60 + 30 <= mnt < 10 * 60:
             if not any(a_["t"] == hhmm for a_ in est["amostras"]): est["amostras"].append(amostra)
             uso = consolida(est["amostras"]); row["fixacao"] = "calibrando até as 10:00 NY"
@@ -916,9 +916,14 @@ def b_0dte():
         if uso:
             for k in ("call_wall", "put_wall", "gamma_flip", "max_pain", "faixa", "s1", "faixa_pct"):
                 if uso.get(k) is not None and (not isinstance(uso[k], list) or None not in uso[k]): row[k] = uso[k]
-            if cm_ and uso.get("cme_flip") is not None: row["cme"]["gamma_flip"] = uso["cme_flip"]
+        # flip da CME: fixo desde o boletim (a 1ª conta depois que o PDF chega); recalcula só quando chega um boletim novo
+        if cm_ and cm_.get("pregao"):
+            ck = f"cme|{vk}|{cm_['pregao']}"
+            if ck in FXd: row["cme"]["gamma_flip"] = FXd[ck]
+            elif cm_.get("gamma_flip") is not None: FXd[ck] = cm_["gamma_flip"]
         FXd[vk] = est
-        for k_ in sorted(FXd)[:-6]: FXd.pop(k_)
+        for pre_ in (lambda k: k[:1].isdigit(), lambda k: k.startswith("cme|")):
+            for k_ in sorted(k for k in FXd if pre_(k))[:-6]: FXd.pop(k_)
         save("mi_0dte_fixo.json", [FXd])
     except Exception as e: STATUS.append({"bloco": "0DTE níveis fixos", "ok": False, "msg": str(e)[:120]})
     save("mi_0dte.json", [row])
