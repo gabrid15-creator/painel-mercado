@@ -330,7 +330,8 @@
   .ai-t tr.ai-hoje td:first-child { padding-left: 12px; }   /* a tira laranja cortava o "hoje" (25/11) */
   .ag-ant-bar { margin: 6px 0 8px; } .ag-ant-bar[hidden] { display: none; } .ag-ant-btn { font-size: 13px; }
   .gb-ant { border: 1px dashed var(--color-border-line); border-radius: 10px; padding: 6px 10px; } .gb-ant > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--color-fg-muted); text-transform: none; } .gb-ant[open] > summary { margin-bottom: 6px; }
-  @media (max-width: 360px) { .ai-t td { font-size: 12.5px; } .ai-t th:nth-child(1) { width: 4.2rem; } }
+  @media (max-width: 360px) { .ai-t td { font-size: 12.5px; } .ai-t th:nth-child(1) { width: 3.9rem; } .ai-t th:nth-child(3) { width: 3.3rem; } .ai-t td:nth-child(2) { font-size: 12px; hyphens: auto; } }
+  .ai-t td.ag-at, .mi-ag-t td.ag-at { white-space: nowrap; overflow-wrap: normal; padding-right: 8px; }   /* "aguarda" cortava na borda (25/11) */
   @media (max-width: 600px) { .ai-t { table-layout: fixed; width: 100%; } .ai-t th:nth-child(1) { width: 4.6rem; } .ai-t th:nth-child(3) { width: 3.6rem; } .ai-t th:nth-child(5) { width: 4.8rem; } .ai-t td { overflow-wrap: anywhere; } .ai-t td:first-child { white-space: normal; } .ai-t thead th { font-size: 10.5px; letter-spacing: 0; } }
   #op-eur, #op-xau { display: flex; flex-direction: column; gap: var(--cds-gap-lg); } #op-eur[hidden], #op-xau[hidden] { display: none; }
 
@@ -738,6 +739,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261125f"></script>
+<script src="app.js?v=20261125g"></script>
 </body>
 </html>
