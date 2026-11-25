@@ -296,3 +296,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 25/11/2026 — aba Alto impacto e agenda
 - Bug: "hoje 10:30" cortado pela tira laranja (padding 4px no celular) na tabela de eventos; corrigido (12px + tabela de colunas fixas ≤ 600 px). Histórico recolhido por padrão (agenda e eventos); calendário com o mês anterior recolhido. Botão fica numa barra acima da tabela (dentro da tabela, o colspan quebrava o layout com colunas ocultas).
+
+## 25/11/2026 — CME
+- Boletim do pregão 24/11 (ouro, preliminar) enviado a mão (o robô do PC não mandou): 206 linhas, 0 erro; aviso: futuro pela paridade 3591,1 × GC=F 3562,4 (dif. −28,7) = contrato de dez. (opções) × GC=F já em fev.; a razão normaliza. Iene não enviado.
