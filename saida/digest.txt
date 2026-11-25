@@ -1,0 +1,53 @@
+Data 25/11/2026 08:40 BRT. F&G None, VIX pctil 99.0, DXY 20d 1.8%
+
+EURUSD: preço 1.09409 (1d 0.3%, 5d -0.47%, 20d -1.7%)
+  [σ] fonte: vol. realizada de 21 dias + prêmio típico (testada); vol. 6.33% (normal). Teste: o dia fecha dentro de ±1σ em ~78–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura ter 24/11 20h] abertura 1.09685; ±1σ 1.09248–1.10124; ±2σ 1.08813–1.10564; dia normal (metade dos dias) ±0.54σ = 0.0023658; 9 em 10 dias dentro de ±1.4σ
+  [SEMANA, FIXA] abertura 1.09787; ±1σ 1.08812–1.10771; ±2σ 1.07845–1.11764
+  [AGORA] preço 1.09409 = -0.63σ da abertura; máx. do dia 1.09697 (+0.03σ), mín. 1.09349 (-0.77σ)
+  [LATERALIDADE] em 3751 dias: 24.2% estreitos, 15.1% largos. Ontem foi normal (135% do normal): chance de hoje ser estreito 24.2% (média 24.2%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr -0.83
+  [OPÇÕES] sem 0DTE próprio; o σ vem das opções de balcão (DTCC, negócios das últimas 24 h).
+
+GBPUSD: preço 1.30617 (1d 0.21%, 5d -1.09%, 20d -1.84%)
+  [σ] fonte: vol. realizada de 21 dias + prêmio típico (testada); vol. 6.43% (abaixo do normal). Teste: o dia fecha dentro de ±1σ em ~78–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura ter 24/11 20h] abertura 1.31141; ±1σ 1.30611–1.31673; ±2σ 1.30084–1.32207; dia normal (metade dos dias) ±0.57σ = 0.0030294; 9 em 10 dias dentro de ±1.5σ
+  [SEMANA, FIXA] abertura 1.30927; ±1σ 1.29747–1.32117; ±2σ 1.28578–1.33319
+  [AGORA] preço 1.30617 = -0.99σ da abertura; máx. do dia 1.31168 (+0.05σ), mín. 1.3057 (-1.08σ)
+  [LATERALIDADE] em 3745 dias: 27.0% estreitos, 16.9% largos. Ontem foi largo (163% do normal): chance de hoje ser estreito 16.5% (média 27.0%). Dia da semana e semana do mês não mudam nada.
+  [OPÇÕES] sem 0DTE próprio; o σ vem das opções de balcão (DTCC, negócios das últimas 24 h).
+
+USDJPY: preço 159.348 (1d 0.21%, 5d -0.1%, 20d 0.86%)
+  [σ] fonte: vol. realizada de 21 dias + prêmio típico (testada); vol. 5.15% (bem abaixo do normal). Teste: o dia fecha dentro de ±1σ em ~78–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura ter 24/11 20h] abertura 159.268; ±1σ 158.752–159.786; ±2σ 158.237–160.305; dia normal (metade dos dias) ±0.43σ = 0.22246; 9 em 10 dias dentro de ±1.2σ
+  [SEMANA, FIXA] abertura 158.624; ±1σ 157.477–159.78; ±2σ 156.338–160.944
+  [AGORA] preço 159.348 = +0.15σ da abertura; máx. do dia 159.496 (+0.44σ), mín. 158.992 (-0.53σ)
+  [LATERALIDADE] em 3746 dias: 30.2% estreitos, 17.1% largos. Ontem foi normal (113% do normal): chance de hoje ser estreito 30.2% (média 30.2%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr 0.68
+
+USDCHF: preço 0.83213 (1d -1.11%, 5d -1.09%, 20d 0.4%)
+  [σ] fonte: vol. realizada de 21 dias + prêmio típico (testada); vol. 8.1% (normal). Teste: o dia fecha dentro de ±1σ em ~78–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura ter 24/11 20h] abertura 0.83486; ±1σ 0.83061–0.83913; ±2σ 0.82638–0.84343; dia normal (metade dos dias) ±0.54σ = 0.0023046; 9 em 10 dias dentro de ±1.37σ
+  [SEMANA, FIXA] abertura 0.84037; ±1σ 0.83083–0.85002; ±2σ 0.8214–0.85978
+  [AGORA] preço 0.83213 = -0.64σ da abertura; máx. do dia 0.83712 (+0.53σ), mín. 0.83149 (-0.79σ)
+  [LATERALIDADE] em 3751 dias: 23.9% estreitos, 15.0% largos. Ontem foi largo (147% do normal): chance de hoje ser estreito 19.0% (média 23.9%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr 0.69
+  [OPÇÕES] sem 0DTE próprio; o σ vem das opções de balcão (DTCC, negócios das últimas 24 h).
+
+XAUUSD: preço 3513.1 (1d -0.49%, 5d -5.27%, 20d -12.51%)
+  [σ] fonte: índice GVZ (Cboe); vol. 33.64% (bem acima do normal). Teste: o dia fecha dentro de ±1σ em ~78–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura ter 24/11 20h] abertura 3526.18; ±1σ 3452.24–3601.7; ±2σ 3379.86–3678.84; dia normal (metade dos dias) ±0.44σ = 33.032; 9 em 10 dias dentro de ±1.35σ
+  [SEMANA, FIXA] abertura 3536.29; ±1σ 3372.63–3707.89; ±2σ 3216.55–3887.82
+  [AGORA] preço 3513.1 = -0.18σ da abertura; máx. do dia 3542.14 (+0.21σ), mín. 3480.1 (-0.62σ)
+  [LATERALIDADE] em 3641 dias: 31.0% estreitos, 19.2% largos. Ontem foi normal (139% do normal): chance de hoje ser estreito 31.0% (média 31.0%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr -0.37
+
+NAS100: preço 26214.2 (1d -1.99%, 5d -2.92%, 20d -11.59%)
+
+Radar institucional e juros: VIX ÷ VIX 3 meses 1.035 (20d 0.14p.p., pctil 1a 97.0); MOVE (vol. de Treasuries) 98.84 (20d -3.278%, pctil 1a 88.0); Condições financeiras (NFCI) -0.478 (20d 0.034p.p., pctil 1a 83.0)
+Últimos dados oficiais dos EUA (período de referência): Unemployment Claims 2026-11-14 = 203.0K; Retail Sales m/m 2026-10 = 0.212%; Core Retail Sales m/m 2026-10 = 0.628%; Core PCE Price Index m/m 2026-09 = 0.317%; JOLTS Job Openings 2026-09 = 7.523M; Advance GDP q/q 2026-07 = 3.4%
+
+Red folder da semana (BRT):
+
+Manchetes:
+

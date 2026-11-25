@@ -193,6 +193,16 @@ def b_precos():
     # 2ª calibração (16/11/2026, preços no MESMO instante, ditados pela usuária): GC 3.882 × Vantage 3.875 e GC 3.880 × 3.874
     # → Vantage ≈ futuro ativo − US$ 6,5. Ajuste proporcional (fator) em toda a série do ouro. Recalibrar na troca de contrato.
     VANTAGE_USD = 6.5; CALIB = "16/11/2026"
+    # TROCA DE CONTRATO (25/11/2026): o Yahoo passou o GC=F de dez. para fev. (≈ US$ 29 acima), mas a Vantage segue o mês perto do à vista (dez.):
+    # ela ditou Vantage 3.515 com dez. 3.516,8 e fev./GC=F 3.546 → Vantage ≈ dez. − US$ 1,9 (o prêmio do dez. sobre o à vista encolhe até o vencimento).
+    # Se o GC=F não é o mês mais perto, o ajuste = (GC=F − mês mais perto) + 1,9. Reconferir com 2 pares ditados por ela.
+    try:
+        hj = dt.date.today(); m = hj.month if hj.month % 2 == 0 and hj.day < 28 else (hj.month + 1 if hj.month % 2 else hj.month + 2)
+        y = hj.year + (m - 1) // 12; m = (m - 1) % 12 + 1
+        fr = f"GC{['G','J','M','Q','V','Z'][m // 2 - 1]}{str(y)[2:]}.CMX"
+        qf = closes(yahoo(fr, 1)); fr_ult = qf[max(qf)]
+        if abs(gc_ult - fr_ult) > 8: VANTAGE_USD = round(gc_ult - fr_ult + 1.9, 1); CALIB = hj.strftime("%d/%m/%Y") + " (troca de contrato, 1 par)"
+    except Exception as e: STATUS.append({"bloco": "Ouro: contrato da Vantage", "ok": False, "msg": str(e)[:120]})
     f_teor, como = spot_ouro(gc_ult); f = 1 - VANTAGE_USD / gc_ult
     SPOT.update({"fator": f, "base_usd": VANTAGE_USD, "calibrado": CALIB, "teorico_base_usd": round(gc_ult * (1 - f_teor), 1), "como": "régua da Vantage (futuro − US$ 6,5); " + como})
     P["XAUUSD"] = {d: tuple(v * f if v is not None else None for v in ohlc) for d, ohlc in P["XAUUSD"].items()}
@@ -869,6 +879,27 @@ def b_0dte():
                 alvo = dt.datetime.combine(pg, dt.time(13, 30), NY).timestamp()
                 px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= alvo]
                 if px and alvo - px[-1][0] < 3600: base = px[-1][1] * SPOT["fator"] / fut   # GC no ajuste → à vista
+                # troca de contrato (25/11/2026): o Yahoo trocou o GC=F de dez. para fev. na madrugada, mas o histórico de ontem ainda é dez.
+                # (dif. de ~US$ 29 nos níveis). Acha o contrato que o GC=F é AGORA e usa o preço DELE no horário do ajuste.
+                try:
+                    agora_gc = q["indicators"]["quote"][0]["close"]; agora_gc = [v for v in agora_gc if v is not None][-1]
+                    cods = ["G", "J", "M", "Q", "V", "Z"]; d0 = dt.date.today(); cand = []
+                    for i in range(0, 15):
+                        m = (d0.month - 1 + i) % 12 + 1; y = d0.year + (d0.month - 1 + i) // 12
+                        if m % 2 == 0 and len(cand) < 3: cand.append(f"GC{cods[m // 2 - 1]}{str(y)[2:]}.CMX")
+                    melhor = None
+                    for sy in cand:
+                        try:
+                            qq = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{sy}?range=10d&interval=5m"))["chart"]["result"][0]
+                            cl = list(zip(qq["timestamp"], qq["indicators"]["quote"][0]["close"])); cl = [(t, v) for t, v in cl if v is not None]
+                            ult = cl[-1][1]; at = [(t, v) for t, v in cl if t <= alvo]
+                            if at and alvo - at[-1][0] < 3600 and (melhor is None or abs(ult - agora_gc) < melhor[0]): melhor = (abs(ult - agora_gc), at[-1][1], sy)
+                        except Exception: pass
+                    if melhor and melhor[0] < 8:
+                        b2 = melhor[1] * SPOT["fator"] / fut
+                        if base is None or abs(b2 - base) > 1e-4: STATUS.append({"bloco": "0DTE CME contrato do GC", "ok": True, "msg": f"régua pelo {melhor[2]} (GC=F atual)"})
+                        base = b2
+                except Exception as e: STATUS.append({"bloco": "0DTE CME contrato do GC", "ok": False, "msg": str(e)[:120]})
             except Exception as e: STATUS.append({"bloco": "0DTE CME régua", "ok": False, "msg": str(e)[:120]})
             if base is None: base = (c.get(pg) or ouro) / fut   # reserva: fechamento diário do GC=F no pregão
             cv = lambda k: rnd(k * base, 1) if k is not None else None

@@ -299,3 +299,5 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 25/11/2026 — CME
 - Boletim do pregão 24/11 (ouro, preliminar) enviado a mão (o robô do PC não mandou): 206 linhas, 0 erro; aviso: futuro pela paridade 3591,1 × GC=F 3562,4 (dif. −28,7) = contrato de dez. (opções) × GC=F já em fev.; a razão normaliza. Iene não enviado.
+
+- 25/11: troca do GC=F (dez→fev) detectada: painel mostrava ouro ~US$ 25 acima da Vantage (3.515). Ajuste automático da régua pelo mês mais perto (+1,9) e níveis da CME pelo contrato atual do GC=F.

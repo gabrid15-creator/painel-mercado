@@ -96,7 +96,7 @@
   - No código: `VANTAGE_USD = 6.5` e `CALIB = "16/11/2026"`, em `b_precos()`.
   - Calibrado com pares simultâneos ditados por ela: GC 3.882 × Vantage 3.875; 3.880 × 3.874.
   - O à vista teórico (~−US$ 20) **não** bate com a Vantage.
-  - **Recalibrar na troca de contrato do GC=F (dez → fev, fim de nov.):** pedir a ela 2 pares de preços simultâneos GC × Vantage.
+  - **Troca de contrato feita em 25/11/2026:** o Yahoo passou o GC=F para fev. (~US$ 29 acima do dez.); a Vantage segue o dez. (3.515 com dez. 3.516,8 → dez. − US$ 1,9). Regra automática em `b_precos`: se GC=F ≠ mês mais perto, ajuste = (GC=F − mês mais perto) + 1,9 (hoje ≈ US$ 31). Só 1 par: **reconferir com 2 pares ditados por ela**. Níveis da CME agora usam o preço do contrato que o GC=F é hoje no horário do ajuste (`b_0dte`).
 - **GLD → ouro:** razão ouro ÷ GLD congelada no `last_trade_time` do GLD (ouro do GC 5 min × fator, naquele horário).
   - GLD fechado ou parado → usa o `close` oficial (a Cboe manda preço de pré-mercado com horário antigo).
   - Gamma (regime e flip) é recalculado com o ouro ao vivo na escala do GLD (`Sv = ouro / r`).
