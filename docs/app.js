@@ -331,6 +331,7 @@
   document.querySelectorAll('.gb-f').forEach((b) => b.addEventListener('click', () => {
     filtro = b.dataset.f; document.querySelectorAll('.gb-f').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); drawGB();
   }));
+  let GBANT = false;   // Goldbach: mês anterior aberto?
   function drawGB() {
     const g = D('goldbach_dias'); const t = hojeISO();
     const [ty, tm, tdd] = t.split('-').map(Number);
@@ -346,8 +347,9 @@
     const o = fut.find((r) => Number(r.dia_mes_hopiplaka) === 1); $('.gb-open').textContent = o ? br(o.data) + ' (' + o.dia_semana + ')' : '—';
     // calendário
     const box = $('#sec-gb .gb-cal'); box.replaceChildren(); const map = new Map(g.data.map((r) => [r.data, r]));
-    for (let k = 0; k < 2; k++) {
-      const y = ty + Math.floor((tm - 1 + k) / 12), m = ((tm - 1 + k) % 12) + 1;
+    for (let k = -1; k < 2; k++) {   // mês anterior recolhido; atual e seguinte abertos
+      const y = ty + Math.floor((tm - 1 + k + 12) / 12) - 1, m = (((tm - 1 + k) % 12) + 12) % 12 + 1;
+      if (k < 0 && ![...map.keys()].some((x) => x.startsWith(y + '-' + String(m).padStart(2, '0')))) continue;   // sem dados do mês anterior: não mostra
       const wrap = document.createElement('div'); wrap.className = 'gb-mes';
       const h = document.createElement('h3'); h.textContent = new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
       const grid = document.createElement('div'); grid.className = 'gb-grid';
@@ -363,7 +365,9 @@
         b.addEventListener('click', () => { selD = iso; $('.gb-det').textContent = r ? br(r.data) + ' (' + WDL[r.dia_semana] + '): ' + r.resumo + (r.goldbach ? ' — Goldbach por ' + r.goldbach : '') : br(iso) + ': não é dia Goldbach nem Hopiplaka.'; drawGB(); });
         grid.appendChild(b);
       }
-      wrap.append(h, grid); box.appendChild(wrap);
+      if (k < 0) { const det = document.createElement('details'); det.className = 'gb-ant'; det.open = !!GBANT; const sm = document.createElement('summary'); sm.textContent = 'Mês anterior: ' + h.textContent; det.append(sm, grid);
+        det.addEventListener('toggle', () => { GBANT = det.open; }); wrap.append(det); } else wrap.append(h, grid);
+      box.appendChild(wrap);
     }
     // tabela
     const tb = $('.gb-table tbody'); tb.replaceChildren();
@@ -477,9 +481,18 @@
   const surpresa = (r, e) => { if (!e || e.actual == null) return null; const f = prevNum(r, e); if (f == null) return 0;
     const dp = String(r.previsao || '').match(/[.,](\d+)/); const cs = dp ? dp[1].length : (e.digits != null ? e.digits : 2), p = Math.pow(10, cs);
     const d = Math.round(e.actual * p) - Math.round(f * p); return d === 0 ? 0 : d > 0 ? 1 : -1; };
+  // botão "ver eventos de dias anteriores": fica numa barra ACIMA da tabela (dentro da tabela, o colspan quebrava o layout no celular)
+  function barraAnt(tabela, n, aberto, aoClicar) {
+    const caixa = tabela.closest('.op-tablebox, .tbl-x') || tabela.parentElement; let bar = caixa.previousElementSibling;
+    if (!bar || !bar.classList.contains('ag-ant-bar')) { bar = document.createElement('div'); bar.className = 'ag-ant-bar'; caixa.before(bar); }
+    bar.replaceChildren(); bar.hidden = !n; if (!n) return;
+    const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'op-btn ag-ant-btn'; bt.setAttribute('aria-expanded', String(!!aberto));
+    bt.textContent = (aberto ? '▾ Esconder' : '▸ Ver') + ' ' + n + ' evento' + (n > 1 ? 's' : '') + ' de dias anteriores'; bt.onclick = aoClicar; bar.appendChild(bt);
+  }
+  let AGHIST = false;   // agenda: histórico (dias anteriores) aberto?
   function drawAgenda() {
     const AG = D('mi_agenda'); const at = $('.mi-ag-t tbody'); if (!at) return; at.replaceChildren(); const hj = hojeISO(); const agora = Date.now();
-    let ultimo = null, primHoje = false;
+    let ultimo = null, primHoje = false, nAnt = 0;
     for (const r of AG.status === 'ok' ? AG.data : []) {
       let e = casar(r); if (!e || e.actual == null) e = blsDe(r) || euaDe(r) || e; const quando = new Date(r.quando.replace(' ', 'T') + ':00-03:00').getTime(); const passou = quando < agora;
       const tr = document.createElement('tr'); tr.className = (r.impacto === 'Alto' ? 'mi-red' : '') + (r.data === hj ? ' mi-hoje' + (primHoje ? '' : ' mi-hoje-1') : '') + (passou ? ' ag-passou' : '');
@@ -503,8 +516,10 @@
         const sp = document.createElement('span'); sp.className = 'ag-wait'; sp.textContent = 'saindo…'; c.appendChild(sp);
       } else if (passou && r.url) { const l = document.createElement('a'); l.href = r.url; l.target = '_blank'; l.rel = 'noopener'; l.textContent = 'ver ↗'; c.appendChild(l); }
       else c.textContent = passou ? '—' : 'aguarda';
+      if (r.data < hj) { nAnt++; tr.classList.add('ag-ant'); tr.hidden = !AGHIST; }   // dias anteriores a hoje: recolhidos por padrão
       at.appendChild(tr);
     }
+    barraAnt(at.closest('table'), nAnt, AGHIST, () => { AGHIST = !AGHIST; drawAgenda(); });
     // destaque dos últimos dados divulgados (mesmo horário; últimas 3 horas)
     const hl = $('.ag-hl');
     if (hl) {
@@ -610,7 +625,7 @@
     const nMes = [...por.keys()].filter((d) => d.slice(0, 7) === hj.slice(0, 7)).length;
     $('.ai-take').textContent = AI.t ? nMes + ' dia(s) com dado americano de alto impacto neste mês · próximo: ' + (() => { const p = AI.ev.filter((e) => new Date(e.time) > new Date()).sort((a, b) => a.time < b.time ? -1 : 1)[0]; if (!p) return '—'; const [d, h] = brt(p.time); return br(d) + ' ' + h + ' ' + p.name; })() : 'Carregando…';
     const box = $('.ai-cal'); box.replaceChildren(); const now = new Date();
-    for (let k = -1; k <= 1; k++) {
+    for (let k = -1; k <= 1; k++) {   // mês anterior entra recolhido (clique para abrir); atual e seguinte abertos
       const y = now.getFullYear() + Math.floor((now.getMonth() + k) / 12), m = (((now.getMonth() + k) % 12) + 12) % 12 + 1;
       const wrap = document.createElement('div'); wrap.className = 'gb-mes'; const h3 = document.createElement('h3');
       h3.textContent = new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -625,11 +640,16 @@
         if (ev) b.addEventListener('click', () => { AI.dia = AI.dia === iso ? null : iso; drawAI(); });
         grid.appendChild(b);
       }
-      wrap.append(h3, grid); box.appendChild(wrap);
+      if (k < 0) { const det = document.createElement('details'); det.className = 'gb-ant'; det.open = !!AI.antAberto; const sm = document.createElement('summary'); sm.textContent = 'Mês anterior: ' + h3.textContent; det.append(sm, grid);
+        det.addEventListener('toggle', () => { AI.antAberto = det.open; }); wrap.append(det); } else wrap.append(h3, grid);
+      box.appendChild(wrap);
     }
     const tb = $('.ai-t tbody'); tb.replaceChildren();
-    const lista = AI.ev.filter((e) => !AI.dia || brt(e.time)[0] === AI.dia).sort((a, b) => (a.time < b.time ? -1 : 1));
-    $('.ai-lt').textContent = AI.dia ? 'Eventos de ' + br(AI.dia) : 'Eventos dos 3 meses'; $('.ai-all').hidden = !AI.dia; $('.ai-all').onclick = () => { AI.dia = null; drawAI(); };
+    const todos = AI.ev.filter((e) => !AI.dia || brt(e.time)[0] === AI.dia).sort((a, b) => (a.time < b.time ? -1 : 1));
+    const nPass = AI.dia ? 0 : todos.filter((e) => brt(e.time)[0] < hj).length;   // eventos de dias anteriores a hoje: recolhidos por padrão
+    const lista = AI.dia || AI.hist ? todos : todos.filter((e) => brt(e.time)[0] >= hj);
+    barraAnt($('.ai-t'), nPass, AI.hist, () => { AI.hist = !AI.hist; drawAI(); });
+    $('.ai-lt').textContent = AI.dia ? 'Eventos de ' + br(AI.dia) : 'Eventos de hoje em diante' + (AI.hist ? ' (com histórico)' : ''); $('.ai-all').hidden = !AI.dia; $('.ai-all').onclick = () => { AI.dia = null; drawAI(); };
     for (const e of lista) {
       const [d, h] = brt(e.time); const tr = document.createElement('tr'); if (d === hj) tr.className = 'ai-hoje';
       const g = G.get(d); td(tr, (d === hj ? 'hoje' : br(d).slice(0, 5)) + ' ' + h + (g ? (g.tipo === 'Goldbach + Hopiplaka' ? ' ★' : g.tipo === 'Goldbach' ? ' G' : ' H') : ''));

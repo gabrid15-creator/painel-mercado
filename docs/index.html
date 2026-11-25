@@ -106,7 +106,7 @@
   .gb-table tr.gb-both td { font-weight: 600; } .gb-table td.gb-star { color: var(--color-warn); }
   .gb-table tr.gb-hoje td { background: color-mix(in srgb, var(--color-fg) 8%, transparent); }
   .gb-cal { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 20px; }
-  .gb-mes h3 { margin: 0 0 4px; font-size: 14px; text-transform: capitalize; }
+  .gb-mes h3 { margin: 0 0 4px; font-size: 14px; text-transform: none; } .gb-mes h3::first-letter { text-transform: uppercase; }
   .gb-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .gb-wd { text-align: center; font-size: 12px; color: var(--color-fg-muted); }
   .gb-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; border-radius: 6px; font-size: 12px; border: 2px solid transparent; background: none; color: var(--color-fg-muted); font-family: inherit; padding: 0; }
@@ -292,7 +292,7 @@
   /* agenda: dia de hoje */
   .mi-ag-t tr.mi-hoje td { background: color-mix(in srgb, var(--accent) 13%, var(--color-panel)); }
   .mi-ag-t tr.mi-hoje td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 700; color: var(--accent); }
-  .mi-ag-t tr.mi-hoje td:first-child { padding-left: 12px; white-space: nowrap; }   /* o texto "hoje 12:00" encostava na tira laranja (24/11) */
+  .mi-ag-t tr.mi-hoje td:first-child { padding-left: 12px; } @media (min-width: 361px) { .mi-ag-t tr.mi-hoje td:first-child { white-space: nowrap; } }   /* o texto "hoje 12:00" encostava na tira laranja (24/11) */
   .mi-ag-t tr.mi-hoje:hover td { background: color-mix(in srgb, var(--accent) 19%, var(--color-panel)); }
   .mi-ag-t tr.mi-hoje.mi-red td:first-child { color: var(--accent); }
   .mi-ag-t tr.ag-passou td { opacity: 1; } .mi-ag-t tr.ag-passou:not(.mi-red) td:not(.ag-at) { color: color-mix(in srgb, var(--color-fg) 62%, transparent); }
@@ -327,6 +327,11 @@
   .ai-day { background: color-mix(in srgb, var(--color-bad) 82%, #000) !important; color: #fff !important; cursor: pointer; }
   .gb-day .ai-mk { font-size: 9px; font-weight: 700; opacity: .95; }
   .ai-t tr.ai-hoje td { background: color-mix(in srgb, var(--accent) 13%, var(--color-panel)); } .ai-t tr.ai-hoje td:first-child { box-shadow: inset 3px 0 0 var(--accent); font-weight: 700; color: var(--accent); }
+  .ai-t tr.ai-hoje td:first-child { padding-left: 12px; }   /* a tira laranja cortava o "hoje" (25/11) */
+  .ag-ant-bar { margin: 6px 0 8px; } .ag-ant-bar[hidden] { display: none; } .ag-ant-btn { font-size: 13px; }
+  .gb-ant { border: 1px dashed var(--color-border-line); border-radius: 10px; padding: 6px 10px; } .gb-ant > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--color-fg-muted); text-transform: none; } .gb-ant[open] > summary { margin-bottom: 6px; }
+  @media (max-width: 360px) { .ai-t td { font-size: 12.5px; } .ai-t th:nth-child(1) { width: 4.2rem; } }
+  @media (max-width: 600px) { .ai-t { table-layout: fixed; width: 100%; } .ai-t th:nth-child(1) { width: 4.6rem; } .ai-t th:nth-child(3) { width: 3.6rem; } .ai-t th:nth-child(5) { width: 4.8rem; } .ai-t td { overflow-wrap: anywhere; } .ai-t td:first-child { white-space: normal; } .ai-t thead th { font-size: 10.5px; letter-spacing: 0; } }
   #op-eur, #op-xau { display: flex; flex-direction: column; gap: var(--cds-gap-lg); } #op-eur[hidden], #op-xau[hidden] { display: none; }
 
   .ajuda { display: none !important; }
@@ -695,7 +700,7 @@
   <div class="op-wrap" id="sec-ai">
     <header class="op-head"><h1>Alto impacto EUA</h1><p class="ai-take">Carregando…</p></header>
     <section class="op-card">
-      <h2>Calendário (mês anterior, atual e seguinte)</h2>
+      <h2>Calendário (mês atual e seguinte; o anterior fica recolhido)</h2>
       <p class="op-note"><b>Como ler:</b> só dados dos <b>EUA de alto impacto</b> (payroll, CPI, Fed, PIB…), horário de Brasília. Dias em <b>vermelho</b> têm evento; o número pequeno é quantos. <b>★</b> = também é dia Goldbach + Hopiplaka, <b>G</b> = Goldbach. As grandes viradas costumam sair nesses dias: cruze com o calendário Goldbach. Toque num dia para filtrar a lista.</p>
       <div class="gb-cal ai-cal"></div>
     </section>
@@ -733,6 +738,6 @@
   </div>
 </div>
 </div>
-<script src="app.js?v=20261125b"></script>
+<script src="app.js?v=20261125f"></script>
 </body>
 </html>

@@ -293,3 +293,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 ## 25/11/2026 — faixas do 0DTE explicadas
 - A "faixa até o vencimento" do GLD é o straddle ATM do que vence hoje às 16h NY: só o que FALTA andar desde o instante medido, centrada no preço daquele instante. Hoje foi fixada às 12:32 NY (T≈3,5 h → ±0,55%, 39 pontos) enquanto o ouro já tinha caído 82 pontos desde a abertura (−1σ) → "fora" por construção. A CME mede 1 dia inteiro (ajuste de ontem → vencimento): ±1,54% (112 pontos), centrada no ajuste (3.644,8). O σ da abertura (±1,97% = ±72) e o ±1σ da CME (±70) têm o mesmo tamanho: são a faixa do dia.
 - Card: linha "Faixa do dia ±1σ" (GLD col. = σ fixo; CME col. = CME ±1σ) e "O que falta andar (ao vivo)"; gráfico ±1σ = do dia, sombra = o que falta andar.
+
+## 25/11/2026 — aba Alto impacto e agenda
+- Bug: "hoje 10:30" cortado pela tira laranja (padding 4px no celular) na tabela de eventos; corrigido (12px + tabela de colunas fixas ≤ 600 px). Histórico recolhido por padrão (agenda e eventos); calendário com o mês anterior recolhido. Botão fica numa barra acima da tabela (dentro da tabela, o colspan quebrava o layout com colunas ocultas).

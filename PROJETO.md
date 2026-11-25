@@ -149,7 +149,7 @@
    - **0DTE iene:** o mesmo card, só com CME (vencimento mais próximo com ≥ 10 strikes; PCR em ±2%).
    - **Balcão (DTCC):** escondido (`MOSTRA_OTC = false` no `app.js`), só grava.
    - **"Mais sobre o ativo e o mercado"** (`details.mais`, recolhido): Regime, CTA (só ouro), preço/ATR, sazonalidade, COT, correlações, Goldbach, tabela macro.
-4. **Agenda e notícias:** Forex Factory com "Atual" ao vivo (biquote/BLS/FRED); notícias com filtro.
+4. **Agenda e notícias:** Forex Factory com "Atual" ao vivo (biquote/BLS/FRED); notícias com filtro. **Histórico recolhido (25/11, pedido dela):** Agenda da semana e "Eventos de hoje em diante" (aba Alto impacto) mostram só de HOJE em diante; dias anteriores ficam atrás do botão "▸ Ver N eventos de dias anteriores" (`barraAnt()`, barra ACIMA da tabela). Calendários (Alto impacto e Goldbach): mês atual e seguinte abertos; o anterior em `details.gb-ant` recolhido (Goldbach só mostra o anterior se houver dados dele).
 - **Aba Dias de alto impacto:** calendário EUA + Goldbach/Hopiplaka (`goldbach_gen.py`).
 - **Cores dos níveis:** teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom.
 
