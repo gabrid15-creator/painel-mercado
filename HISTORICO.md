@@ -301,3 +301,8 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Boletim do pregão 24/11 (ouro, preliminar) enviado a mão (o robô do PC não mandou): 206 linhas, 0 erro; aviso: futuro pela paridade 3591,1 × GC=F 3562,4 (dif. −28,7) = contrato de dez. (opções) × GC=F já em fev.; a razão normaliza. Iene não enviado.
 
 - 25/11: troca do GC=F (dez→fev) detectada: painel mostrava ouro ~US$ 25 acima da Vantage (3.515). Ajuste automático da régua pelo mês mais perto (+1,9) e níveis da CME pelo contrato atual do GC=F.
+
+## 26/11/2026: log do robô da CME pelo GitHub
+- Robô sem enviar desde 24/11 03:30. Para ver o erro à distância, `pc/baixar_cme.sh` agora envia o fim do log à branch `log` em toda saída (sem token nem caminho pessoal; repo público).
+- Testado em simulação: sem token, falha do Brave, dia já feito, envio indisponível. Falta ver a 1ª execução real (27/11 03:00).
+- Desfazer: `git revert` deste commit; o PC volta sozinho na execução seguinte.

@@ -11,9 +11,23 @@ REPO="$HOME/painel-mercado-pdfs"          # pasta só para os PDFs (criada no pa
 TOKEN=$(cat "$HOME/.config/painel-cme/token" 2>/dev/null)   # token do GitHub só deste repositório (Contents e Actions: leitura e escrita)
 GH=gabrid15-creator/painel-mercado
 LOG="$HOME/.local/state/painel-cme.log"; mkdir -p "$(dirname "$LOG")"
+# ao sair (com ou sem erro), manda as últimas linhas do log para a branch "log" (repo público: sem token nem caminho pessoal)
+envia_log() {
+  local rc=$? d c
+  [ -n "${TMP:-}" ] && rm -rf "$TMP"
+  [ -n "$TOKEN" ] || return 0
+  d=$(mktemp -d) || return 0
+  { echo "rodou $(date '+%d/%m/%Y %H:%M') saída $rc"; tail -n 60 "$LOG" 2>/dev/null; } |
+    sed -E "s#$HOME#~#g; s#(ghp_|github_pat_)[A-Za-z0-9_]+#***#g" > "$d/painel-cme.log"
+  ( cd "$d" && git init -q && git add painel-cme.log &&
+    c=$(git -c user.name="PC" -c user.email="pc@painel.local" commit-tree "$(git write-tree)" -m "log do PC") &&
+    GIT_TERMINAL_PROMPT=0 timeout 60 git push -qf "https://x-access-token:$TOKEN@github.com/$GH.git" "$c":refs/heads/log ) >/dev/null 2>&1
+  rm -rf "$d"
+}
+trap envia_log EXIT
 URL=${CME_URL:-https://www.cmegroup.com/daily_bulletin/current}
 ARQS="Section64_Metals_Option_Products.pdf Section33_Japanese_Yen_Call_Options.pdf Section34_Japanese_Yen_Put_Options.pdf"
-TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+TMP=$(mktemp -d)
 log() { echo "$(date '+%d/%m %H:%M') $*" >> "$LOG"; }
 # A CME recusa programas simples de download (curl → 403) e aceita navegador de verdade.
 # Por isso abre o Brave da própria usuária num PERFIL SEPARADO (não mexe no Brave normal), só para baixar os 3 PDFs, e fecha.
