@@ -317,3 +317,11 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Corrigido: texto `ouro_spot.como` dizia "futuro − US$ 6,5" fixo; agora mostra a régua em uso (a tela já usava `base_usd`).
 - Ambiente desta sessão do Code ("Default") bloqueia Yahoo/FRED/Cboe/DTCC; a conferência usou os dados já coletados pelo Actions.
 - Desfazer: `git revert` deste commit.
+
+## 26/11/2026: correções da auditoria (commit ef5f8c5)
+- P1 janela da chance "agora" começa sempre no dia anterior 18h NY. P4 surpresa só grava com o período certo (`periodo_certo`) e revisa o histórico (Retail Sales 17/11 0,212; Core PCE 25/11 0,293).
+- P5 conferência da faixa sem fim de semana (ouro 71% -> 50%, 10 casos). P8 séries semanais: 5d = 1 semana, 20d = 4 semanas, 1d vazio.
+- P9 valor justo marcado como experimental. P10 sazonalidade com anos exatos, sinal só com |t| >= 2; ATR com amplitude real.
+- P11 IA sem rótulos internos; 0DTE não é mais chamado de faixa do dia. P12 `iene_boletim` lê da branch dados; `op_boletim`/`op_cadeia` apagados.
+- Novo `mi_quant_diario.json` (branch dados): 1 linha por dia útil, com a data de cada série.
+- Testes: simulação com os dados reais, preços sintéticos para ativos, varredura Playwright (88 casos, 1200/390/340/320, claro e escuro) sem erro novo.

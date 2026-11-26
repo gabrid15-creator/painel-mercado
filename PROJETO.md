@@ -251,6 +251,8 @@
 5. Pergunta sem resposta: suavizar o gamma flip do GLD (média de 15 min)?
 6. Conferir os leitores em 01/01/2027. Databento quando ela assinar.
 
+- Auditoria de 26/11 (recados P1 a P14): abertos P2, P3, P6, P7, VXN (Code, `TAREFAS.md`) e P13 (robô da CME).
+
 ---
 
 ## 9. Contas e serviços
