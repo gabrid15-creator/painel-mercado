@@ -356,3 +356,4 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 26/11/2026 — robô da CME
 Timer falhou em 25 e 26/11 ("o Brave não baixou"); rodado à mão em 26/11 19:20 funcionou: boletim de 25/11 publicado com 0 erro (0bfd6c5). Falta testar pelo systemd.
+26/11 19:25: pelo systemd também funcionou. Aplicado `--password-store=basic` no Brave do robô (hipótese: janela do chaveiro de madrugada).

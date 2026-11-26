@@ -20,7 +20,7 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 ## Tarefas
 | Estado | Dono | Tarefa | Arquivos / observação |
 |---|---|---|---|
-| aberto | CHAT | Robô da CME falha pelo timer (25 e 26/11), mas funcionou à mão em 26/11 19:20 | testar pelo systemd; branch `log` funcionando; desfazer o envio: `git revert 61b44a5` |
+| aberto | CHAT | Confirmar o robô da CME no log de 27/11 depois das 03:00 | 26/11 19:25 ok pelo systemd; suspeita: chaveiro, aplicado `--password-store=basic` (desfazer: `git revert` do commit "Robô CME: sem chaveiro"); desfazer o envio do log: `git revert 61b44a5` |
 | feito | CHAT | CME 25/11 (ouro e iene) | 26/11 19:20, automático, 0 erro, commit 0bfd6c5. Desfazer: `git revert 0bfd6c5` |
 | aberto | CHAT | CME iene de 24/11 | aguarda PDFs do Gabriel |
 | aberto | CHAT | Recalibrar a régua da Vantage com 2 pares | aguarda preços simultâneos; `coletor.py` (`b_precos`) |
