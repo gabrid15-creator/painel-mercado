@@ -34,6 +34,7 @@ jobs:
           mkdir -p out
           cp docs/data/mi_*.json out/ 2>/dev/null || true
           if git fetch -q --depth=1 origin dados 2>/dev/null; then git archive FETCH_HEAD | tar -x -C out; fi
+          rm -f out/op_boletim.json out/op_cadeia.json   # arquivos antigos (05/11) sem uso
       - name: Coletar
         run: |
           timeout 300 python3 coletor.py out || true

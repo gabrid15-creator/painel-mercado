@@ -291,8 +291,11 @@ def b_macro():
             if not s: continue
             isp = k in pts
             d0 = max(s)
+            ud = sorted(s)[-9:]
+            semanal = len(ud) > 2 and st.median((b - a).days for a, b in zip(ud, ud[1:])) >= 5   # NFCI, balanço do Fed: 1 dado por semana
+            n1, n5, n20 = (None, 1, 4) if semanal else (1, 5, 20)   # 5d = 1 semana, 20d = 4 semanas
             rows.append({"grupo": g, "serie": k, "data": d0.isoformat(), "valor": rnd(last(s), 3),
-                         "var_1d": rnd(chg(s, 1, not isp), 3), "var_5d": rnd(chg(s, 5, not isp), 3), "var_20d": rnd(chg(s, 20, not isp), 3),
+                         "var_1d": rnd(chg(s, n1, not isp), 3) if n1 else None, "var_5d": rnd(chg(s, n5, not isp), 3), "var_20d": rnd(chg(s, n20, not isp), 3),
                          "unidade_var": "p.p." if isp else "%", "pctil_1a": rnd(pctil(s), 0)})
             hist += [{"serie": k, "data": d.isoformat(), "valor": rnd(v, 4)} for d, v in sorted(s.items()) if d >= lim]
     # fonte que falhou ou foi pulada: mantém a linha e o histórico anteriores dessa série
@@ -305,7 +308,7 @@ b_macro()
 def stt(v):
     n = len(v); m = st.mean(v); ac = 100 * sum(x > 0 for x in v) / n
     t = m / (st.stdev(v) / math.sqrt(n)) if n > 2 and st.stdev(v) > 0 else 0
-    sinal = "alta" if ac >= 60 and m > 0 else "baixa" if ac <= 40 and m < 0 else "inconclusivo"
+    sinal = "alta" if ac >= 60 and t >= 2 else "baixa" if ac <= 40 and t <= -2 else "inconclusivo"   # só com significância (|t| >= 2)
     return {"media": rnd(m * 100, 3), "acerto": rnd(ac, 0), "n": n, "t": rnd(t, 2), "sinal": sinal}
 
 # ---------------------------------------------------------------- resumo por ativo, sazonalidade, correlações, Goldbach
@@ -329,11 +332,11 @@ def b_ativos():
         for m in range(1, 13):
             prs = sorted(((y, x) for (y, mm), x in mret.items() if mm == m and (y, mm) != (hoje.year, hoje.month)))
             for w in JAN:
-                v = [x for y, x in prs if y >= hoje.year - w]
+                v = [x for y, x in prs if y >= hoje.year - w][-w:]   # exatamente w anos
                 if v: saz.append({"ativo": a, "tipo": "mes", "janela": w, "chave": m, **stt(v)})
         dr = rets(c20)
         for w in JAN:
-            drw = {d: x for d, x in dr.items() if d.year >= hoje.year - w}
+            drw = {d: x for d, x in dr.items() if d >= hoje - dt.timedelta(days=round(w * 365.25))}
             for wd in range(5):
                 v = [x for d, x in drw.items() if d.weekday() == wd]
                 if v: saz.append({"ativo": a, "tipo": "dia_semana", "janela": w, "chave": wd + 1, **stt(v)})
@@ -405,7 +408,8 @@ def b_ativos():
         mes = [r for r in saz if r["ativo"] == a and r["tipo"] == "mes" and r["chave"] == hoje.month and r["janela"] == 20]
         mes10 = [r for r in saz if r["ativo"] == a and r["tipo"] == "mes" and r["chave"] == hoje.month and r["janela"] == 10]
         hi52 = max(v[1] for d, v in s.items() if d >= hoje - dt.timedelta(days=365)); lo52 = min(v[2] for d, v in s.items() if d >= hoje - dt.timedelta(days=365))
-        atr = st.mean([(v[1] - v[2]) for d, v in list(s.items())[-14:] if v[1] and v[2]])
+        ub = [s[d] for d in sorted(s) if s[d][1] and s[d][2]][-15:]   # amplitude real: inclui o salto desde o fechamento anterior
+        atr = st.mean([max(v[1], p[3]) - min(v[2], p[3]) for p, v in zip(ub, ub[1:])])
         resumo.append({"ativo": a, "data": ks[-1].isoformat(), "preco": rnd(c[ks[-1]], cs), "var_1d": rnd(chg(c, 1), 2), "var_5d": rnd(chg(c, 5), 2),
                        "var_20d": rnd(chg(c, 20), 2), "var_ano": rnd((c[ks[-1]] / c[max(d for d in ks if d.year < hoje.year)] - 1) * 100, 2),
                        "max_52s": rnd(hi52, cs), "min_52s": rnd(lo52, cs), "atr14": rnd(atr, cs),
@@ -679,7 +683,7 @@ def b_faixa():
                            "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
                            "ab_sem": rnd(ab_sem, casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas),
                            # horários (ms) de início e fim, para a chance "agora" (preço atual e tempo que falta)
-                           "ts_dia_ini": int(dt.datetime.combine(hoje_s - dt.timedelta(days=3 if hoje_s.weekday() == 0 else 1), dt.time(hab), NYz).timestamp() * 1000),
+                           "ts_dia_ini": int(dt.datetime.combine(hoje_s - dt.timedelta(days=1), dt.time(hab), NYz).timestamp() * 1000),
                            "ts_dia_fim": int(dt.datetime.combine(hoje_s, dt.time(hab), NYz).timestamp() * 1000),
                            "ts_sem_ini": int(dt.datetime.combine(seg - dt.timedelta(days=1), dt.time(hab), NYz).timestamp() * 1000),
                            "ts_sem_fim": int(dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).timestamp() * 1000),
@@ -1189,7 +1193,7 @@ def b_valid():
             out["mapa"].append({"ativo": a, "tipo": tp, "n": len(fe), "desde": min(h["ini"] for h in fe), "niveis": nv})
     fh = ler("mi_faixa_hist.json")
     for a in sorted({h["ativo"] for h in fh}):
-        h = [x for x in fh if x["ativo"] == a and x.get("iv")]; d1 = d2 = n = 0
+        h = sorted((x for x in fh if x["ativo"] == a and x.get("iv") and dt.date.fromisoformat(x["data"]).weekday() < 5), key=lambda x: x["data"]); d1 = d2 = n = 0   # sem sábado e domingo
         for p, q in zip(h, h[1:]):
             if (dt.date.fromisoformat(q["data"]) - dt.date.fromisoformat(p["data"])).days > 4: continue
             z = abs(math.log(q["preco"] / p["preco"])) / (p["iv"] / 100 / math.sqrt(252)); n += 1; d1 += z <= 1; d2 += z <= 2
@@ -1291,6 +1295,16 @@ def b_eua():
     save("mi_eua.json", list(rows.values()))
 b_eua()
 
+def periodo_certo(evento, data, periodo):
+    """O período do dado oficial é o que sai nessa data? Evita gravar o mês anterior enquanto o FRED não atualiza."""
+    if not periodo: return False
+    d = dt.date.fromisoformat(data)
+    if evento == "Unemployment Claims": return 0 <= (d - dt.date.fromisoformat(periodo)).days <= 8
+    m = d.year * 12 + d.month - 1
+    m -= 2 if evento == "JOLTS Job Openings" else 1
+    if evento == "Advance GDP q/q": m -= m % 3   # 1º mês do trimestre anterior
+    return periodo[:7] == f"{m // 12}-{m % 12 + 1:02d}"
+
 @bloco("Histórico de surpresas (EUA)")
 def b_surpresa():
     # grava previsão, anterior e resultado de cada dado americano de alto impacto, para testar depois se dá para
@@ -1303,8 +1317,19 @@ def b_surpresa():
         if r.get("previsao"): x["previsao"] = r["previsao"]
         if r.get("anterior"): x["anterior"] = r["anterior"]
         quando = dt.datetime.fromisoformat(r["quando"] + ":00-03:00")
-        if "atual" not in x and NOW >= quando + dt.timedelta(minutes=10) and r["evento"] in eua:   # resultado oficial (BLS/FRED)
-            e = eua[r["evento"]]; x.update({"atual": e.get("valor"), "periodo": e.get("periodo"), "fonte": e.get("fonte"), "gravado": NOW.strftime("%Y-%m-%d %H:%M")})
+        e = eua.get(r["evento"])
+        if "atual" not in x and e and NOW >= quando + dt.timedelta(minutes=10) and periodo_certo(r["evento"], r["data"], e.get("periodo")):   # resultado oficial (BLS/FRED)
+            x.update({"atual": e.get("valor"), "periodo": e.get("periodo"), "fonte": e.get("fonte"), "gravado": NOW.strftime("%Y-%m-%d %H:%M")})
+    # revisa o histórico: apaga resultado de período errado e preenche se o dado certo ainda for o atual
+    for x in h.values():
+        ev = x["evento"]
+        if ev not in EUA_BLS and ev not in EUA_FRED: continue
+        if "atual" in x and not periodo_certo(ev, x["data"], x.get("periodo")):
+            for k_ in ("atual", "periodo", "fonte", "gravado"): x.pop(k_, None)
+        e = eua.get(ev)
+        if "atual" not in x and e and x["data"] <= NOW.date().isoformat() and periodo_certo(ev, x["data"], e.get("periodo")) \
+                and NOW >= dt.datetime.fromisoformat(f"{x['data']}T{x['hora']}:00-03:00") + dt.timedelta(minutes=10):
+            x.update({"atual": e.get("valor"), "periodo": e.get("periodo"), "fonte": e.get("fonte"), "gravado": NOW.strftime("%Y-%m-%d %H:%M")})
     # nowcast de inflação do Fed de Cleveland (CPI/PCE): guarda o bruto 1× por dia para os eventos de inflação
     cl = ler("cleveland_nowcast.json"); hoje = NOW.date().isoformat()
     if not cl or cl[-1].get("data") != hoje:
@@ -1440,7 +1465,8 @@ def b_score():
                 if zj_ and zj_.get("vencimento"): f.write(f"  [OPÇÕES] 0DTE do iene na CME (vence {zj_.get('vencimento')}): teto {zj_.get('call_wall')}, piso {zj_.get('put_wall')}, gamma flip {zj_.get('gamma_flip')}, max pain {zj_.get('max_pain')}, faixa {zj_.get('faixa')}.\n")
             if x["ativo"] == "XAUUSD":
                 z_ = (ler("mi_0dte.json") or [{}])[0]
-                if z_: f.write(f"  0DTE GLD ({z_.get('vencimento')}; níveis {z_.get('fixacao')}): teto {z_.get('call_wall')}, piso {z_.get('put_wall')}, gamma flip {z_.get('gamma_flip')}, max pain {z_.get('max_pain')}, faixa do dia {z_.get('faixa')}; regime de gamma agora: {z_.get('regime')}\n")
+                if z_: f.write(f"  0DTE GLD ({z_.get('vencimento')}; níveis {z_.get('fixacao')}): teto {z_.get('call_wall')}, piso {z_.get('put_wall')}, gamma flip {z_.get('gamma_flip')}, max pain {z_.get('max_pain')}, faixa do 0DTE até o vencimento (NÃO é a faixa do dia; a do dia é a linha [DIA]) {z_.get('faixa')}; regime de gamma agora: {z_.get('regime')}\n")
+                if z_ and z_.get('vencimento') != NOW.astimezone(ZoneInfo('America/New_York')).date().isoformat(): f.write(f"  atenção: este 0DTE vence em {z_.get('vencimento')}, não hoje; não diga que os níveis foram fixados hoje.\n")
         rd = {k: mac.get(k) for k in ("Liquidez líquida Fed", "VIX ÷ VIX 3 meses", "MOVE (vol. de Treasuries)", "Condições financeiras (NFCI)", "US2Y", "US10Y", "Juro real 10a", "Spread 2a EUA−Alemanha")}
         f.write("\nRadar institucional e juros: " + "; ".join(f"{k} {v['valor']} (20d {v['var_20d']}{v['unidade_var']}, pctil 1a {v['pctil_1a']})" for k, v in rd.items() if v) + "\n")
         eu = ler("mi_eua.json")
@@ -1448,6 +1474,30 @@ def b_score():
         f.write("\nRed folder da semana (BRT):\n" + "\n".join(f"  {x['quando']} {x['moeda']} {x['evento']} prev {x['previsao']} ant {x['anterior']}" for x in ag))
         f.write("\nManchetes:\n" + "\n".join(f"  [{x['fonte']}] {x['titulo']}" for x in nw) + "\n")
 b_score()
+
+# ---------------------------------------------------------------- registro diário para o modelo do Nasdaq (1 linha por dia útil; nunca apaga)
+@bloco("Diário quant (Nasdaq)")
+def b_quant():
+    if NOW.weekday() >= 5: return
+    hoje = NOW.date().isoformat()
+    mac = {r["serie"]: r for r in ler("mi_macro.json")}
+    linha = {"data": hoje, "hora": NOW.strftime("%H:%M")}
+    datas = {}
+    for k, s in (("vix", "VIX"), ("vix_vix3m", "VIX ÷ VIX 3 meses"), ("move", "MOVE (vol. de Treasuries)"), ("us2y", "US2Y"), ("us10y", "US10Y"),
+                 ("juro_real", "Juro real 10a"), ("dxy", "DXY"), ("hyg", "Crédito HY (HYG)"), ("liquidez_liquida", "Liquidez líquida Fed")):
+        r = mac.get(s) or {}; linha[k] = r.get("valor"); datas[k] = r.get("data")
+    ff = next((r for r in ler("mi_dolar.json") if r["serie"].startswith("Fed Funds implícito")), {})
+    linha["fed_funds_implicito"] = ff.get("valor"); linha["fed_funds_contrato"] = ff.get("serie"); datas["fed_funds_implicito"] = ff.get("data")
+    linha["eventos_usd_alto"] = [f"{x['hora']} {x['evento']}" for x in ler("mi_agenda.json") if x.get("moeda") == "USD" and x.get("impacto") == "Alto" and x.get("data") == hoje]
+    linha["fear_greed"] = FG.get("fg")
+    cot = next((x for x in ler("mi_cot.json") if x["ativo"] == "NAS100" and x.get("papel") == "especulativo"), {})
+    linha["cot_nas_alavancados_indice"] = cot.get("indice_3a"); datas["cot"] = cot.get("data")
+    at = next((x for x in ler("mi_ativos.json") if x["ativo"] == "NAS100"), {})
+    for k in ("preco", "var_1d", "var_5d", "var_20d", "var_ano"): linha["nas_" + k] = at.get(k)
+    datas["nas"] = at.get("data"); linha["datas"] = datas   # data de cada série, para o teste não olhar o futuro
+    h = {r["data"]: r for r in ler("mi_quant_diario.json")}; h[hoje] = linha
+    save("mi_quant_diario.json", [h[k] for k in sorted(h)])
+b_quant()
 
 # ---------------------------------------------------------------- painel geral (uma linha) + status
 ag = [r for r in ler("mi_agenda.json") if r["impacto"] == "Alto" and r["data"] == NOW.date().isoformat()]

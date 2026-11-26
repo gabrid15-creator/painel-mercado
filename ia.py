@@ -2,7 +2,7 @@
 """Leitura da IA: lê out/digest.txt e grava out/mi_ia.json (texto geral + um por ativo) com a API da Anthropic.
 Roda a cada coleta; chama a API de hora em hora das 6h às 18h (Brasília), à noite só às 20h e à 0h, e sempre depois de um red folder.
 Sem a chave ANTHROPIC_API_KEY, não faz nada. Uso: python3 ia.py out"""
-import os, sys, json, datetime as dt
+import os, re, sys, json, datetime as dt
 from zoneinfo import ZoneInfo
 import anthropic
 
@@ -51,6 +51,7 @@ prompt = (
     "(4) o que move o ativo agora (regime com DXY/juros) e o evento de risco mais próximo; (5) opções: ouro cita teto, piso, gamma flip e max pain do 0DTE (GLD e CME); iene cita o 0DTE da CME; os demais dizem que o σ vem das opções de balcão. "
     "Use os números das linhas [DIA], [SEMANA], [AGORA], [LATERALIDADE], [RESTO DO DIA] e [OPÇÕES] exatamente como estão, sem recalcular.\n"
     "IMPORTANTE: os níveis do dia e da semana (±1σ, ±2σ) e os do 0DTE (teto, piso, gamma flip, max pain, faixa) são FIXOS: foram definidos na abertura (20h de Brasília) e às 10h de NY. Cite-os exatamente como estão nos dados e não calcule outra faixa; só o preço e o regime de gamma agora mudam durante o dia.\n"
+    "Nunca escreva rótulos entre colchetes (como DIA ou AGORA). Ativo sem as linhas [DIA] e [AGORA] (hoje o NAS100): fale só de preço, variações e eventos, sem citar σ nem faixa do dia. "
     "Use só o que está nos dados; não invente números nem eventos. Trate eventos que já passaram como passados e os futuros como futuros, comparando com a data e hora acima.\n"
     'Responda APENAS com um JSON: uma lista de 7 objetos {"ativo": ..., "texto": ...}, na ordem ' + ", ".join(ATIVOS) + ".\n\nDADOS:\n" + dig)
 
@@ -67,7 +68,7 @@ if resp.stop_reason == "refusal":
 txt = "".join(b.text for b in resp.content if b.type == "text")
 try:
     itens = json.loads(txt[txt.index("["): txt.rindex("]") + 1])
-    rows = [{"ativo": x["ativo"], "formato": 2, "texto": x["texto"].strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
+    rows = [{"ativo": x["ativo"], "formato": 2, "texto": re.sub(r"\[(?:σ|DIA|SEMANA|AGORA|LATERALIDADE|RESTO DO DIA|OPÇÕES)[^\]]*\]\s*", "", x["texto"]).strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
 except Exception as e:
     print("resposta fora do formato; leitura anterior mantida:", e); sys.exit(0)
 if len(rows) < 5:

@@ -1,6 +1,6 @@
 (() => {
   // ---------------------------------------------------------------- dados
-  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'mi_0dte_dia', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento', 'ouro_boletim', 'iene_boletim', 'lateralidade', 'padrao'];
+  const IDS = ['mi_geral', 'mi_ativos', 'mi_sazon', 'mi_corr', 'mi_cot', 'mi_macro', 'mi_hist', 'mi_agenda', 'mi_noticias', 'mi_status', 'mi_ia', 'mi_eua', 'mi_dolar', 'mi_cta', 'mi_regime', 'mi_faixa', 'mi_0dte', 'goldbach_dias', 'toque_tabela', 'mi_validacao', 'mi_0dte_iene', 'faixa_backtest', 'mi_otc', 'rompimento', 'ouro_boletim', 'iene_boletim', 'lateralidade', 'padrao'];
   const store = {};
   const D = (id) => store[id] || { status: 'loading', data: [] };
   const COLORS = ['#3b7dd8', '#e07b39', '#2a9d8f', '#d64f8f', '#8e6bd1', '#b58a1b', '#5b8c3a', '#7a7a7a'];
@@ -17,7 +17,7 @@
     await Promise.all(IDS.map(async (id) => {
       try {
         let data;
-        if (/^(mi|op|ouro)_/.test(id)) { try { data = await pega(RAW + id + '.json?t=' + t); } catch (e) { data = await pega('data/' + id + '.json?t=' + t); } }
+        if (/^(mi|op|ouro|iene)_/.test(id)) { try { data = await pega(RAW + id + '.json?t=' + t); } catch (e) { data = await pega('data/' + id + '.json?t=' + t); } }
         else data = await pega('data/' + id + '.json?t=' + t);
         store[id] = { status: 'ok', data };
       } catch (e) { if (!store[id]) store[id] = { status: 'error', data: [] }; }
@@ -72,7 +72,7 @@
   document.querySelectorAll('.mi-jan button').forEach((b) => b.addEventListener('click', () => {
     jan = Number(b.dataset.j); document.querySelectorAll('.mi-jan button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); drawMI();
   }));
-  const SIN = { alta: 'viés de alta (subiu em 60% ou mais)', baixa: 'viés de baixa (caiu em 60% ou mais)', inconclusivo: 'inconclusivo: sem vantagem' };
+  const SIN = { alta: 'viés de alta (subiu em 60% ou mais, aprovado no teste)', baixa: 'viés de baixa (caiu em 60% ou mais, aprovado no teste)', inconclusivo: 'inconclusivo: sem vantagem' };
 
   const bars = (el, rows, lab, hi) => {
     el.replaceChildren(); if (!rows.length) return;
