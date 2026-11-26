@@ -4,6 +4,10 @@ Leia o resumo do projeto abaixo antes de qualquer tarefa; ele é a memória entr
 
 @PROJETO.md
 
+**Antes de qualquer mudança, siga o quadro abaixo** (divisão entre o chat do Projeto e o Claude Code):
+
+@TAREFAS.md
+
 Para colar numa conversa nova: `COMECE_AQUI.md` (regras + transferência + estado, tudo em um arquivo). Transferência: `TRANSFERENCIA.md`.
 
 ## Economia de tokens (prioridade)

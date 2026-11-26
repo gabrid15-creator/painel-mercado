@@ -306,3 +306,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Robô sem enviar desde 24/11 03:30. Para ver o erro à distância, `pc/baixar_cme.sh` agora envia o fim do log à branch `log` em toda saída (sem token nem caminho pessoal; repo público).
 - Testado em simulação: sem token, falha do Brave, dia já feito, envio indisponível. Falta ver a 1ª execução real (27/11 03:00).
 - Desfazer: `git revert` deste commit; o PC volta sozinho na execução seguinte.
+
+## 26/11/2026: divisão chat × Claude Code
+- `TAREFAS.md` criado e importado pelo `CLAUDE.md`: Code só faz o que pede dados ao vivo; o resto é do chat. Desfazer: `git revert` deste commit.
