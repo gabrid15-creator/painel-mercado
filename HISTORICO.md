@@ -309,3 +309,11 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 
 ## 26/11/2026: divisão chat × Claude Code
 - `TAREFAS.md` criado e importado pelo `CLAUDE.md`: Code só faz o que pede dados ao vivo; o resto é do chat. Desfazer: `git revert` deste commit.
+
+## 26/11/2026: conferência da coleta após a troca do GC (Code)
+- Dados da branch `dados` (26/11 16h05 BRT): régua = dez. + 1,9 → US$ 29,3 (GCZ26); ouro 3.566; fechamento 24/11 3.546,4 → abertura 25/11 3.529 (sem salto de ~US$ 29).
+- 0DTE 27/11: GLD teto 3.650 / piso 3.541 / flip 3.630 (razão do fechamento de 25/11, feriado hoje); CME (pregão 24/11, futuro 3.591, base 29,6) teto 3.570 / piso 3.471 / flip 3.622. Coerentes.
+- Feriado (Ação de Graças): fixação das 10h NY não acontece hoje; o 27/11 fixa amanhã.
+- Corrigido: texto `ouro_spot.como` dizia "futuro − US$ 6,5" fixo; agora mostra a régua em uso (a tela já usava `base_usd`).
+- Ambiente desta sessão do Code ("Default") bloqueia Yahoo/FRED/Cboe/DTCC; a conferência usou os dados já coletados pelo Actions.
+- Desfazer: `git revert` deste commit.

@@ -204,7 +204,7 @@ def b_precos():
         if abs(gc_ult - fr_ult) > 8: VANTAGE_USD = round(gc_ult - fr_ult + 1.9, 1); CALIB = hj.strftime("%d/%m/%Y") + " (troca de contrato, 1 par)"
     except Exception as e: STATUS.append({"bloco": "Ouro: contrato da Vantage", "ok": False, "msg": str(e)[:120]})
     f_teor, como = spot_ouro(gc_ult); f = 1 - VANTAGE_USD / gc_ult
-    SPOT.update({"fator": f, "base_usd": VANTAGE_USD, "calibrado": CALIB, "teorico_base_usd": round(gc_ult * (1 - f_teor), 1), "como": "régua da Vantage (futuro − US$ 6,5); " + como})
+    SPOT.update({"fator": f, "base_usd": VANTAGE_USD, "calibrado": CALIB, "teorico_base_usd": round(gc_ult * (1 - f_teor), 1), "como": f"régua da Vantage (futuro − US$ {VANTAGE_USD:.1f}); " + como})
     P["XAUUSD"] = {d: tuple(v * f if v is not None else None for v in ohlc) for d, ohlc in P["XAUUSD"].items()}
     for k, y in FATORES_Y.items():
         try: F[k] = closes(yahoo(y, 5))
