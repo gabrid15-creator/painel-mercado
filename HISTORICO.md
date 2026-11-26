@@ -336,3 +336,9 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Correção em `b_precos`: fechamento do dia D = abertura da barra D+1 (datas ≥ 2011); a barra ao vivo mantém o preço de agora.
 - Conferido rodando o coletor: EURUSD × DXY −0,93 (20 d), −0,90 (60 d), −0,82 (250 d); USDJPY × DXY +0,49/+0,52/+0,62; var. do dia EURUSD −0,04% (1,09733 ÷ 1,09782).
 - Atenção: scripts antigos em `testes/` que usam barras diárias do Yahoo FX têm o mesmo atraso de 1 dia no fechamento (não refeitos).
+
+## 26/11/2026 — P6 (Code): put/call e skew do GLD pela reserva Yahoo
+- `gld_yahoo()`: delta = Black-Scholes pela `impliedVolatility` do Yahoo (juro e dividendo 0; vencimento 16h NY; vol. fora de 2–300% → delta 0, fica de fora). Antes todo delta era 0 → `gld_skew25` não gravava desde 23/11.
+- Todos os vencimentos (antes ≤ 40 dias); os longos param se faltarem < 90 s no limite da coleta.
+- `mi_pcr_hist` ganha `fonte_gld` (Cboe ou Yahoo).
+- Conferido 26/11 15h08 NY: skew 25Δ +2,87 pts (put 35,0% × call 32,2%, venc. 24/12); pcr_oi total 0,43 (com todos os vencimentos; a Cboe dava 0,29 → o contrato em aberto do Yahoo é diferente; não misturar fontes no teste de 17/05/2027). Coleta inteira em 60 s, sem bloco pulado. Dias 23–25/11 ficam sem skew (não dá para refazer).

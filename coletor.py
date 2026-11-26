@@ -800,18 +800,26 @@ def gld_yahoo():
     crumb = rq("https://query1.finance.yahoo.com/v1/test/getcrumb").decode().strip()
     base = f"https://query2.finance.yahoo.com/v7/finance/options/GLD?crumb={urllib.parse.quote(crumb)}"
     r0 = json.loads(rq(base))["optionChain"]["result"][0]; q = r0["quote"]
-    datas = [d for d in r0["expirationDates"] if d <= time.time() + 40 * 86400]
+    # P6 (26/11/2026): todos os vencimentos, como a Cboe (antes só ≤ 40 dias: o put/call total saía 0,44 × 0,29); para se o tempo apertar
+    datas = sorted(r0["expirationDates"])
     cad = {r0["options"][0]["expirationDate"]: r0["options"][0]}
     for d in datas:
         if d in cad: continue
+        if d > time.time() + 40 * 86400 and restante() < 90: break
         try: cad[d] = json.loads(rq(base + f"&date={d}"))["optionChain"]["result"][0]["options"][0]
         except Exception: continue
-    ops = []
+    ops = []; S0 = q["regularMarketPrice"]; N = st.NormalDist().cdf
+    def delta(k, iv, T, cp):   # P6: o Yahoo não manda delta → Black-Scholes pela vol. implícita do próprio Yahoo (juro e dividendo 0)
+        if not (iv and 0.02 < iv < 3 and T > 0 and k > 0): return 0
+        d1 = (math.log(S0 / k) + iv * iv * T / 2) / (iv * math.sqrt(T)); return N(d1) if cp == "C" else N(d1) - 1
     for ex in cad.values():
+        T = max(ex["expirationDate"] + 21 * 3600 - time.time(), 3600) / (365 * 86400)   # vence 16h NY ≈ 21h UTC
         for lado in ("calls", "puts"):
             for o in ex.get(lado, []):
-                ops.append({"option": o["contractSymbol"], "open_interest": o.get("openInterest") or 0, "volume": o.get("volume") or 0, "iv": o.get("impliedVolatility") or 0,
-                            "bid": o.get("bid") or 0, "ask": o.get("ask") or 0, "last_trade_price": o.get("lastPrice") or 0, "delta": 0})
+                iv = o.get("impliedVolatility") or 0
+                ops.append({"option": o["contractSymbol"], "open_interest": o.get("openInterest") or 0, "volume": o.get("volume") or 0, "iv": iv,
+                            "bid": o.get("bid") or 0, "ask": o.get("ask") or 0, "last_trade_price": o.get("lastPrice") or 0,
+                            "delta": delta(o.get("strike") or 0, iv, T, "C" if lado == "calls" else "P")})
     if len(ops) < 50: raise ValueError(f"cadeia do Yahoo incompleta ({len(ops)} opções)")
     lt = dt.datetime.fromtimestamp(q["regularMarketTime"], NYz).replace(tzinfo=None).isoformat()
     return {"current_price": q["regularMarketPrice"], "close": q["regularMarketPrice"], "last_trade_time": lt, "options": ops, "_fonte": "Yahoo"}
@@ -1051,7 +1059,7 @@ def b_0dte():
                 "pcr_vol": rnd(pv / cv, 3) if cv else None, "pcr_oi": rnd(po / co, 3) if co else None}
     if ny.weekday() < 5 and 9 * 60 + 30 <= ny.hour * 60 + ny.minute <= 16 * 60 + 15:   # até o fechamento: preço = fechamento
         d0 = ny.date()
-        rec = {"data": d0.isoformat(), "hora": ny.strftime("%H:%M"), "gld": rnd(S, 2), "ouro": rnd(ouro, 1),
+        rec = {"data": d0.isoformat(), "hora": ny.strftime("%H:%M"), "gld": rnd(S, 2), "ouro": rnd(ouro, 1), "fonte_gld": j.get("_fonte"),
                "gld_total": pc(ops), "gld_0dte": pc([o for o in ops if o["venc"] == d0]),
                "gld_7d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 7]),
                "gld_30d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 30])}
