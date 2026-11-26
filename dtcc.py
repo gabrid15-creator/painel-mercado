@@ -47,7 +47,12 @@ def num(s):
     except ValueError: return None, False
 
 est = ler("dtcc_estado.json", {})
-est.setdefault("neg", {}); est.setdefault("dias", []); est.setdefault("slice", {"dia": "", "id": 0}); est.setdefault("erros", 0)
+est.setdefault("neg", {}); est.setdefault("dias", []); est.setdefault("slice", {"dia": "", "id": 0})
+if "prov" not in est:   # 1ª rodada com a regra nova: os últimos 7 dias podem ter sido marcados só pelos pacotes → relê os arquivos fechados
+    est["dias"] = [x for x in est["dias"] if x < (HOJE - dt.timedelta(days=7)).isoformat()]; est["prov"] = []
+# P7 (26/11/2026): "erros" era um contador que nunca zerava (88 em 26/11, quase tudo conexão derrubada pela DTCC) → agora conta só esta rodada;
+# o acumulado fica em "erros_total"
+est["erros_total"] = est.get("erros_total", est.get("erros", 0)); est["erros"] = 0
 NEG = est["neg"]
 
 def processa(rows):
@@ -104,16 +109,19 @@ def dias_uteis(a, b):
         d += dt.timedelta(days=1)
 
 # 1) dias fechados, do mais antigo para o mais novo (até ontem), poucos por rodada
+# P7: um dia só vira "coberto" com o arquivo FECHADO lido. 404 de dia recente = arquivo ainda não saiu → tenta de novo;
+# 404 com mais de 4 dias = feriado sem arquivo → coberto. Dia lido só pelos pacotes intradiários fica "provisório" (prov):
+# não trava os pacotes de hoje, e o arquivo fechado é relido quando sair (reprocessar é seguro: negócios têm chave única).
 pend = [d for d in dias_uteis(HOJE - dt.timedelta(days=JANELA), HOJE - dt.timedelta(days=1)) if d.isoformat() not in est["dias"]]
 for d in pend:
     if time.monotonic() - T0 > LIMITE * 0.6: break
-    if d.isoformat() == est["slice"]["dia"]: est["dias"].append(d.isoformat()); continue   # já coberto pelos pacotes intradiários
     try: processa(csvzip(baixa(f"{API}/report/cumulative/cftc/CFTC_CUMULATIVE_FOREX_{d:%Y_%m_%d}.zip")))
     except urllib.error.HTTPError as e:
-        if e.code != 404: est["erros"] += 1; break
-    except Exception: est["erros"] += 1; break
+        if e.code != 404: est["erros"] += 1; est["ultimo_erro"] = f"{d}: HTTP {e.code}"; break
+        if (HOJE - d).days <= 4: continue
+    except Exception as e: est["erros"] += 1; est["ultimo_erro"] = f"{d}: {str(e)[:120]}"; break
     est["dias"].append(d.isoformat())
-pronto = not [d for d in pend if d.isoformat() not in est["dias"]]
+pronto = not [d for d in pend if d.isoformat() not in est["dias"] and d.isoformat() not in est["prov"]]
 
 # 2) pacotes intradiários de hoje (só depois do histórico completo, para manter a ordem dos eventos)
 novos = 0
@@ -122,7 +130,7 @@ if pronto:
         lista = sorted(json.loads(baixa(f"{API}/slice/CFTC/FX")), key=lambda x: x["sliceId"])
         hoje_tag = HOJE.strftime("%Y_%m_%d")
         if est["slice"]["dia"] != HOJE.isoformat():
-            if est["slice"]["dia"]: est["dias"].append(est["slice"]["dia"])   # o dia anterior ficou coberto pelos pacotes
+            if est["slice"]["dia"]: est["prov"].append(est["slice"]["dia"])   # coberto pelos pacotes, à espera do arquivo fechado
             est["slice"] = {"dia": HOJE.isoformat(), "id": 0}
         for s in lista:
             if hoje_tag not in s["fileName"] or s["sliceId"] <= est["slice"]["id"]: continue
@@ -131,7 +139,9 @@ if pronto:
             est["slice"]["ate"] = s.get("endTs")
     except Exception as e: est["erros"] += 1; est["ultimo_erro"] = str(e)[:150]
 est["dias"] = sorted(set(x for x in est["dias"] if x >= (HOJE - dt.timedelta(days=JANELA + 5)).isoformat()))
+est["prov"] = sorted(set(x for x in est["prov"] if x not in est["dias"] and x >= (HOJE - dt.timedelta(days=JANELA + 5)).isoformat()))
 for k in [k for k, v in NEG.items() if v["v"] < HOJE.isoformat()]: NEG.pop(k)
+est["erros_total"] += est["erros"]
 salva("dtcc_estado.json", est)
 
 # volatilidade implícita de cada par pelos prêmios pagos (testes/vol_dtcc.py, 2 anos: prevê a amplitude do dia melhor que a vol.
@@ -152,7 +162,15 @@ def vol_impl(par):
         j = json.loads(baixa(f"https://query2.finance.yahoo.com/v8/finance/chart/{YSYM[par]}?range=5d&interval=1h"))["chart"]["result"][0]
         spot = {t // 3600: c for t, c in zip(j["timestamp"], j["indicators"]["quote"][0]["close"]) if c}
     except Exception: return None
-    ini = AGORA - dt.timedelta(hours=24); quote = par[3:]; ivs = []
+    quote = par[3:]
+    # P7: mínimo de 10 negócios (testes/min_negocios_dtcc.py: com 5, o erro típico da mediana ≈ a variação normal de um dia para o
+    # outro e 10% das vezes erra 12–16%; com 10, 1,5–3% e 90% ≤ 7–10%). Faltando, alarga para 48 h e 72 h; com < 5 em 72 h, sem vol.
+    for horas in (24, 48, 72):
+        r = _vol_jan(par, spot, quote, horas)
+        if r and r["negocios"] >= 10: return r
+    return r if r and r["negocios"] >= 5 else None
+def _vol_jan(par, spot, quote, horas):
+    ini = AGORA - dt.timedelta(hours=horas); ivs = []
     for x in NEG.values():
         if x["p"] != par or x.get("c") or not x.get("pr") or x.get("pm") not in (BASE[par], quote): continue
         try: ts = dt.datetime.fromisoformat(x["ts"]).replace(tzinfo=dt.timezone.utc)
@@ -164,8 +182,8 @@ def vol_impl(par):
         P = (x["pr"] if x["pm"] == quote else x["pr"] * S) / base_amt
         v = _iv(S, K, (dias - 0.5) / 365, P, x["t"] == "C")
         if v and 0.02 < v < 0.40: ivs.append(v)
-    if len(ivs) < 5: return None
-    ivs.sort(); return {"iv": round(ivs[len(ivs) // 2] * 100, 2), "negocios": len(ivs), "janela": "24 h"}
+    if not ivs: return None
+    ivs.sort(); return {"iv": round(ivs[len(ivs) // 2] * 100, 2), "negocios": len(ivs), "janela": f"{horas} h"}
 
 # 3) resumo por par
 precos = {x["ativo"]: x["preco"] for x in ler("mi_ativos.json", []) if x.get("preco")}
@@ -192,7 +210,8 @@ for par in BASE:
     saida.append({"ativo": par, "preco": S, "casas": CASAS[par], "corte": corte.isoformat(), "vencimentos": venc,
                   "hoje_negocios": len(hoje_fluxo), "hoje_mi": round(sum(x["n"] for x in hoje_fluxo), 1), "vol_impl": vol_impl(par)})
 meta = {"atualizado": AGORA.strftime("%Y-%m-%d %H:%M UTC"), "pacote_ate": est["slice"].get("ate"), "dias_carregados": len(est["dias"]),
-        "historico_completo": pronto, "janela_dias": JANELA, "negocios_vivos": len(NEG), "pacotes_nesta_rodada": novos, "erros": est["erros"], "descartados_rodada": DESC}
+        "historico_completo": pronto, "janela_dias": JANELA, "negocios_vivos": len(NEG), "pacotes_nesta_rodada": novos, "erros": est["erros"], "erros_total": est["erros_total"],
+        "dias_provisorios": est["prov"], "ultimo_erro": est.get("ultimo_erro"), "descartados_rodada": DESC}
 salva("mi_otc.json", [{"meta": meta, "pares": saida}])
 # retrato diário (1º do dia) para testar depois se as paredes seguram o preço
 h = ler("mi_otc_hist.json", [])

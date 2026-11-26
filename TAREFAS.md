@@ -29,8 +29,8 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | feito | CODE | P2 (prioridade): série do ouro ajustada por contrato (var 1d/5d/20d/ano, ATR, 52s, correlações, valor justo, CTA, score) | 26/11: `mi_rolagem.json` + razão da troca (var. do dia +1,63% → +0,81%). Desfazer: `git revert` deste commit |
 | feito | CODE | P3: candle diário das moedas (correlação EURUSD x DXY errada), var 1d e sazonalidade por dia | 26/11: fechamento do dia = abertura da barra seguinte (Yahoo `=X`); EURUSD × DXY −0,93. Desfazer: `git revert` deste commit |
 | feito | CODE | P6: put/call e skew do GLD pela reserva Yahoo (delta pela vol implícita, marcar fonte) | 26/11: delta Black-Scholes, todos os vencimentos, `fonte_gld`; skew 25Δ volta a gravar. Yahoo dá put/call 0,43 × Cboe 0,29 (diferença de fonte). Desfazer: `git revert` deste commit |
-| fazendo | CODE | P7: `dtcc.py` só marcar dia coberto com arquivo fechado; ver 88 erros; avaliar mínimo > 5 negócios | `dtcc.py` |
-| aberto | CODE | P11 (resto): σ do NAS100 pelo VXN | `coletor.py` |
+| feito | CODE | P7: `dtcc.py` só marcar dia coberto com arquivo fechado; ver 88 erros; avaliar mínimo > 5 negócios | 26/11: só arquivo fechado marca o dia; erros por rodada (os 88 eram acumulado de conexão derrubada); mínimo 10 negócios com janela 48/72 h. Desfazer: `git revert` deste commit |
+| fazendo | CODE | P11 (resto): σ do NAS100 pelo VXN | `coletor.py` |
 
 Linhas `feito` com mais de 30 dias: apagar (o detalhe fica no `HISTORICO.md`).
 

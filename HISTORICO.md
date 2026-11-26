@@ -342,3 +342,9 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Todos os vencimentos (antes ≤ 40 dias); os longos param se faltarem < 90 s no limite da coleta.
 - `mi_pcr_hist` ganha `fonte_gld` (Cboe ou Yahoo).
 - Conferido 26/11 15h08 NY: skew 25Δ +2,87 pts (put 35,0% × call 32,2%, venc. 24/12); pcr_oi total 0,43 (com todos os vencimentos; a Cboe dava 0,29 → o contrato em aberto do Yahoo é diferente; não misturar fontes no teste de 17/05/2027). Coleta inteira em 60 s, sem bloco pulado. Dias 23–25/11 ficam sem skew (não dá para refazer).
+
+## 26/11/2026 — P7 (Code): dtcc.py
+- Cobertura: antes um 404 (arquivo do dia ainda não publicado) ou a virada do dia nos pacotes intradiários marcava o dia como coberto (até sábados/domingos entravam). Agora só com o arquivo fechado lido; 404 com > 4 dias = feriado; dia dos pacotes fica em `prov` (não trava os pacotes de hoje) até o arquivo fechado sair. Na 1ª rodada nova, os últimos 7 dias são relidos (seguro: chave única por negócio).
+- Os 88 "erros" eram um contador que nunca zerava (último: conexão derrubada pela DTCC). `erros` agora = rodada; `erros_total` acumulado; `ultimo_erro` com a data.
+- Mínimo de negócios (`testes/min_negocios_dtcc.py`, 40 dias out–nov/2026, sorteio dentro de dias com ≥ 25 negócios): k=5 erro típico da mediana 2,3–4,4% (90% ≤ 12–16%), ≈ variação normal de um dia para o outro (4,3–8,7%); k=10 1,5–2,9% (90% ≤ 7–10%); k=20 0,8–1,9%. → mínimo 10, alargando para 48 h e 72 h; < 5 em 72 h = sem vol. (reserva: realizada × 1,09). Negócios por dia: USDJPY mediana 42, EURUSD 97, GBPUSD 20, USDCHF poucos.
+- Conferido: rodada em 16 s, 0 erro; USDJPY 6,97% (128, 24 h), EURUSD 6,23% (35, 24 h), USDCHF 8,6% (38, 48 h; antes 6,83% com 7), GBPUSD 6,88% (48, 48 h; antes 6,08% com 8). Obs.: a precisão de 2 anos (vol_dtcc.py) foi medida com mínimo 5 por dia; a janela de 48/72 h no franco e na libra ainda não foi retestada.
