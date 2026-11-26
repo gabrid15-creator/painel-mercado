@@ -1,5 +1,7 @@
 # Transferência do painel para outra conta — guia completo
 
+> **ATUALIZAÇÃO (26/11): só a conta do Claude muda.** O GitHub (repo, Actions, Pages, cron-job.org, token do robô) já é do Gabriel e **não precisa transferir nada**. Na conta nova do Claude, só refazer: (1) conectar o GitHub (claude.ai/connect-github) e instalar o app Claude no repo; (2) criar o ambiente "painel-mercado" com a rede liberada (seção 3); (3) conferir de quem é a chave `ANTHROPIC_API_KEY` (se for do Console da esposa, criar uma nova no Console do Gabriel e trocar o segredo do repo); (4) recriar a tarefa agendada de 17/05/2027 (seção 6). O resto deste guia só vale se o GitHub também mudar.
+
 > Escrito em 26/11/2026. Serve para o Gabriel (ou qualquer conta nova do Claude/GitHub) continuar exatamente de onde parou.
 > **Nenhuma senha, chave ou token está neste arquivo** (eu nunca tive acesso a eles). A seção 3 lista cada um que precisa ser recriado.
 > Memória do projeto no próprio repositório: `CLAUDE.md` (regras), `PROJETO.md` (estado atual, ~32 KB), `HISTORICO.md` (diário completo, ~58 KB). **Copiar o repositório inteiro já leva tudo isso.**
