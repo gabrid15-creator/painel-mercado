@@ -104,6 +104,7 @@
 - **CME ouro → painel:** nível × (GC=F 5 min às 13h30 NY do pregão ÷ futuro pela paridade) × fator.
 - **CME iene → USDJPY:** strike 1/K (call de iene = put de USDJPY); régua = JPY=X às 15h NY ÷ (1/F).
 - **CME em equivalente GLD:** contratos × ouro ÷ GLD (~10,9 GLD por contrato de ouro).
+- **Moedas, barra diária do Yahoo (P3, 26/11, Code):** abertura e fechamento de cada barra diária `=X` são o preço do INÍCIO dela (≈ 17h–19h NY da véspera); máx./mín. são do dia certo. `b_precos` usa como fechamento do dia D a abertura da barra seguinte (desde 2011; antes o Yahoo é misturado). EURUSD × DXY: +0,21/−0,08 → −0,93 (20 d) / −0,82 (250 d). Corrige var. 1d, correlações, sazonalidade, ATR e valor justo das moedas.
 - **Testes de toque e de máx./mín.: só FUTUROS da CME (GC, 6J, 6E, 6S, 6B).** O Yahoo FX (`JPY=X` etc.) tem picos falsos nas máximas/mínimas e já inventou uma "defesa" de 70% que era só sujeira. Fechamentos do Yahoo FX servem.
 - **Sessão do dia:** abre às **18h NY (20h BRT) para todos** (18/11: ela conferiu o candle de abertura da corretora, gráfico em horário de NY; antes as moedas abriam 17h NY). Semana das moedas: Yahoo FX só tem domingo a partir das 19h NY → abertura das 18h estimada pelo futuro da CME × razão à vista/futuro. O σ do mapa congela na 1ª coleta da sessão/semana (`mapa_fixo.json`). Chave da semana = `ativo|sem|segunda` (corrigido 16/11: na segunda o σ da semana saía igual ao do dia).
 

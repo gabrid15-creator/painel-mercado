@@ -185,6 +185,15 @@ def spot_ouro(gc):
 @bloco("Preços (Yahoo)")
 def b_precos():
     for k, (y, _) in ATIVOS.items(): P[k] = yahoo(y)
+    # P3 (26/11/2026): nas moedas (=X) o Yahoo grava abertura e fechamento de cada barra diária como o preço do INÍCIO dela
+    # (≈ 17h–19h NY da véspera); máx./mín. são do dia certo. Fechamento real do dia D = abertura da barra seguinte.
+    # Medido: EURUSD × DXY 250 d +(-0,08) antes → -0,81 com o ajuste; vale desde ~2011 (antes os dados do Yahoo são misturados).
+    # A última barra (ao vivo) já tem o preço de agora no fechamento.
+    for k, (y, _) in ATIVOS.items():
+        if not y.endswith("=X"): continue
+        ds = sorted(P[k])
+        P[k] = {d: (o, h, l, P[k][ds[i + 1]][0] if i + 1 < len(ds) and d >= dt.date(2011, 1, 1) and P[k][ds[i + 1]][0] else c)
+                for i, (d, (o, h, l, c)) in enumerate((d, P[k][d]) for d in ds)}
     # ouro → à vista (mesmo fator em toda a série: retornos e % não mudam, só o nível)
     gc = closes(P["XAUUSD"]); gc_ult = gc[max(gc)]
     # CALIBRADO COM A VANTAGE (16/11/2026): o XAUUSD dela anda colado no futuro ativo (máx. 3.905,84 × GC 3.904,3;

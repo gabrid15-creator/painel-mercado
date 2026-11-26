@@ -330,3 +330,9 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Causa: a série diária do GC=F no Yahoo trocou de dez. para fev. só em 26/11 (25/11 = dez. 3.535,8; 26/11 = fev. 3.593,4) → var. do dia +1,63% falsa.
 - `b_precos`: quando o GC=F ≠ mês perto, acha o 1º dia em que ele bate com o contrato seguinte, grava em `mi_rolagem.json` a razão seguinte ÷ perto na véspera (26/11: 3.564,6 ÷ 3.535,8 = 1,00815) e multiplica o OHLC anterior por ela. Vale para tudo que usa `P["XAUUSD"]`.
 - Conferido rodando o coletor com a cópia da branch `dados`: var_1d +0,81% (fev. no dia: +0,81%), 0 bloco com erro. Trocas antes de 26/11 seguem com salto (~0,6% cada 2 meses; contratos vencidos não existem no Yahoo).
+
+## 26/11/2026 — P3 (Code): fechamento diário das moedas no Yahoo
+- Achado: na barra diária `=X` (data de Londres) abertura e fechamento = preço no início da barra (≈ 16h–19h NY da véspera; ex. EURUSD barra 24/11 fecha 1,09081 = 23/11 16h NY 1,09075); máx./mín. são do dia. Correlação EURUSD × DXY por ano: defasagem 0 dá −0,02 a 0,14 desde 2012; defasagem de 1 barra dá −0,80 a −0,91. Antes de 2011, misturado (2006–2010: −0,47/−0,55 sem defasagem).
+- Correção em `b_precos`: fechamento do dia D = abertura da barra D+1 (datas ≥ 2011); a barra ao vivo mantém o preço de agora.
+- Conferido rodando o coletor: EURUSD × DXY −0,93 (20 d), −0,90 (60 d), −0,82 (250 d); USDJPY × DXY +0,49/+0,52/+0,62; var. do dia EURUSD −0,04% (1,09733 ÷ 1,09782).
+- Atenção: scripts antigos em `testes/` que usam barras diárias do Yahoo FX têm o mesmo atraso de 1 dia no fechamento (não refeitos).

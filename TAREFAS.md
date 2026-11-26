@@ -27,8 +27,8 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | aberto | CODE | Euro e franco na CME só se precisar de dado ao vivo; a leitura dos PDFs é do chat | combinar antes (não iniciado). Obs. 26/11: o Code voltou ao ambiente "painel-mercado" (Yahoo, FRED, DTCC etc. liberados; incluído `cdn-api.cboe.com`, para onde a Cboe agora redireciona o GLD.json) |
 | feito | CHAT | Recados P1, P4, P5, P8, P9, P10, P11 (texto da IA), P12 e `mi_quant_diario.json` | 26/11, commit ef5f8c5, conferido na coleta 16:51. Desfazer: `git revert ef5f8c5`. Arquivos liberados |
 | feito | CODE | P2 (prioridade): série do ouro ajustada por contrato (var 1d/5d/20d/ano, ATR, 52s, correlações, valor justo, CTA, score) | 26/11: `mi_rolagem.json` + razão da troca (var. do dia +1,63% → +0,81%). Desfazer: `git revert` deste commit |
-| fazendo | CODE | P3: candle diário das moedas (correlação EURUSD x DXY errada), var 1d e sazonalidade por dia | `coletor.py`; testar defasagem de 1 dia ou fechar 17h NY |
-| aberto | CODE | P6: put/call e skew do GLD pela reserva Yahoo (delta pela vol implícita, marcar fonte) | `coletor.py`; sem driblar bloqueio |
+| feito | CODE | P3: candle diário das moedas (correlação EURUSD x DXY errada), var 1d e sazonalidade por dia | 26/11: fechamento do dia = abertura da barra seguinte (Yahoo `=X`); EURUSD × DXY −0,93. Desfazer: `git revert` deste commit |
+| fazendo | CODE | P6: put/call e skew do GLD pela reserva Yahoo (delta pela vol implícita, marcar fonte) | `coletor.py`; sem driblar bloqueio |
 | aberto | CODE | P7: `dtcc.py` só marcar dia coberto com arquivo fechado; ver 88 erros; avaliar mínimo > 5 negócios | `dtcc.py` |
 | aberto | CODE | P11 (resto): σ do NAS100 pelo VXN | `coletor.py` |
 
