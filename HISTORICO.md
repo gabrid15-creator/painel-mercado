@@ -353,3 +353,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Teste `testes/faixa_vxn.py` (mesmo método do `faixa_backtest.py`; VXN do dia → fechamento de n dias à frente, janelas sem sobreposição): NQ=F dia ±1σ 78,3% (metades 78,9/77,8; 5 anos 74,3%), ±2σ 97,5%; semana 78,1/98,2; mês 75,2/98,1. ^NDX: 76,9/97,5, 77,1/98,6, 76,1/99,0. Passa.
 - `b_faixa`: `"NAS100": (None, "^VXN")`; etiqueta do nível com o nome do índice (antes "GVZ" fixo). 26/11: VXN 38,5% (bem acima do normal, média 23,7) → dia ±2,43% (25.422–26.687).
 - Mapa de fora no NAS100: com a sessão 18h NY a abertura do dia saía de 25/11 (índice à vista não negocia à noite; 26/11 feriado nos EUA) e o preço ficava fora da faixa. Não há teste de toque/rompimento para o NAS100.
+
+## 26/11/2026 — robô da CME
+Timer falhou em 25 e 26/11 ("o Brave não baixou"); rodado à mão em 26/11 19:20 funcionou: boletim de 25/11 publicado com 0 erro (0bfd6c5). Falta testar pelo systemd.
