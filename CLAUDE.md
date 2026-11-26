@@ -4,7 +4,7 @@ Leia o resumo do projeto abaixo antes de qualquer tarefa; ele é a memória entr
 
 @PROJETO.md
 
-Transferência para outra conta (acessos, segredos, pendências): `TRANSFERENCIA.md`.
+Para colar numa conversa nova: `COMECE_AQUI.md` (regras + transferência + estado, tudo em um arquivo). Transferência: `TRANSFERENCIA.md`.
 
 ## Economia de tokens (prioridade)
 - **Formato das respostas (pedido dela, sempre):** só o resumo final. Um item por ponto: funciona ou não + o motivo em 1 linha. Sem tabelas longas, sem detalhe técnico, sem explicar o processo.
