@@ -601,7 +601,8 @@ b_regime()
 def b_faixa():
     # volatilidade implícita de 30 dias → faixa de ±1σ e ±2σ para dia, semana e mês
     # validação ouro (GVZ, 2016+): semana ±1σ conteve 74% dos fechamentos (teórico 68%), ±2σ 96%
-    FONTE = {"XAUUSD": ("GLD", "^GVZ"), "USDJPY": ("FXY", None), "USDCHF": ("FXF", None), "EURUSD": ("FXE", None), "GBPUSD": (None, None)}
+    FONTE = {"XAUUSD": ("GLD", "^GVZ"), "USDJPY": ("FXY", None), "USDCHF": ("FXF", None), "EURUSD": ("FXE", None), "GBPUSD": (None, None),
+             "NAS100": (None, "^VXN")}   # P11 (26/11/2026): VXN testado (testes/faixa_vxn.py, 2001+: dia ±1σ 77–78%, ±2σ 97,5%, metades estáveis)
     rows = []; hist = {(h["ativo"], h["data"]): h for h in ler("mi_faixa_hist.json")}
     fx0 = ler("mapa_fixo.json"); FIXO = fx0[0] if fx0 else {}
     MH = {f"{h['ativo']}|{h['tipo']}|{h['ini']}": h for h in ler("mi_mapa_hist.json")}   # histórico do mapa (backtest diário)
@@ -630,7 +631,7 @@ def b_faixa():
         row = {"ativo": a, "preco": rnd(px, casas), "iv": rnd(iv, 2), "fonte": fonte, "faixas": fx, "validado": True}
         # nível da vol.: compara com a média de 1, 3 e 5 anos (peso 50/30/20). Ouro: do próprio GVZ; moedas: vol. realizada × 1,1 (prêmio típico)
         try:
-            if idx: g = closes(yahoo(idx, 5)); ref = "GVZ"
+            if idx: g = closes(yahoo(idx, 5)); ref = idx.strip("^")
             else:
                 ks_ = sorted(c); g = {}
                 for i_ in range(22, len(ks_)):
@@ -667,7 +668,10 @@ def b_faixa():
                         for f, n in zip(fx, (1, 5, 21))]}
             except Exception as e: STATUS.append({"bloco": "Faixa CME " + a, "ok": False, "msg": str(e)[:120]})
         # aberturas do dia (18h NY, todos os ativos: reabertura da CME; pedido dela 18/11, bate com o candle da corretora) e da semana, e máxima/mínima desde então, para o mapa de probabilidades
-        try:
+        # NAS100: só a faixa do VXN a partir do preço de agora; o mapa (sessão 18h NY, toque, rompimento, dia normal) não foi feito nem testado
+        # para o índice à vista (abre 9h30 NY) → fica de fora
+        if a != "NAS100":
+          try:
             j = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ATIVOS[a][0])}?range=10d&interval=1h"))["chart"]["result"][0]
             q = j["indicators"]["quote"][0]; NYz = ZoneInfo("America/New_York")
             fz = SPOT["fator"] if a == "XAUUSD" else 1   # ouro no à vista
@@ -742,7 +746,7 @@ def b_faixa():
             except Exception: pass
             MH[f"{a}|dia|{hoje_s}"] = {"ativo": a, "tipo": "dia", "ini": str(hoje_s), "ab": mp["ab_dia"], "sd": mp["sd_dia"], "max": mp["max_dia"], "min": mp["min_dia"]}
             MH[f"{a}|sem|{seg}"] = {"ativo": a, "tipo": "sem", "ini": str(seg), "ab": mp["ab_sem"], "sd": mp["sd_sem"], "max": mp["max_sem"], "min": mp["min_sem"]}
-        except Exception as e: STATUS.append({"bloco": "Mapa " + a, "ok": False, "msg": str(e)[:120]})
+          except Exception as e: STATUS.append({"bloco": "Mapa " + a, "ok": False, "msg": str(e)[:120]})
         rows.append(row)
         hist[(a, NOW.date().isoformat())] = {"ativo": a, "data": NOW.date().isoformat(), "iv": rnd(iv, 2), "preco": rnd(px, casas)}
     # DIÁRIO DE LATERALIDADE (24/11/2026, pedido dela: acompanhar quando o mercado fica lateral, inclusive em dia de notícia): 1 registro por sessão

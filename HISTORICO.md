@@ -348,3 +348,8 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - Os 88 "erros" eram um contador que nunca zerava (último: conexão derrubada pela DTCC). `erros` agora = rodada; `erros_total` acumulado; `ultimo_erro` com a data.
 - Mínimo de negócios (`testes/min_negocios_dtcc.py`, 40 dias out–nov/2026, sorteio dentro de dias com ≥ 25 negócios): k=5 erro típico da mediana 2,3–4,4% (90% ≤ 12–16%), ≈ variação normal de um dia para o outro (4,3–8,7%); k=10 1,5–2,9% (90% ≤ 7–10%); k=20 0,8–1,9%. → mínimo 10, alargando para 48 h e 72 h; < 5 em 72 h = sem vol. (reserva: realizada × 1,09). Negócios por dia: USDJPY mediana 42, EURUSD 97, GBPUSD 20, USDCHF poucos.
 - Conferido: rodada em 16 s, 0 erro; USDJPY 6,97% (128, 24 h), EURUSD 6,23% (35, 24 h), USDCHF 8,6% (38, 48 h; antes 6,83% com 7), GBPUSD 6,88% (48, 48 h; antes 6,08% com 8). Obs.: a precisão de 2 anos (vol_dtcc.py) foi medida com mínimo 5 por dia; a janela de 48/72 h no franco e na libra ainda não foi retestada.
+
+## 26/11/2026 — P11 resto (Code): σ do NAS100 pelo VXN
+- Teste `testes/faixa_vxn.py` (mesmo método do `faixa_backtest.py`; VXN do dia → fechamento de n dias à frente, janelas sem sobreposição): NQ=F dia ±1σ 78,3% (metades 78,9/77,8; 5 anos 74,3%), ±2σ 97,5%; semana 78,1/98,2; mês 75,2/98,1. ^NDX: 76,9/97,5, 77,1/98,6, 76,1/99,0. Passa.
+- `b_faixa`: `"NAS100": (None, "^VXN")`; etiqueta do nível com o nome do índice (antes "GVZ" fixo). 26/11: VXN 38,5% (bem acima do normal, média 23,7) → dia ±2,43% (25.422–26.687).
+- Mapa de fora no NAS100: com a sessão 18h NY a abertura do dia saía de 25/11 (índice à vista não negocia à noite; 26/11 feriado nos EUA) e o preço ficava fora da faixa. Não há teste de toque/rompimento para o NAS100.

@@ -1,0 +1,6 @@
+NQ=F  dia    n= 6498 desde 2001-01-24  ±1σ 78.3% (metades [78.9, 77.8], 5 anos 74.3%)  ±2σ 97.5% (metades [98.1, 97.0])
+NQ=F  semana n= 1304 desde 2001-01-30  ±1σ 78.1% (metades [80.7, 75.5], 5 anos 71.0%)  ±2σ 98.2% (metades [98.6, 97.7])
+NQ=F  mês    n=  310 desde 2001-02-22  ±1σ 75.2% (metades [78.7, 71.6], 5 anos 68.3%)  ±2σ 98.1% (metades [98.7, 97.4])
+^NDX  dia    n= 6499 desde 2001-01-24  ±1σ 76.9% (metades [76.7, 77.2], 5 anos 73.7%)  ±2σ 97.5% (metades [98.0, 97.1])
+^NDX  semana n= 1299 desde 2001-01-30  ±1σ 77.1% (metades [78.3, 76.0], 5 anos 71.6%)  ±2σ 98.6% (metades [98.3, 98.9])
+^NDX  mês    n=  309 desde 2001-02-22  ±1σ 76.1% (metades [79.2, 72.9], 5 anos 71.7%)  ±2σ 99.0% (metades [99.4, 98.7])
