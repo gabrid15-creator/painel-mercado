@@ -201,8 +201,27 @@ def b_precos():
         y = hj.year + (m - 1) // 12; m = (m - 1) % 12 + 1
         fr = f"GC{['G','J','M','Q','V','Z'][m // 2 - 1]}{str(y)[2:]}.CMX"
         qf = closes(yahoo(fr, 1)); fr_ult = qf[max(qf)]
-        if abs(gc_ult - fr_ult) > 8: VANTAGE_USD = round(gc_ult - fr_ult + 1.9, 1); CALIB = hj.strftime("%d/%m/%Y") + " (troca de contrato, 1 par)"
+        if abs(gc_ult - fr_ult) > 8:
+            VANTAGE_USD = round(gc_ult - fr_ult + 1.9, 1); CALIB = hj.strftime("%d/%m/%Y") + " (troca de contrato, 1 par)"
+            # P2 (26/11/2026): acha o dia em que o GC=F passou do mês perto para o seguinte e guarda a razão seguinte ÷ perto na véspera
+            m2 = m + 2; y2 = y + (m2 - 1) // 12; m2 = (m2 - 1) % 12 + 1
+            qn = closes(yahoo(f"GC{['G','J','M','Q','V','Z'][m2 // 2 - 1]}{str(y2)[2:]}.CMX", 1))
+            ds = [d for d in sorted(gc)[-15:] if d in qf and d in qn]
+            velho = [d for d in ds if abs(gc[d] - qf[d]) < 0.5 and abs(gc[d] - qn[d]) >= 0.5]
+            novo = [d for d in ds if abs(gc[d] - qn[d]) < 0.5 and (not velho or d > velho[-1])]
+            if velho and novo:
+                rol = ler("mi_rolagem.json")
+                if not any(r["data"] == novo[0].isoformat() for r in rol):
+                    d0 = velho[-1]; rol.append({"data": novo[0].isoformat(), "de": fr, "razao": qn[d0] / qf[d0], "vespera": d0.isoformat(),
+                                                "perto": qf[d0], "seguinte": qn[d0]})
+                    save("mi_rolagem.json", rol)
     except Exception as e: STATUS.append({"bloco": "Ouro: contrato da Vantage", "ok": False, "msg": str(e)[:120]})
+    # P2: série do ouro ajustada por contrato (sem o salto da troca): tudo antes de cada troca × razão seguinte ÷ perto.
+    # Só as trocas desde 26/11/2026 (o Yahoo não guarda contratos vencidos); as antigas seguem com o salto (~0,6% cada 2 meses).
+    for r in ler("mi_rolagem.json"):
+        dr = dt.date.fromisoformat(r["data"])
+        P["XAUUSD"] = {d: tuple(v * r["razao"] if v is not None and d < dr else v for v in ohlc) for d, ohlc in P["XAUUSD"].items()}
+    gc = closes(P["XAUUSD"])
     f_teor, como = spot_ouro(gc_ult); f = 1 - VANTAGE_USD / gc_ult
     SPOT.update({"fator": f, "base_usd": VANTAGE_USD, "calibrado": CALIB, "teorico_base_usd": round(gc_ult * (1 - f_teor), 1), "como": f"régua da Vantage (futuro − US$ {VANTAGE_USD:.1f}); " + como})
     P["XAUUSD"] = {d: tuple(v * f if v is not None else None for v in ohlc) for d, ohlc in P["XAUUSD"].items()}

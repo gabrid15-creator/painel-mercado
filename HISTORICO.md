@@ -325,3 +325,8 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 - P11 IA sem rótulos internos; 0DTE não é mais chamado de faixa do dia. P12 `iene_boletim` lê da branch dados; `op_boletim`/`op_cadeia` apagados.
 - Novo `mi_quant_diario.json` (branch dados): 1 linha por dia útil, com a data de cada série.
 - Testes: simulação com os dados reais, preços sintéticos para ativos, varredura Playwright (88 casos, 1200/390/340/320, claro e escuro) sem erro novo.
+
+## 26/11/2026 — P2 (Code): série do ouro ajustada por contrato
+- Causa: a série diária do GC=F no Yahoo trocou de dez. para fev. só em 26/11 (25/11 = dez. 3.535,8; 26/11 = fev. 3.593,4) → var. do dia +1,63% falsa.
+- `b_precos`: quando o GC=F ≠ mês perto, acha o 1º dia em que ele bate com o contrato seguinte, grava em `mi_rolagem.json` a razão seguinte ÷ perto na véspera (26/11: 3.564,6 ÷ 3.535,8 = 1,00815) e multiplica o OHLC anterior por ela. Vale para tudo que usa `P["XAUUSD"]`.
+- Conferido rodando o coletor com a cópia da branch `dados`: var_1d +0,81% (fev. no dia: +0,81%), 0 bloco com erro. Trocas antes de 26/11 seguem com salto (~0,6% cada 2 meses; contratos vencidos não existem no Yahoo).
