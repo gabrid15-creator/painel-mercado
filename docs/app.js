@@ -1022,6 +1022,39 @@
     sv.append('text').attr('x', m.l).attr('y', H - 20).attr('fill', '#3fa76a').attr('font-weight', 700).text('← puts em aberto');
     sv.append('text').attr('x', W - m.r).attr('y', H - 20).attr('text-anchor', 'end').attr('fill', '#d9645a').attr('font-weight', 700).text('calls em aberto →');
     sv.append('text').attr('x', meio).attr('y', H - 5).attr('text-anchor', 'middle').attr('fill', 'currentColor').attr('opacity', 0.7).text('maior barra: ' + nf(M, 0) + ' contratos' + (gb.length ? ' · fina roxa: GLD' : ''));
+    toqueMapa(el, sv, { w, cs, y, m, W, marc, fora, soGld, g, coin, rows, gb });
+  }
+
+  // mouse (PC) ou toque (celular) no mapa: mostra o preço e os dados da linha ou barra mais perto
+  function toqueMapa(el, sv, o) {
+    const { w, cs, y, m, W, marc, fora, soGld, g, coin, rows, gb } = o;
+    const dist = (v) => { const d = v - w.preco; return 'preço agora ' + nf(w.preco, cs) + ': ' + nf(Math.abs(d), cs) + (d >= 0 ? ' abaixo deste nível' : ' acima deste nível'); };
+    const strike = (x) => 'strike ' + (cs === 0 ? nf(x.strike, 0) : nf(x.strike * 1e6, 0) + ' (iene)') + ' · ' + nf(x.oi, 0) + ' contratos';
+    const itens = [];
+    marc.forEach(([k, nome]) => { const x = w[k], r = !k.endsWith('2') && w['rompida_' + k];
+      itens.push({ v: x.nivel, linhas: [nome + ': ' + nf(x.nivel, cs), strike(x), dist(x.nivel), ...(r ? ['ROMPIDA em ' + r.hora + ' (preço ' + nf(r.preco, cs) + ')'] : []), ...(coin[k] ? ['coincide com o GLD (' + nf(coin[k], cs) + ')'] : [])] }); });
+    fora.forEach((x) => itens.push({ v: x.nivel, linhas: [x.l.toUpperCase() + ' grande fora da faixa: ' + nf(x.nivel, cs), strike(x), dist(x.nivel)] }));
+    soGld.forEach((k) => { const x = g[k]; itens.push({ v: x.nivel, linhas: [(k.endsWith('2') ? '2ª ' : '') + 'GLD ' + k.replace('2', '').toUpperCase() + ': ' + nf(x.nivel, cs), 'strike ' + nf(x.strike_gld, 0) + ' do GLD · ' + nf(x.oi, 0) + ' contratos equivalentes', dist(x.nivel)] }); });
+    itens.push({ v: w.preco, linhas: ['PREÇO agora: ' + nf(w.preco, cs), 'horário ' + String(w.preco_hora || '').slice(-5)] });
+    const barras = [...rows.map((r) => ({ v: r[0], linhas: ['Nível ' + nf(r[0], cs), 'CME: ' + nf(r[1], 0) + ' calls · ' + nf(r[2], 0) + ' puts', dist(r[0])] })),
+      ...gb.map((r) => ({ v: r[0], linhas: ['Nível GLD ' + nf(r[0], cs), nf(r[1], 0) + ' calls · ' + nf(r[2], 0) + ' puts (equivalentes)', dist(r[0])] }))];
+    el.style.position = 'relative';
+    const guia = sv.append('line').attr('class', 'guia').attr('x1', m.l).attr('x2', W - m.r).attr('stroke', 'currentColor').attr('stroke-width', 1).attr('stroke-dasharray', '3 3').style('display', 'none');
+    const cx = tip(el); cx.style.whiteSpace = 'normal'; cx.style.maxWidth = '240px'; cx.style.width = 'max-content';
+    const some = () => { cx.hidden = true; guia.style('display', 'none'); };
+    const mostraEm = (ev) => { const [, py] = d3.pointer(ev, sv.node());
+      const perto = (lst, max) => lst.map((i) => ({ i, d: Math.abs(y(i.v) - py) })).filter((a) => a.d <= max).sort((a, b) => a.d - b.d)[0];
+      const a = perto(itens, 14) || perto(barras, 9); if (!a) return some();
+      guia.attr('y1', y(a.i.v)).attr('y2', y(a.i.v)).style('display', null);
+      show(el, cx, ev, a.i.linhas);
+      Object.assign(cx.firstChild.style, { color: 'inherit', fontWeight: 700, fontSize: '15px' });   // o preço do nível em destaque
+      const [px, qy] = d3.pointer(ev, el), alt = cx.offsetHeight, larg = cx.offsetWidth;
+      cx.style.left = Math.max(0, Math.min(px + 12 + larg > el.clientWidth ? px - larg - 12 : px + 12, el.clientWidth - larg)) + 'px';
+      cx.style.top = Math.max(0, qy + 14 + alt > el.clientHeight ? qy - alt - 14 : qy + 14) + 'px'; };
+    sv.style('cursor', 'crosshair').on('pointermove', (ev) => { if (ev.pointerType === 'mouse') mostraEm(ev); })
+      .on('pointerleave', (ev) => { if (ev.pointerType === 'mouse') some(); }).on('click', mostraEm);
+    if (el.__fora) document.removeEventListener('click', el.__fora);
+    el.__fora = (ev) => { if (!el.contains(ev.target)) some(); }; document.addEventListener('click', el.__fora);   // toque fora do mapa fecha
   }
 
   // ---------------------------------------------------------------- ajuda: "Como ler" e explicações ficam escondidos; botão "?" em cada card e um geral no topo
