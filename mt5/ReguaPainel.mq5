@@ -1,8 +1,9 @@
 //+------------------------------------------------------------------+
 //| ReguaPainel: SÓ LEITURA. Não abre, altera nem fecha operação.    |
 //| Manda os candles de 1 minuto do XAUUSD (fechados, últimas 1440   |
-//| barras, em UTC) para ultimo.csv no ramo "regua" do repositório.  |
+//| barras, em UTC) para ultimo.csv no repositório "painel-regua".   |
 //| A chave fica só no computador: MQL5/Files/painel_token.txt       |
+//| Criar a chave SÓ para o repositório painel-regua (Contents).     |
 //| Instalar: copiar para MQL5/Experts, compilar no MetaEditor (F7), |
 //| liberar https://api.github.com em Ferramentas > Opções > Expert  |
 //| Advisors (WebRequest) e arrastar para um gráfico do XAUUSD.      |
@@ -14,8 +15,8 @@
 #property strict
 
 input int    MinutosEntreEnvios = 15;
-input string Repositorio        = "gabrid15-creator/painel-mercado";
-input string Ramo               = "regua";
+input string Repositorio        = "gabrid15-creator/painel-regua";
+input string Ramo               = "main";
 
 #define ARQ_CHAVE "painel_token.txt"
 #define BARRAS    1440
@@ -33,6 +34,11 @@ void Aviso(const string t)
 
 int OnInit()
 {
+   if(StringFind(Repositorio, "painel-mercado") >= 0)   // a chave não pode alcançar o código do painel
+   {
+      Alert("ReguaPainel: use o repositório separado painel-regua.");
+      return INIT_FAILED;
+   }
    if(StringFind(_Symbol, "XAUUSD") != 0)
    {
       Alert("ReguaPainel: coloque no gráfico do XAUUSD.");

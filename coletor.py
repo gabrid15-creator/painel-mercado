@@ -620,28 +620,64 @@ def quantil(v, q):
 FERIADOS_EUA = ("2026-11-26", "2026-12-25", "2027-01-01", "2027-01-18", "2027-02-15", "2027-03-26", "2027-05-31", "2027-06-18", "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24")   # bolsa dos EUA fechada
 K_REF = (1.00, 1.55, 2.44)   # k de 50/80/95% medido por Estratégias no XAUUSD da Vantage até 20/11/2026 (claude/quant-aprende.py)
 
-def faixa_k(dia):
-    """FAIXA DO OURO (27/11/2026 12:34): σ = fechamento anterior do GVZ / raiz(252); excursão = maior distância da abertura das 18h NY;
-    k = quantis 50/80/95% de excursão/σ nas últimas 250 sessões completas ANTERIORES a `dia` (GC=F 1 h). Sessão curta ou sem a barra
-    das 18h fica fora."""
+def exc_gc(dia):
+    """({sessão completa anterior a `dia`: maior distância (log) da abertura das 18h NY, GC=F 1 h}, {data: fechamento do GVZ})."""
     NY = ZoneInfo("America/New_York")
     j = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=730d&interval=1h", timeout=25))["chart"]["result"][0]
     q = j["indicators"]["quote"][0]; ses = {}
     for t, o, h, l in zip(j["timestamp"], q["open"], q["high"], q["low"]):
         if not (o and h and l): continue
         x = dt.datetime.fromtimestamp(t, NY); ses.setdefault((x + dt.timedelta(hours=6)).date(), []).append((x, o, h, l))
-    g = closes(yahoo("^GVZ", 3)); gd = sorted(g); z = []
-    for s in sorted(ses):
-        b = ses[s]
+    exc = {}
+    for s, b in ses.items():
         if s >= dia or s.weekday() >= 5 or len(b) < 20 or b[0][0].hour != 18: continue
-        i = bisect.bisect_left(gd, s) - 1
-        if i < 0 or (s - gd[i]).days > 5: continue
-        o = b[0][1]; exc = max(math.log(max(y[2] for y in b) / o), math.log(o / min(y[3] for y in b)))
-        z.append((s, exc / (g[gd[i]] / 100 / math.sqrt(252))))
+        o = b[0][1]; exc[s] = max(math.log(max(y[2] for y in b) / o), math.log(o / min(y[3] for y in b)))
+    return exc, closes(yahoo("^GVZ", 3))
+
+def faixa_k(dia):
+    """FAIXA DO OURO (27/11/2026 12:34): σ = fechamento anterior do GVZ / raiz(252); excursão = maior distância da abertura das 18h NY;
+    k = quantis 50/80/95% de excursão/σ nas últimas 250 sessões completas ANTERIORES a `dia` (GC=F 1 h). Sessão curta ou sem a barra
+    das 18h fica fora."""
+    exc, g = exc_gc(dia); gd = sorted(g); z = []
+    for x_ in sorted(exc):
+        i = bisect.bisect_left(gd, x_) - 1
+        if i < 0 or (x_ - gd[i]).days > 5: continue
+        z.append((x_, exc[x_] / (g[gd[i]] / 100 / math.sqrt(252))))
     z = z[-250:]
     if len(z) < 200: raise ValueError(f"só {len(z)} sessões completas no histórico do GC")
     v = [x[1] for x in z]; i = bisect.bisect_left(gd, dia) - 1
     return {"gvz": rnd(g[gd[i]], 2), "gvz_data": gd[i].isoformat(), "k": [rnd(quantil(v, p), 3) for p in (0.5, 0.8, 0.95)], "n": len(z), "de": z[0][0].isoformat(), "ate": z[-1][0].isoformat()}
+
+# repositório SEPARADO só de dados (pedido do Gabriel 27/11 13h08): a chave do MT5 não alcança o código do painel
+URL_REGUA_MT5 = "https://raw.githubusercontent.com/gabrid15-creator/painel-regua/main/ultimo.csv"
+
+def mt5_linhas(txt):
+    """[(epoch, abertura, máxima, mínima, fechamento)] do envio do MT5, em UTC."""
+    out = []
+    for l in txt.splitlines():
+        c = l.split(",")
+        if len(c) == 5 and c[0].isdigit(): out.append((int(c[0]),) + tuple(float(x) for x in c[1:]))
+    return sorted(out)
+
+def mt5_sessao(txt, sessao):
+    """Sessão do ouro pelas barras de 1 min do MT5. Só vale com a barra da abertura (18h00 a 18h05 NY). Devolve
+    (barras por hora [(início NY, abertura, máxima, mínima)], último epoch, minutos) ou None."""
+    NY = ZoneInfo("America/New_York")
+    b = [(dt.datetime.fromtimestamp(x[0], NY),) + x for x in mt5_linhas(txt)]
+    b = [x for x in b if (x[0] + dt.timedelta(hours=6)).date() == sessao]
+    if not b or b[0][0].hour != 18 or b[0][0].minute > 5: return None
+    h = {}
+    for x, t, o, hi, lo, c in b:
+        k = (x.date(), x.hour)
+        if k not in h: h[k] = [x, o, hi, lo]
+        else: h[k][2] = max(h[k][2], hi); h[k][3] = min(h[k][3], lo)
+    return [tuple(v) for v in h.values()], b[-1][1], len(b)
+
+def baixa_mt5():
+    try:
+        t = get(URL_REGUA_MT5, timeout=8)
+        return t.decode() if isinstance(t, bytes) else t
+    except Exception: return None   # sem envio do MT5 (ou fora do ar): nada muda
 
 @bloco("Faixa do ouro (k)")
 def b_faixa_k():
@@ -655,6 +691,117 @@ def b_faixa_k():
     save("mi_faixa_k.json", sorted([x for x in lst if x.get("dia") != r["dia"]] + [r], key=lambda x: x["dia"])[-30:])
     if not aprovado: STATUS.append({"bloco": "Faixa do ouro (k)", "ok": False, "msg": f"k do GC {r['k']} difere mais de 0,10 da referência {list(K_REF)}: avisar Estratégias antes de publicar"})
 b_faixa_k()
+
+# ---------------------------------------------------------------- HAR + GVZ EM SOMBRA (só grava; faixa do ouro, item 4; claude/quant-aprende.py)
+def _resolve(A, b):
+    n = len(b); M = [A[i][:] + [b[i]] for i in range(n)]
+    for c in range(n):
+        p = max(range(c, n), key=lambda i: abs(M[i][c])); M[c], M[p] = M[p], M[c]
+        for i in range(n):
+            if i != c:
+                f = M[i][c] / M[c][c]; M[i] = [u - f * v for u, v in zip(M[i], M[c])]
+    return [M[i][n] / M[i][i] for i in range(n)]
+
+def har_gvz(rv, gv):
+    """rv e gv (σ diário pelo GVZ do fechamento anterior) por sessão, em ordem; gv tem um item a mais (a sessão a prever).
+    Regressão do log da variância em (1, dia, média 5, média 22, log GVZ), refeita a cada dia só com o passado, do índice 23 em
+    diante; devolve {índice: σ previsto} a partir do índice 150."""
+    lv = [math.log(max(v, 1e-10)) for v in rv]; n = len(lv); XtX = [[0.0] * 5 for _ in range(5)]; Xty = [0.0] * 5; yty = 0.0; m = 0; out = {}
+    X = lambda i: [1.0, lv[i - 1], sum(lv[i - 5:i]) / 5, sum(lv[i - 22:i]) / 22, math.log(gv[i])]
+    for i in range(23, n + 1):
+        if i >= 150:
+            k = _resolve(XtX, Xty); var = max((yty - sum(a * b for a, b in zip(k, Xty))) / m, 0)
+            out[i] = math.sqrt(math.exp(sum(a * b for a, b in zip(X(i), k)) + var / 2))
+        if i < n:
+            x = X(i); y = lv[i]; m += 1; yty += y * y
+            for a in range(5):
+                Xty[a] += x[a] * y
+                for b in range(5): XtX[a][b] += x[a] * x[b]
+    return out
+
+def rv_sessoes(barras, passo):
+    """{sessão: (variância realizada de 5 min, barras)} de [(epoch, fechamento)]; passo = segundos de cada barra."""
+    NY = ZoneInfo("America/New_York"); s = {}
+    for t, c in barras:
+        d = (dt.datetime.fromtimestamp(t, NY) + dt.timedelta(hours=6)).date()
+        s.setdefault(d, {})[t // 300] = c; s[d]["n"] = s[d].get("n", 0) + 1
+    out = {}
+    for d, v in s.items():
+        n = v.pop("n"); c = [v[k] for k in sorted(v)]
+        out[d] = (sum(math.log(c[i] / c[i - 1]) ** 2 for i in range(1, len(c))), n)
+    return out
+
+def pinball(e, F):
+    return sum(max(q * (e - f), (q - 1) * (e - f)) for q, f in zip((0.5, 0.8, 0.95), F)) / 3
+
+def ic_blocos(dif, base, bloco_=20, vezes=2000):
+    """Intervalo de 95% (em % do erro base) da diferença média, por blocos de 20 sessões."""
+    import random
+    r = random.Random(1); n = len(dif); m = []
+    for _ in range(vezes):
+        idx = [i for s in (r.randrange(0, n - bloco_ + 1) for _ in range(n // bloco_)) for i in range(s, s + bloco_)]
+        m.append(sum(dif[i] for i in idx) / len(idx) / (sum(base) / n) * 100)
+    m.sort(); return [rnd(m[int(vezes * 0.025)], 1), rnd(m[int(vezes * 0.975) - 1], 1)]
+
+@bloco("Faixa do ouro: HAR + GVZ (sombra)")
+def b_har():
+    NY = ZoneInfo("America/New_York"); ny = NOW.astimezone(NY); dia = (ny + dt.timedelta(hours=6)).date()
+    if dia.weekday() >= 5: return
+    sombra = {x["dia"]: x for x in ler("mi_har_sombra.json")}; rvs = {x["dia"]: x for x in ler("mi_har_rv.json")}
+    fecha = ny.hour == 17   # sessão recém-encerrada: o envio do MT5 ainda tem o dia inteiro
+    if fecha and rvs.get(dia.isoformat(), {}).get("fonte") != "MT5":
+        txt = baixa_mt5()
+        if txt and mt5_sessao(txt, dia):
+            v = rv_sessoes([(x[0], x[4]) for x in mt5_linhas(txt)], 60).get(dia)
+            if v and v[1] > 600:
+                rvs[dia.isoformat()] = {"dia": dia.isoformat(), "rv": v[0], "fonte": "MT5"}
+                save("mi_har_rv.json", [rvs[k] for k in sorted(rvs)])
+    if dia.isoformat() in sombra: return
+    if not any(x["fonte"].startswith("semente") for x in rvs.values()):
+        for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "dados_fixos", "semente_rv.csv"), encoding="utf-8"):
+            if l[:2] == "20": d_, v_ = l.strip().split(","); rvs[d_] = {"dia": d_, "rv": float(v_), "fonte": "semente (Vantage)"}
+    # sessões sem MT5: futuro GC de 5 min, ajustado pela razão mediana contra a semente nos dias em comum
+    j = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=60d&interval=5m", timeout=20))["chart"]["result"][0]
+    gc = rv_sessoes([(t, c) for t, c in zip(j["timestamp"], j["indicators"]["quote"][0]["close"]) if c], 300)
+    comum = [rvs[d.isoformat()]["rv"] / v for d, (v, n) in gc.items() if n > 120 and v > 0 and rvs.get(d.isoformat(), {}).get("fonte", "").startswith("semente")]
+    antigo = next((x["fator_gc"] for x in rvs.values() if x.get("fator_gc")), None)
+    fator = st.median(comum) if len(comum) >= 10 else antigo
+    if not fator: raise ValueError("sem dias em comum entre a semente e o futuro")
+    for d, (v, n) in gc.items():
+        if d < dia and d.weekday() < 5 and n > 120 and d.isoformat() not in rvs:
+            rvs[d.isoformat()] = {"dia": d.isoformat(), "rv": v * fator, "fonte": "GC 5 min ajustado", "fator_gc": rnd(fator, 4)}
+    exc, g = exc_gc(dia); gd = sorted(g)
+    def gvz(d):
+        i = bisect.bisect_left(gd, d) - 1
+        return g[gd[i]] if i >= 0 and (d - gd[i]).days <= 5 else None
+    base = [k for k in sorted(rvs) if k < dia.isoformat() and gvz(dt.date.fromisoformat(k))]
+    for k in base: rvs[k]["gvz"] = rnd(gvz(dt.date.fromisoformat(k)), 2)
+    hoje_g = gvz(dia)
+    if not hoje_g or len(base) < 400: raise ValueError(f"histórico curto ({len(base)} sessões) ou GVZ ausente")
+    save("mi_har_rv.json", [rvs[k] for k in sorted(rvs)])
+    sig = har_gvz([rvs[k]["rv"] for k in base], [rvs[k]["gvz"] / 100 / math.sqrt(252) for k in base] + [hoje_g / 100 / math.sqrt(252)])
+    z = [exc[d] / sig[i] for i, d in ((i, dt.date.fromisoformat(k)) for i, k in enumerate(base)) if i in sig and d in exc][-250:]
+    if len(z) < 100: raise ValueError(f"só {len(z)} sessões para o k do HAR")
+    k_h = [quantil(z, q) for q in (0.5, 0.8, 0.95)]; sh = sig[len(base)]
+    k_atual = next((x for x in reversed(ler("mi_faixa_k.json")) if x["dia"] == dia.isoformat() and x.get("aprovado")), None)
+    if not k_atual: raise ValueError("sem o k da faixa publicada para comparar")
+    sombra[dia.isoformat()] = {"dia": dia.isoformat(), "calculado": NOW.strftime("%d/%m %H:%M"), "ts": int(NOW.timestamp()), "sessoes_base": len(base), "ultima_base": base[-1], "gvz": rnd(hoje_g, 2),
+                               "sigma_har_pct": rnd(sh * 100, 4), "k_har": [rnd(x, 3) for x in k_h], "n_k": len(z), "fator_gc": rnd(fator, 4),
+                               "dist_har_pct": [rnd(x * sh * 100, 4) for x in k_h],
+                               "dist_gvz_pct": [rnd(x * k_atual["gvz"] / math.sqrt(252), 4) for x in k_atual["k"]]}
+    # placar: só previsões gravadas antes de a sessão acabar, com a sessão completa no futuro
+    for k, r in sombra.items():
+        d = dt.date.fromisoformat(k)
+        if d in exc and r.get("excursao_pct") is None:
+            r["excursao_pct"] = rnd(exc[d] * 100, 4); r["conta"] = r["ts"] < dt.datetime.combine(d, dt.time(17), NY).timestamp() and k not in FERIADOS_EUA
+            r["erro_har"] = rnd(pinball(r["excursao_pct"], r["dist_har_pct"]), 5); r["erro_gvz"] = rnd(pinball(r["excursao_pct"], r["dist_gvz_pct"]), 5)
+    saida = [sombra[k] for k in sorted(sombra)][-800:]
+    save("mi_har_sombra.json", saida)
+    v = [x for x in saida if x.get("conta")]; msg = f"{len(v)} sessões no placar (troca exige 60)"
+    if v: msg += f"; erro HAR contra GVZ {(sum(x['erro_har'] for x in v) / sum(x['erro_gvz'] for x in v) - 1) * 100:+.1f}%"
+    if len(v) >= 60: msg += f", intervalo 95% {ic_blocos([x['erro_har'] - x['erro_gvz'] for x in v], [x['erro_gvz'] for x in v])}"
+    STATUS.append({"bloco": "Faixa do ouro: HAR + GVZ (sombra)", "ok": True, "msg": msg})
+b_har()
 
 @bloco("Faixa esperada (opções)")
 def b_faixa():
@@ -770,6 +917,24 @@ def b_faixa():
                 ab0 = FIXO[kd].setdefault("ab_est", dia[0][1] if dia else px); ab_est = True
                 dia = [(NOW.astimezone(NYz), ab0, max(ab0, px), min(ab0, px))]
                 if not sem or sess(sem[-1][0]) < hoje_s: sem = sem + dia
+            # ouro: abertura pelas barras do MT5 da Vantage (pedido do Gabriel 27/11 13h08). Só com o alinhamento já conferido
+            # (último pregão da régua MT5 com 60+ minutos e dispersão até US$ 1: horário e contrato batem).
+            ab_fonte = None
+            if a == "XAUUSD":
+                try:
+                    rg = ler("mi_regua_mt5.json")
+                    if rg and rg[-1]["n"] >= 60 and rg[-1]["desvio"] <= 1.0:
+                        txt_ = baixa_mt5(); m5 = mt5_sessao(txt_, hoje_s) if txt_ else None
+                        if m5 and abs(m5[0][0][1] / px - 1) < 0.06:
+                            o5 = FIXO[kd].setdefault("ab_mt5", m5[0][0][1])
+                            # aberta: o envio precisa ter menos de 40 min para valer a máxima e a mínima; encerrada: vale como está
+                            if NOW.timestamp() - m5[1] < 40 * 60 or sess(NOW.astimezone(NYz)) > hoje_s:
+                                sem = [b for b in sem if sess(b[0]) < hoje_s] + m5[0]; dia = m5[0]; ab_est = False; ab_fonte = "MT5 da Vantage"
+                        o5 = FIXO[kd].get("ab_mt5")
+                        if o5 and not ab_fonte:   # envio parado: a abertura fica a do MT5; máxima e mínima só com as barras do futuro completas
+                            n_ = len(dia); primeiro = (dia[0][0], o5, max(dia[0][2], o5), min(dia[0][3], o5))
+                            sem = [b for b in sem if sess(b[0]) < hoje_s] + [primeiro] + dia[1:]; dia = [primeiro] + dia[1:]; ab_fonte = "MT5 da Vantage"
+                except Exception as e: STATUS.append({"bloco": "Abertura pelo MT5", "ok": False, "msg": str(e)[:120]})
             ab_sem = sem[0][1] if sem else None
             if a != "XAUUSD" and sem and sem[0][0].hour != 18:   # Yahoo FX sem o domingo 18h–19h NY: abertura pelo futuro × razão à vista/futuro na 1ª hora comum
                 try:
@@ -805,7 +970,7 @@ def b_faixa():
                            "ts_dia_fim": int(dt.datetime.combine(hoje_s, dt.time(hab), NYz).timestamp() * 1000),
                            "ts_sem_ini": int(dt.datetime.combine(seg - dt.timedelta(days=1), dt.time(hab), NYz).timestamp() * 1000),
                            "ts_sem_fim": int(dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).timestamp() * 1000),
-                           "preco": rnd(px, casas), "ab_estimada": ab_est}
+                           "preco": rnd(px, casas), "ab_estimada": ab_est, "ab_fonte": ab_fonte}
             mp = row["mapa"]
             if a == "XAUUSD":   # FAIXA DO OURO (27/11 12:34): teto e piso de 50/80/95% da maior distância da abertura; registro diário
                 try:
@@ -1580,7 +1745,6 @@ def b_paredes():
     save("mi_paredes_hist.json", sorted(hist.values(), key=lambda h: (h["dia"], h["ativo"]))[-2000:])
 b_paredes()
 
-URL_REGUA_MT5 = "https://raw.githubusercontent.com/gabrid15-creator/painel-mercado/regua/ultimo.csv"
 def regua_dias(csv_txt, gc):
     """Casa o XAUUSD do MT5 (candles de 1 min em UTC) com o futuro no MESMO minuto. Devolve {pregão: resumo}.
     gc = resposta do Yahoo (chart 1m). Ficam de fora a barra do futuro ainda em formação e as sem negócio (preço atrasado)."""

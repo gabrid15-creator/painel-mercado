@@ -800,7 +800,7 @@
     const Cc = cCedo(atv), C = Cc && [Cc[0], Cc[1], Cc[5], Cc[6]];
     if (C && m.amp_cedo != null) { const g = m.amp_cedo >= C[1] ? 2 : m.amp_cedo < C[0] ? 0 : 1;
       lin('<b>Resto do dia:</b> ' + ['tende a ser <b>pequeno</b> (Ásia e Londres andaram pouco; só ' + C[3] + '% de chance de ser grande)', 'tamanho <b>normal</b>', 'tende a ser <b>grande</b> (Ásia e Londres andaram muito; ' + C[2] + '% de chance)'][g] + '.'); }
-    else lin('<b>Resto do dia:</b> a leitura sai às 11h de Brasília.');
+    else lin('<b>Resto do dia:</b> ' + semCedo() + '.');
     if (atv === 'XAUUSD') { const HR = hOuro();
       const hb = +new Date(Date.now() - 3 * 3600000).toISOString().slice(11, 13), v = HR[hb];
       lin('<b>Esta hora (' + hb + 'h):</b> ' + (v < 0.25 ? 'parada' : v > 0.35 ? 'agitada' : 'normal') + ', costuma andar ~' + pp(v) + '. Mais agitado 10h–12h; mais parado 17h–1h.'); }
@@ -868,7 +868,7 @@
         const a3 = document.createElement('p');
         if (C && m.amp_cedo != null) { const ce = m.amp_cedo, g = ce >= C[1] ? 2 : ce < C[0] ? 0 : 1;
           a3.innerHTML = '<b>Ásia + Londres (até 11h BRT):</b> andou ' + nf(ce, 2) + 'σ, ' + ['<b>pouco</b>', '<b>normal</b>', '<b>muito</b>'][g] + '. Daqui até o fim, o típico em dias assim é <b>' + pp(C[2 + g]) + '</b> entre a máxima e a mínima' + (g === 2 ? ' (' + C[5] + '% de chance de o resto do dia ser grande)' : g === 0 ? ' (só ' + C[6] + '% de chance de o resto do dia ser grande)' : '') + '.'; }
-        else a3.innerHTML = '<b>Ásia + Londres:</b> a leitura do resto do dia aparece às 11h BRT.';
+        else a3.innerHTML = '<b>Ásia + Londres:</b> ' + semCedo() + '.';
         bx.appendChild(a3);
         const n = document.createElement('p'); n.className = 'op-note ajuda'; n.innerHTML = '<b>Como ler:</b> ' + (T ? 'no ouro, cada faixa diz em quantas sessões o preço não saiu por nenhum dos dois lados desde a abertura; 80% e 95% são o teto e o piso. ' : 'o σ mostra o limite de um dia forte; o dia comum anda mais ou menos metade disso. Use a faixa da metade dos dias como tamanho de um dia normal para a grade do robô, e o ±1σ como o dia forte. ') + 'A linha da Ásia + Londres usa o quanto o preço andou até as 11h de Brasília: quando andou muito, o resto do dia também tende a ser grande; quando andou pouco, tende a ser pequeno (medido em 2 anos de futuros a cada hora, estável). Medido em 15 anos dos futuros da CME, com o mesmo σ do mapa e estável no tempo. Mostra o tamanho do dia, não a direção.' + (atv === 'XAUUSD' ? ' A linha da hora vem de 2 anos de candles de 1 h do futuro; no horário de verão americano (mar–nov) os horários vêm 1 h mais cedo.' : ''); bx.appendChild(n);
       } } }
@@ -1023,6 +1023,15 @@
     sv.append('text').attr('x', W - m.r).attr('y', H - 20).attr('text-anchor', 'end').attr('fill', '#d9645a').attr('font-weight', 700).text('calls em aberto →');
     sv.append('text').attr('x', meio).attr('y', H - 5).attr('text-anchor', 'middle').attr('fill', 'currentColor').attr('opacity', 0.7).text('maior barra: ' + nf(M, 0) + ' contratos' + (gb.length ? ' · fina roxa: GLD' : ''));
     toqueMapa(el, sv, { w, cs, y, m, W, marc, fora, soGld, g, coin, rows, gb });
+  }
+
+  // sem a leitura do resto do dia: diz o motivo certo pelo relógio de Nova York (a leitura vale das 9h às 17h de lá: 11h ou 10h de Brasília)
+  function semCedo() {
+    const ag = new Date(), ny = new Date(ag.toLocaleString('en-US', { timeZone: 'America/New_York' })), sp = new Date(ag.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    const dif = Math.round((sp - ny) / 3600000), h = ny.getHours(), d = ny.getDay(), ini = (9 + dif) + 'h';
+    if (d === 0 || d === 6 || (d === 5 && h >= 17)) return 'mercado fechado; a leitura volta no próximo dia útil, às ' + ini + ' de Brasília';
+    if (h >= 9 && h < 17) return 'sem leitura agora: faltam preços das horas anteriores na fonte';
+    return h < 9 || h >= 18 ? 'a leitura sai às ' + ini + ' de Brasília' : 'a leitura de hoje já encerrou';
   }
 
   // mouse (PC) ou toque (celular) no mapa: mostra o preço e os dados da linha ou barra mais perto
