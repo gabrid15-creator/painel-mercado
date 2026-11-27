@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Coletor da aba Inteligência de mercado. Uso: python3 coletor.py <pasta_saida>
 Só biblioteca padrão. Cada bloco é independente: se uma fonte falhar, os outros seguem e o erro vai para mi_status.json."""
-import sys, os, json, csv, io, math, time, statistics as st, urllib.request, datetime as dt, traceback
+import bisect, sys, os, json, csv, io, math, time, statistics as st, urllib.request, datetime as dt, traceback
 import xml.etree.ElementTree as ET
 from zoneinfo import ZoneInfo
 
@@ -612,6 +612,48 @@ def b_regime():
     if not rows: raise ValueError("sem dados")
     save("mi_regime.json", rows)
 b_regime()
+
+def quantil(v, q):
+    v = sorted(v); x = (len(v) - 1) * q; i = int(x); j = min(i + 1, len(v) - 1)
+    return v[i] + (v[j] - v[i]) * (x - i)
+
+K_REF = (1.00, 1.55, 2.44)   # k de 50/80/95% medido por Estratégias no XAUUSD da Vantage até 20/11/2026 (claude/quant-aprende.py)
+
+def faixa_k(dia):
+    """FAIXA DO OURO (27/11/2026 12:34): σ = fechamento anterior do GVZ / raiz(252); excursão = maior distância da abertura das 18h NY;
+    k = quantis 50/80/95% de excursão/σ nas últimas 250 sessões completas ANTERIORES a `dia` (GC=F 1 h). Sessão curta ou sem a barra
+    das 18h fica fora."""
+    NY = ZoneInfo("America/New_York")
+    j = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=730d&interval=1h", timeout=25))["chart"]["result"][0]
+    q = j["indicators"]["quote"][0]; ses = {}
+    for t, o, h, l in zip(j["timestamp"], q["open"], q["high"], q["low"]):
+        if not (o and h and l): continue
+        x = dt.datetime.fromtimestamp(t, NY); ses.setdefault((x + dt.timedelta(hours=6)).date(), []).append((x, o, h, l))
+    g = closes(yahoo("^GVZ", 3)); gd = sorted(g); z = []
+    for s in sorted(ses):
+        b = ses[s]
+        if s >= dia or s.weekday() >= 5 or len(b) < 20 or b[0][0].hour != 18: continue
+        i = bisect.bisect_left(gd, s) - 1
+        if i < 0 or (s - gd[i]).days > 5: continue
+        o = b[0][1]; exc = max(math.log(max(y[2] for y in b) / o), math.log(o / min(y[3] for y in b)))
+        z.append((s, exc / (g[gd[i]] / 100 / math.sqrt(252))))
+    z = z[-250:]
+    if len(z) < 200: raise ValueError(f"só {len(z)} sessões completas no histórico do GC")
+    v = [x[1] for x in z]
+    return {"k": [rnd(quantil(v, p), 3) for p in (0.5, 0.8, 0.95)], "n": len(z), "de": z[0][0].isoformat(), "ate": z[-1][0].isoformat()}
+
+@bloco("Faixa do ouro (k)")
+def b_faixa_k():
+    NY = ZoneInfo("America/New_York"); dia = (NOW.astimezone(NY) + dt.timedelta(hours=6)).date()
+    while dia.weekday() >= 5: dia += dt.timedelta(days=1)
+    ant = (ler("mi_faixa_k.json") or [{}])[0]
+    if ant.get("dia") == dia.isoformat(): return
+    r = faixa_k(dia)
+    aprovado = bool(ant.get("aprovado")) or all(abs(a - b) <= 0.10 for a, b in zip(r["k"], K_REF))
+    r.update({"dia": dia.isoformat(), "aprovado": aprovado, "ref": list(K_REF), "calculado": NOW.strftime("%d/%m %H:%M")})
+    save("mi_faixa_k.json", [r])
+    if not aprovado: STATUS.append({"bloco": "Faixa do ouro (k)", "ok": False, "msg": f"k do GC {r['k']} difere mais de 0,10 da referência {list(K_REF)}: avisar Estratégias antes de publicar"})
+b_faixa_k()
 
 @bloco("Faixa esperada (opções)")
 def b_faixa():
