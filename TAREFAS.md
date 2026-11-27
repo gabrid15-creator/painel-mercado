@@ -20,6 +20,7 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 ## Tarefas
 | Estado | Dono | Tarefa | Arquivos / observação |
 |---|---|---|---|
+| fazendo | CHAT | Pendências 27/11 14h40: ajustes de tela (mapa e faixa), `mi_niveis_sombra.json`, proteção dos históricos, aviso de boletim atrasado | `coletor.py`, `docs/app.js`, `docs/index.html`, `coleta.yml`, `confere_*.py` |
 | feito | CHAT | Pedidos do Gabriel 27/11 13h08 e 13h13: mouse/toque no mapa; abertura pelo MT5; texto das 11h; MT5 em repositório separado; HAR + GVZ em sombra | 27/11 13h24, coleta sem falha. Desfazer: `git revert --no-commit 83936ad e055149 && git commit && git push`. Arquivos liberados |
 | feito | CHAT | Confirmar o robô da CME no log de 27/11 | rodou 03:00 a 05:30 sem falha; boletim novo não saiu pelo feriado de 26/11 |
 | feito | CHAT | CME 25/11 (ouro e iene) | 26/11 19:20, automático, 0 erro, commit 0bfd6c5. Desfazer: `git revert 0bfd6c5` |
