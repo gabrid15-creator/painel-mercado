@@ -855,6 +855,12 @@
   function drawRS() {
     const bx = $('.rs-corpo'); if (!bx) return; bx.replaceChildren(); $('.rs-nome').textContent = atv + ' · ' + NOME[atv];
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), m = fr && fr.mapa;
+    if (!m && fr && fr.faixas) {   // sem mapa (NAS100): só a faixa da volatilidade, a partir do preço de agora
+      const k0 = CASAS[atv], lin0 = (html) => { const p = document.createElement('p'); p.className = 'rs-l'; p.innerHTML = html; bx.appendChild(p); };
+      for (const f of fr.faixas.slice(0, 2)) lin0('<b>Faixa ' + (f.prazo === 'dia' ? 'do dia' : 'da semana') + ' (±1σ, ±' + nf(f.pct, 2) + '%):</b> <span class="rs-n">' + nf(f.s1[0], k0) + ' – ' + nf(f.s1[1], k0) + '</span> · ±2σ ' + nf(f.s2[0], k0) + ' – ' + nf(f.s2[1], k0));
+      lin0('Preço agora <b>' + nf(fr.preco, k0) + '</b> · ' + fr.fonte + '. A faixa parte do preço atual e muda junto com ele.');
+      lin0('<span class="op-note">Em teste desde 2001, o dia fechou dentro de ±1σ em 77% das vezes e de ±2σ em 98%. Dia normal, chances e rompimento ainda não foram testados neste índice.</span>');
+      lin0('<b>Direção (compra ou venda):</b> <span class="mi-neg">nenhum sinal comprovado</span>.'); return; }
     if (!m) { bx.textContent = 'Sem dados para este ativo.'; return; }
     const sd = m.sd_dia, ab = m.ab_dia, k = CASAS[atv], P = m.preco || fr.preco;
     const Q = qNormal(atv) || [0.5, 1.4];
@@ -1028,7 +1034,7 @@
       const bt = (D('faixa_backtest').data || {})[atv], bx = $('.fx-bt');
       const dt = bt && bt.dtcc && /DTCC/.test(fr.fonte || ''), B = dt ? bt.dtcc : bt;   // moedas com σ da DTCC: mostra a precisão medida com ela
       if (bx) { bx.replaceChildren(); if (bt) {
-        const tit = document.createElement('div'); tit.className = 'fx-bt-t'; tit.innerHTML = '<b>Precisão medida</b> · quantas vezes o preço <b>fechou dentro</b> da faixa (' + (atv === 'XAUUSD' ? 'GVZ' : dt ? 'opções de balcão DTCC' : 'vol. 21d × 1,09') + ', desde ' + B.dia.desde + ', ' + nf(B.dia.n, 0) + ' dias)'; bx.appendChild(tit);
+        const tit = document.createElement('div'); tit.className = 'fx-bt-t'; tit.innerHTML = '<b>Precisão medida</b> · quantas vezes o preço <b>fechou dentro</b> da faixa (' + (atv === 'XAUUSD' ? 'GVZ' : atv === 'NAS100' ? 'VXN' : dt ? 'opções de balcão DTCC' : 'vol. 21d × 1,09') + ', desde ' + B.dia.desde + ', ' + nf(B.dia.n, 0) + ' dias)'; bx.appendChild(tit);
         const tb = document.createElement('table'); tb.className = 'op-table'; tb.innerHTML = '<thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span><br><small>ideal 68%</small></th><th class="num"><span class="lv lv-s2">±2σ</span><br><small>ideal 95%</small></th><th class="num">Nem tocou<br><small>±1σ</small></th><th class="num">Ano<br><small>±1σ</small></th></tr></thead>';
         const bd = document.createElement('tbody'); tb.appendChild(bd);
         for (const p of ['dia', 'semana', 'mês']) { const r = B[p]; if (!r) continue; const tr = document.createElement('tr'); td(tr, p).style.fontWeight = 600;

@@ -771,6 +771,14 @@ def b_faixa():
     save("mapa_fixo.json", [{k: v for k, v in sorted(FIXO.items()) if k.rsplit("|", 1)[1] >= corte_}])
     save("mi_mapa_hist.json", sorted(MH.values(), key=lambda h: (h["ini"], h["ativo"], h["tipo"]))[-6000:])
     save("mi_faixa.json", rows)
+    # var. do dia do ouro desde a ABERTURA da sessão (o candle da corretora). A barra diária do GC=F fecha no ajuste (13h30 NY):
+    # em 26/11/2026 o painel dava +0,8% num dia de -0,7% contra a abertura. Sem o mapa, fica a conta antiga.
+    m_ = next((r.get("mapa") for r in rows if r["ativo"] == "XAUUSD"), None)
+    if m_ and m_.get("ab_dia") and m_.get("preco"):
+        at_ = ler("mi_ativos.json")
+        for x in at_:
+            if x["ativo"] == "XAUUSD": x["var_1d"] = rnd((m_["preco"] / m_["ab_dia"] - 1) * 100, 2)
+        save("mi_ativos.json", at_)
     save("mi_faixa_hist.json", sorted(hist.values(), key=lambda h: (h["ativo"], h["data"]))[-4000:])
 b_faixa()
 
@@ -1481,13 +1489,16 @@ def b_score():
                 m_ = fx_.get("mapa") or {}; pd_ = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "padrao.json")))
                 lt_ = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "lateralidade.json"))).get(x["ativo"]) or {}
                 dn_ = (pd_.get("dia_normal") or {}).get(x["ativo"]); ce_ = (pd_.get("cedo") or {}).get(x["ativo"]); cs_ = fx_["preco"]
-                f.write(f"  [σ] fonte: {fx_.get('fonte')}; vol. {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}). Teste: o dia fecha dentro de ±1σ em ~78–83% das vezes e de ±2σ em ~96–99%.\n")
+                f.write(f"  [σ] fonte: {fx_.get('fonte')}; vol. {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.\n")
                 if m_.get("ab_dia"):
                     ab, sd = m_["ab_dia"], m_["sd_dia"]; fd = fx_["faixas"][0]; fs = fx_["faixas"][1]; z_ = math.log(m_["preco"] / ab) / sd
                     f.write(f"  [DIA, FIXO desde a abertura {m_.get('dia_ini')}] abertura {ab}; ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}")
                     if dn_: f.write(f"; dia normal (metade dos dias) ±{dn_['q50']}σ = {ab * (math.exp(dn_['q50'] * sd) - 1):.5g}; 9 em 10 dias dentro de ±{dn_['q90']}σ")
                     f.write(f"\n  [SEMANA, FIXA] abertura {m_['ab_sem']}; ±1σ {fs['s1'][0]}–{fs['s1'][1]}; ±2σ {fs['s2'][0]}–{fs['s2'][1]}\n")
                     f.write(f"  [AGORA] preço {m_['preco']} = {z_:+.2f}σ da abertura; máx. do dia {m_['max_dia']} ({math.log(m_['max_dia'] / ab) / sd:+.2f}σ), mín. {m_['min_dia']} ({math.log(m_['min_dia'] / ab) / sd:+.2f}σ)\n")
+                else:   # sem mapa (NAS100): faixa pelo VXN a partir do preço de agora (testes/faixa_vxn.py)
+                    fd, fs = fx_["faixas"][0], fx_["faixas"][1]
+                    f.write(f"  [FAIXA, a partir do preço de agora {cs_} (sem abertura fixa)] dia ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}; semana ±1σ {fs['s1'][0]}–{fs['s1'][1]}; ±2σ {fs['s2'][0]}–{fs['s2'][1]}\n")
                 if lt_:
                     P_ = lt_.get("persistencia") or {}; lt2 = fx_.get("lateral") or {}; hoje_ = NOW.date(); wd = hoje_.weekday()
                     pay_dia = wd == 4 and hoje_.day <= 7; pay_sem = wd < 5 and (hoje_ + dt.timedelta(days=4 - wd)).day <= 7
@@ -1521,7 +1532,8 @@ def b_quant():
     if NOW.weekday() >= 5: return
     hoje = NOW.date().isoformat()
     mac = {r["serie"]: r for r in ler("mi_macro.json")}
-    linha = {"data": hoje, "hora": NOW.strftime("%H:%M")}
+    feriados = ("2026-11-26", "2026-12-25", "2027-01-01", "2027-01-18", "2027-02-15", "2027-03-26", "2027-05-31", "2027-06-18", "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24")   # bolsa dos EUA fechada
+    linha = {"data": hoje, "hora": NOW.strftime("%H:%M"), "feriado_eua": hoje in feriados}
     datas = {}
     for k, s in (("vix", "VIX"), ("vix_vix3m", "VIX ÷ VIX 3 meses"), ("move", "MOVE (vol. de Treasuries)"), ("us2y", "US2Y"), ("us10y", "US10Y"),
                  ("juro_real", "Juro real 10a"), ("dxy", "DXY"), ("hyg", "Crédito HY (HYG)"), ("liquidez_liquida", "Liquidez líquida Fed")):
