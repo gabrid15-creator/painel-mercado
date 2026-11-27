@@ -57,7 +57,7 @@ prompt = (
 
 client = anthropic.Anthropic()
 try:
-    resp = client.messages.create(model=MODEL, max_tokens=8000, output_config={"effort": "medium"},
+    resp = client.messages.create(model=MODEL, max_tokens=16000, output_config={"effort": "medium"},
                                   messages=[{"role": "user", "content": prompt}])
 except anthropic.APIStatusError as e:
     print(f"API recusou ({e.status_code}): {e.message}"); sys.exit(0)
@@ -70,7 +70,7 @@ try:
     itens = json.loads(txt[txt.index("["): txt.rindex("]") + 1])
     rows = [{"ativo": x["ativo"], "formato": 3, "texto": re.sub(r"\[(?:σ|FAIXA|DIA|SEMANA|AGORA|LATERALIDADE|RESTO DO DIA|OPÇÕES)[^\]]*\]\s*", "", x["texto"]).strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
 except Exception as e:
-    print("resposta fora do formato; leitura anterior mantida:", e); sys.exit(0)
+    print(f"resposta fora do formato; leitura anterior mantida: {e} (parou por {resp.stop_reason}, {resp.usage.output_tokens} tokens de saída, começo: {txt[:150]!r})"); sys.exit(0)
 if len(rows) < 5:
     print("resposta incompleta; leitura anterior mantida"); sys.exit(0)
 json.dump(rows, open(os.path.join(OUT, "mi_ia.json"), "w", encoding="utf-8"), ensure_ascii=False)
