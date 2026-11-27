@@ -40,6 +40,7 @@ jobs:
           timeout 300 python3 coletor.py out || true
           [ -f out/mi_ia.json ] || cp docs/data/mi_ia.json out/mi_ia.json
           cat out/mi_status.json || true
+          python3 confere_opcoes.py out || true   # conferente independente das opções do ouro (só log)
       - name: Opções de balcão (DTCC, câmbio)
         run: timeout 150 python3 dtcc.py out || true
       - name: Opções (arquivo da tarefa noturna no Google Drive)

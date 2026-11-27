@@ -182,6 +182,11 @@ def spot_ouro(gc):
     ent = next((e for e, _ in cands), hoje + dt.timedelta(days=60))
     return math.exp(-r13 * (ent - hoje).days / 365), "reserva: juro 13 sem."
 
+REGUA = {"contrato": "GCG27", "base": 27.6, "medido": dt.date(2026, 11, 25), "vence": dt.date(2027, 2, 24)}
+def base_vantage(dia):
+    """US$ a descontar do GC=F para chegar no XAUUSD da Vantage: encolhe em linha reta até o vencimento do contrato medido."""
+    return round(REGUA["base"] * max((REGUA["vence"] - dia).days, 0) / (REGUA["vence"] - REGUA["medido"]).days, 1)
+
 @bloco("Preços (Yahoo)")
 def b_precos():
     for k, (y, _) in ATIVOS.items(): P[k] = yahoo(y)
@@ -196,22 +201,25 @@ def b_precos():
                 for i, (d, (o, h, l, c)) in enumerate((d, P[k][d]) for d in ds)}
     # ouro → à vista (mesmo fator em toda a série: retornos e % não mudam, só o nível)
     gc = closes(P["XAUUSD"]); gc_ult = gc[max(gc)]
-    # CALIBRADO COM A VANTAGE (16/11/2026): o XAUUSD dela anda colado no futuro ativo (máx. 3.905,84 × GC 3.904,3;
-    # mín. 3.832,45 × 3.835,2; pico 3.888,9 × 3.892,6) e NÃO US$ 20 abaixo como o à vista teórico → fator 1 (régua do GC).
-    # spot_ouro() fica disponível só para referência (base_usd = quanto o à vista teórico estaria abaixo).
-    # 2ª calibração (16/11/2026, preços no MESMO instante, ditados pela usuária): GC 3.882 × Vantage 3.875 e GC 3.880 × 3.874
-    # → Vantage ≈ futuro ativo − US$ 6,5. Ajuste proporcional (fator) em toda a série do ouro. Recalibrar na troca de contrato.
-    VANTAGE_USD = 6.5; CALIB = "16/11/2026"
-    # TROCA DE CONTRATO (25/11/2026): o Yahoo passou o GC=F de dez. para fev. (≈ US$ 29 acima), mas a Vantage segue o mês perto do à vista (dez.):
-    # ela ditou Vantage 3.515 com dez. 3.516,8 e fev./GC=F 3.546 → Vantage ≈ dez. − US$ 1,9 (o prêmio do dez. sobre o à vista encolhe até o vencimento).
-    # Se o GC=F não é o mês mais perto, o ajuste = (GC=F − mês mais perto) + 1,9. Reconferir com 2 pares ditados por ela.
+    # O XAUUSD da usuária não é o à vista teórico (spot_ouro() fica só como referência): usa a régua medida no MT5.
+    # RÉGUA MEDIDA (27/11/2026): contrato fev. (GCG27) − XAUUSD Vantage = US$ 27,6 no mesmo minuto (25/11 18:30 UTC). É custo de carregar:
+    # encolhe até o vencimento do contrato. Remedir 1 vez por semana e a cada troca (atualizar REGUA aqui e as constantes do confere_opcoes.py).
+    hj = NOW.astimezone(ZoneInfo("America/Sao_Paulo")).date()
+    VANTAGE_USD = base_vantage(hj); CALIB = REGUA["medido"].strftime("%d/%m/%Y") + " (mesmo minuto, " + REGUA["contrato"] + ")"
+    try:
+        qm = closes(yahoo(REGUA["contrato"] + ".CMX", 1)); m_ult = qm[max(qm)]
+        if abs(gc_ult - m_ult) > 8:   # o GC=F já é outro contrato: soma a diferença entre os dois até medir de novo
+            VANTAGE_USD = round(VANTAGE_USD + gc_ult - m_ult, 1); CALIB += "; contrato trocou, ESTIMADO"
+            STATUS.append({"bloco": "Ouro: régua da Vantage", "ok": False, "msg": "o GC=F trocou de contrato: medir a régua de novo no MT5"})
+    except Exception as e: STATUS.append({"bloco": "Ouro: régua da Vantage", "ok": False, "msg": str(e)[:120]})
+    if (hj - REGUA["medido"]).days > 7:
+        STATUS.append({"bloco": "Ouro: régua da Vantage", "ok": False, "msg": f"medida há {(hj - REGUA['medido']).days} dias: medir de novo no MT5 (mesmo minuto do GC)"})
     try:
         hj = dt.date.today(); m = hj.month if hj.month % 2 == 0 and hj.day < 28 else (hj.month + 1 if hj.month % 2 else hj.month + 2)
         y = hj.year + (m - 1) // 12; m = (m - 1) % 12 + 1
         fr = f"GC{['G','J','M','Q','V','Z'][m // 2 - 1]}{str(y)[2:]}.CMX"
         qf = closes(yahoo(fr, 1)); fr_ult = qf[max(qf)]
         if abs(gc_ult - fr_ult) > 8:
-            VANTAGE_USD = round(gc_ult - fr_ult + 1.9, 1); CALIB = hj.strftime("%d/%m/%Y") + " (troca de contrato, 1 par)"
             # P2 (26/11/2026): acha o dia em que o GC=F passou do mês perto para o seguinte e guarda a razão seguinte ÷ perto na véspera
             m2 = m + 2; y2 = y + (m2 - 1) // 12; m2 = (m2 - 1) % 12 + 1
             qn = closes(yahoo(f"GC{['G','J','M','Q','V','Z'][m2 // 2 - 1]}{str(y2)[2:]}.CMX", 1))
@@ -812,7 +820,9 @@ def gregas(lst, S, T):
         sq = iv * math.sqrt(T); d1 = (math.log(S / k) + iv * iv * T / 2) / sq; d2 = d1 - sq; ph = math.exp(-d1 * d1 / 2) / math.sqrt(2 * math.pi)
         sg = 1 if cp == "C" else -1; q = sg * n * m
         gx += q * ph / (S * sq) * S * S * 0.01                  # Δ dos bancos ganha isto por +1% → hedge vende isto (gamma +: vende na alta)
-        ch_ += -q * ph * d2 / (2 * T) * T * S                    # Δ muda φ·d2/(2T) por ano; até o vencimento (T inteiro); hedge = −Δ
+        no_venc = 1 if S > k else 0 if S < k else 0.5           # delta da call no vencimento, com o preço parado
+        nd1 = (1 + math.erf(d1 / math.sqrt(2))) / 2
+        ch_ += -q * (no_venc - nd1) * S                          # variação REAL do delta até o vencimento (put e call mudam igual); hedge = −Δ
         va += -q * (-ph * d2 / iv) * (-0.01) * S                 # dΔ/dσ = −φ·d2/σ; vol. −1 ponto; hedge = −Δ
     return {"gex_usd_1pct": rnd(gx / 1e6, 2), "charm_usd_ate_venc": rnd(ch_ / 1e6, 2), "vanna_usd_vol_menos1": rnd(va / 1e6, 2), "unid": "US$ milhões"}
 
@@ -854,6 +864,68 @@ def gld_yahoo():
     lt = dt.datetime.fromtimestamp(q["regularMarketTime"], NYz).replace(tzinfo=None).isoformat()
     return {"current_price": q["regularMarketPrice"], "close": q["regularMarketPrice"], "last_trade_time": lt, "options": ops, "_fonte": "Yahoo"}
 
+GLD_CAMPOS = ("faixa_pct", "faixa", "s1", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime", "greg_gld", "pin_gld")
+CME_CAMPOS = ("call_wall", "put_wall", "max_pain", "gamma_flip", "gamma_flip_f", "faixa", "faixa_pct", "s1", "regime", "greg", "pin", "pcr_oi")
+def travas_0dte(row, r_ok):
+    """TRAVA (27/11/2026): nível que falha não é publicado, não é fixado, não vai para o histórico nem para a IA.
+    O motivo fica em row['sem_dado_gld'] / row['cme']['sem_dado'] e no mi_status."""
+    p = row["ouro"]; avisos = []
+    motivo = ("sem contratos em aberto no GLD" if not row.get("abertos") else f"GLD parado desde {row['gld_parado']}" if row.get("gld_parado")
+              else "sem o ouro do mesmo instante do GLD" if not r_ok else None)
+    row["gld_ok"] = motivo is None
+    if motivo:
+        for k in GLD_CAMPOS: row[k] = None
+        for k in ("perfil", "perfil_oi", "perfil_vol"): row[k] = []
+        row["sem_dado_gld"] = motivo; avisos.append("GLD: " + motivo)
+    else:
+        def tira(ks, m):
+            for k in ks: row[k] = None
+            avisos.append("GLD: " + m)
+        if row["call_wall"] is not None and row["call_wall"] < p * 0.999: tira(["call_wall"], "teto abaixo do preço")
+        if row["put_wall"] is not None and row["put_wall"] > p * 1.001: tira(["put_wall"], "piso acima do preço")
+        f = row.get("faixa")
+        if f and (None in f or not f[0] <= p <= f[1]): tira(["faixa", "s1", "faixa_pct"], "faixa não contém o preço")
+        if row["max_pain"] is not None and abs(row["max_pain"] / p - 1) > 0.10: tira(["max_pain"], "max pain a mais de 10% do preço")
+    c = row.get("cme")
+    if c:
+        esp = base_vantage(dt.date.fromisoformat(row["vencimento"]))
+        if abs(c["base"] - esp) > 3:
+            for k in CME_CAMPOS: c[k] = None
+            c["perfil"] = []; c["sem_dado"] = f"régua da CME desconta US$ {c['base']}, esperado US$ {esp}"; avisos.append("CME: " + c["sem_dado"])
+        elif c.get("max_pain") is not None and abs(c["max_pain"] / p - 1) > 0.10:
+            c["max_pain"] = None; avisos.append("CME: max pain a mais de 10% do preço")
+    if not row.get("preco_hora"): avisos.append("preço do ouro sem horário")
+    if avisos: STATUS.append({"bloco": "Trava das opções do ouro", "ok": False, "msg": "; ".join(avisos)[:300]})
+
+@bloco("Opções: limpeza de registros inválidos")
+def b_limpa():
+    """Marca registros gravados sem contratos em aberto (auditoria de 27/11/2026). O original vai para mi_invalidos.json."""
+    guarda = ler("mi_invalidos.json"); ja = {(g["arquivo"], g["chave"]) for g in guarda}; motivo = "GLD sem contratos em aberto ou parado"
+    def salva(arq, ch, reg):
+        if (arq, ch) not in ja: guarda.append({"arquivo": arq, "chave": ch, "motivo": motivo, "registro": json.loads(json.dumps(reg))})
+    di = ler("mi_diario_ouro.json")
+    for x in di:
+        m = x.get("manha") or {}; g = m.get("greg_gld") or {}
+        if x["dia"] <= "2026-11-26" and g and not g.get("gex_usd_1pct") and not g.get("charm_usd_ate_venc"):
+            salva("mi_diario_ouro", x["dia"], x)
+            for k in ("regime_gld", "flip_gld", "teto_gld", "piso_gld", "faixa_pct", "pcr_gld_0dte", "greg_gld", "pin_gld"): m[k] = None
+            m["gld_invalido"] = motivo
+    save("mi_diario_ouro.json", di)
+    ph = ler("mi_pcr_hist.json")
+    for x in ph:
+        if x["data"] == "2026-11-26" and "gld_total" in x:
+            salva("mi_pcr_hist", x["data"], x)
+            for k in ("gld_total", "gld_0dte", "gld_7d", "gld_30d", "gld_skew25"): x.pop(k, None)
+            x["gld_invalido"] = "feriado nos EUA"
+    save("mi_pcr_hist.json", ph)
+    hi = ler("mi_0dte_hist.json")
+    for i, x in enumerate(hi):
+        if x["vencimento"] == "2026-11-27" and not x.get("fixo") and not x.get("pendente") and ("mi_0dte_hist", x["vencimento"]) not in ja:
+            salva("mi_0dte_hist", x["vencimento"], x); hi[i] = {"vencimento": x["vencimento"], "pendente": True}
+    save("mi_0dte_hist.json", hi)
+    save("mi_invalidos.json", guarda)
+b_limpa()
+
 @bloco("0DTE ouro (GLD)")
 def b_0dte():
     # opções do GLD que vencem hoje (ou no próximo pregão): faixa do dia pelo straddle, paredes, gamma flip e max pain,
@@ -886,14 +958,21 @@ def b_0dte():
     # conversão GLD → ouro: razão do MOMENTO do último negócio do GLD. Fora do pregão do GLD (noite/fim de semana) o ouro segue andando;
     # usar o ouro de agora deslocava todos os níveis (ex.: dom 16/11: ~US$ 38). Com a razão travada, os níveis ficam fixos no preço do ouro
     # e o gamma (regime e flip) é recalculado com o ouro ao vivo levado para a escala do GLD.
-    c = closes(P["XAUUSD"]); ouro = c[max(c)]; r = ouro / S; parado = False
+    c = closes(P["XAUUSD"]); ouro = c[max(c)]; parado = False; r = None; px5 = []; preco_hora = None
+    try:
+        res = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=5d&interval=5m"))["chart"]["result"][0]
+        px5 = [(t, v) for t, v in zip(res["timestamp"], res["indicators"]["quote"][0]["close"]) if v is not None]
+        tp_ = res.get("meta", {}).get("regularMarketTime") or px5[-1][0]
+        preco_hora = dt.datetime.fromtimestamp(tp_, ZoneInfo("America/Sao_Paulo")).strftime("%d/%m %H:%M")
+    except Exception as e: STATUS.append({"bloco": "0DTE preço do ouro", "ok": False, "msg": str(e)[:120]})
     try:
         tl = dt.datetime.fromisoformat(j.get("last_trade_time")).replace(tzinfo=NY)
-        if (ny - tl).total_seconds() > 20 * 60:
-            q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=5d&interval=5m"))["chart"]["result"][0]
-            px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= tl.timestamp()]
-            if px and tl.timestamp() - px[-1][0] < 3 * 3600: r = px[-1][1] * SPOT["fator"] / S; parado = tl.strftime("%d/%m %H:%M")   # ouro à vista
+        if (ny - tl).total_seconds() > 20 * 60: parado = tl.strftime("%d/%m %H:%M")
+        px = [(t, v) for t, v in px5 if t <= tl.timestamp()]
+        if px and tl.timestamp() - px[-1][0] < 3 * 3600: r = px[-1][1] * SPOT["fator"] / S   # ouro do MESMO instante do GLD
     except Exception as e: STATUS.append({"bloco": "0DTE razão GLD", "ok": False, "msg": str(e)[:120]})
+    r_ok = r is not None
+    if r is None: r = ouro / S
     Sv = ouro / r   # ouro ao vivo na escala do GLD
     grade = [Sv * (1 + i / 1000) for i in range(-40, 41)]; g = [gex(x) for x in grade]
     flip = None
@@ -915,23 +994,23 @@ def b_0dte():
     cwo = {o["k"]: sum(x["oi"] for x in ch if x["k"] == o["k"] and x["tipo"] == "C") for o in ch}; pwo = {o["k"]: sum(x["oi"] for x in ch if x["k"] == o["k"] and x["tipo"] == "P") for o in ch}   # teto/piso: só em aberto
     dor = {k: sum(max(0, k - o["k"]) * o["oi"] for o in ch if o["tipo"] == "C") + sum(max(0, o["k"] - k) * o["oi"] for o in ch if o["tipo"] == "P") for k in ks}
     conv = lambda v: rnd(v * r, 1) if v is not None else None
-    lado = lambda m, f: max((k for k in m if f(k) and abs(k / S - 1) <= 0.03), key=lambda k: m[k], default=None)
+    lado = lambda m, f: max((k for k in m if f(k) and m[k] > 0 and abs(k / Sv - 1) <= 0.03), key=lambda k: m[k], default=None)
     row = {"vencimento": venc.isoformat(), "atualizado": ny.strftime("%H:%M") + " NY", "gld": rnd(S, 2), "ouro": rnd(ouro, 1),
            "contratos_hoje": int(sum(o["vol"] for o in ch)), "abertos": int(sum(o["oi"] for o in ch)),
            "faixa_pct": rnd(strad / S * 100, 2), "faixa": [conv(S - strad), conv(S + strad)],
            "s1": [conv(S - 1.25 * strad), conv(S + 1.25 * strad)],   # straddle ≈ 0,8σ → 1σ ≈ 1,25 × straddle
-           "call_wall": conv(lado(cwo, lambda k: k >= S)), "put_wall": conv(lado(pwo, lambda k: k <= S)),
+           "call_wall": conv(lado(cwo, lambda k: k >= Sv)), "put_wall": conv(lado(pwo, lambda k: k <= Sv)),
            "gamma_flip": conv(flip), "max_pain": conv(min(dor, key=dor.get)) if dor else None,
-           "gld_parado": parado, "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(Sv) > 0 else "gamma negativo (movimentos tendem a acelerar)",
-           "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / S - 1) <= 0.03],
-           "perfil_oi": [[conv(k), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "C")), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03],
+           "preco_hora": preco_hora, "gld_parado": parado, "regime": "gamma positivo (mercado tende a segurar/voltar)" if gex(Sv) > 0 else "gamma negativo (movimentos tendem a acelerar)",
+           "perfil": [[conv(k), int(cw.get(k, 0)), int(pw.get(k, 0))] for k in ks if abs(k / Sv - 1) <= 0.03],
+           "perfil_oi": [[conv(k), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "C")), int(sum(o["oi"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / Sv - 1) <= 0.03],
            "perfil_vol": [[conv(k), int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "C")),
-                           int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / S - 1) <= 0.03]}
+                           int(sum(o["vol"] for o in ch if o["k"] == k and o["tipo"] == "P"))] for k in ks if abs(k / Sv - 1) <= 0.03]}
     try:   # gregas D+0 do GLD (contratos em aberto, não volume: o que importa é o que VENCE hoje, aberto quando for) e strike mais carregado
         row["greg_gld"] = gregas([(o["k"], o["tipo"], o["oi"], o["iv"], 100) for o in ch], Sv, T) | {"escala": "GLD", "r": rnd(r, 4)}
         toi = {}
         for o in ch: toi[o["k"]] = toi.get(o["k"], 0) + o["oi"]
-        row["pin_gld"] = conv(max((k for k in toi if abs(k / S - 1) <= 0.03), key=toi.get, default=None))
+        row["pin_gld"] = conv(max((k for k in toi if toi[k] > 0 and abs(k / Sv - 1) <= 0.03), key=toi.get, default=None))
     except Exception as e: STATUS.append({"bloco": "0DTE gregas GLD", "ok": False, "msg": str(e)[:120]})
     # mesma análise com as opções de ouro da CME do mesmo vencimento (contratos em aberto do fechamento anterior, tarefa noturna)
     # mesma análise com as opções de ouro da CME do mesmo vencimento (ajuste e contratos em aberto do pregão anterior, PDF do boletim)
@@ -944,11 +1023,15 @@ def b_0dte():
             # (−US$ 20) e os níveis da CME ficavam deslocados em relação ao preço e ao GLD (corrigido 16/11/2026). Também segue certo
             # quando o GC=F troca de contrato (dez → fev).
             base = None
+            V = SPOT["base_usd"]
+            # opção sobre o MESMO contrato do GC=F (preço no ajuste a menos de 0,4%): desconta só a régua medida (a paridade é o preço do ajuste);
+            # contrato diferente: soma a diferença entre os dois no ajuste
+            base_cme = lambda gc_aj: (fut - V) / fut if abs(gc_aj / fut - 1) < 0.004 else (gc_aj - V) / fut
             try:
                 q = json.loads(get("https://query2.finance.yahoo.com/v8/finance/chart/GC%3DF?range=10d&interval=5m"))["chart"]["result"][0]
                 alvo = dt.datetime.combine(pg, dt.time(13, 30), NY).timestamp()
-                px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= alvo]
-                if px and alvo - px[-1][0] < 3600: base = px[-1][1] * SPOT["fator"] / fut   # GC no ajuste → à vista
+                px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= alvo - 300]
+                if px and alvo - px[-1][0] < 3600: base = base_cme(px[-1][1])   # GC no ajuste → à vista
                 # troca de contrato (25/11/2026): o Yahoo trocou o GC=F de dez. para fev. na madrugada, mas o histórico de ontem ainda é dez.
                 # (dif. de ~US$ 29 nos níveis). Acha o contrato que o GC=F é AGORA e usa o preço DELE no horário do ajuste.
                 try:
@@ -962,16 +1045,16 @@ def b_0dte():
                         try:
                             qq = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{sy}?range=10d&interval=5m"))["chart"]["result"][0]
                             cl = list(zip(qq["timestamp"], qq["indicators"]["quote"][0]["close"])); cl = [(t, v) for t, v in cl if v is not None]
-                            ult = cl[-1][1]; at = [(t, v) for t, v in cl if t <= alvo]
+                            ult = cl[-1][1]; at = [(t, v) for t, v in cl if t <= alvo - 300]
                             if at and alvo - at[-1][0] < 3600 and (melhor is None or abs(ult - agora_gc) < melhor[0]): melhor = (abs(ult - agora_gc), at[-1][1], sy)
                         except Exception: pass
                     if melhor and melhor[0] < 8:
-                        b2 = melhor[1] * SPOT["fator"] / fut
+                        b2 = base_cme(melhor[1])
                         if base is None or abs(b2 - base) > 1e-4: STATUS.append({"bloco": "0DTE CME contrato do GC", "ok": True, "msg": f"régua pelo {melhor[2]} (GC=F atual)"})
                         base = b2
                 except Exception as e: STATUS.append({"bloco": "0DTE CME contrato do GC", "ok": False, "msg": str(e)[:120]})
             except Exception as e: STATUS.append({"bloco": "0DTE CME régua", "ok": False, "msg": str(e)[:120]})
-            if base is None: base = (c.get(pg) or ouro) / fut   # reserva: fechamento diário do GC=F no pregão
+            if base is None: base = (fut - V) / fut   # reserva: sem o preço do ajuste, trata como o mesmo contrato
             cv = lambda k: rnd(k * base, 1) if k is not None else None
             cc, pp, setl = {}, {}, {}
             for o in cme:
@@ -980,7 +1063,7 @@ def b_0dte():
             kk = sorted(set(cc) | set(pp))
             dor2 = {k: sum(max(0, k - x) * n for x, n in cc.items()) + sum(max(0, x - k) * n for x, n in pp.items()) for k in kk}
             sp = ouro / base   # ouro à vista levado para a escala do futuro
-            perto = lambda m, f: max((k for k in m if f(k) and m[k] > 0 and abs(k / fut - 1) <= 0.03), key=lambda k: m[k], default=None)
+            perto = lambda m, f: max((k for k in m if f(k) and m[k] > 0 and abs(k / sp - 1) <= 0.03), key=lambda k: m[k], default=None)
             # faixa do dia: straddle no dinheiro do ajuste anterior (vale para o dia inteiro do vencimento)
             atm = min((k for k in kk if (k, "C") in setl and (k, "P") in setl), key=lambda k: abs(k - fut), default=None)
             strad = setl[(atm, "C")] + setl[(atm, "P")] if atm else None
@@ -1007,25 +1090,28 @@ def b_0dte():
             try:
                 greg_cme = gregas([(k, cp, n, iv, 100) for k, cp, n, iv in opc], sp, Tn)
                 toi2 = {k: cc.get(k, 0) + pp.get(k, 0) for k in kk}
-                pin_cme = cv(max((k for k in toi2 if abs(k / fut - 1) <= 0.03), key=toi2.get, default=None))
-                pcr_cme = rnd(sum(pp.values()) / sum(cc.values()), 3) if sum(cc.values()) else None
+                pin_cme = cv(max((k for k in toi2 if toi2[k] > 0 and abs(k / sp - 1) <= 0.03), key=toi2.get, default=None))
+                c5 = sum(n for k, n in cc.items() if abs(k / fut - 1) <= 0.05); p5 = sum(n for k, n in pp.items() if abs(k / fut - 1) <= 0.05)   # ±5%, como antes da cadeia inteira
+                pcr_cme = rnd(p5 / c5, 3) if c5 else None
             except Exception: greg_cme = pin_cme = pcr_cme = None
             row["cme"] = {"pregao": pg.isoformat(), "abertos": int(sum(cc.values()) + sum(pp.values())), "futuro": fut, "base": rnd(fut - fut * base, 1),
                           "call_wall": cv(perto(cc, lambda k: k >= sp)), "put_wall": cv(perto(pp, lambda k: k <= sp)),
-                          "max_pain": cv(min(dor2, key=dor2.get)) if dor2 else None, "gamma_flip": cv(flip2),
+                          "max_pain": cv(min(dor2, key=dor2.get)) if dor2 else None, "gamma_flip": cv(flip2), "gamma_flip_f": rnd(flip2, 1),
                           "faixa": [cv(fut - strad), cv(fut + strad)] if strad else None, "faixa_pct": rnd(strad / fut * 100, 2) if strad else None,
                           "s1": [cv(fut - 1.25 * strad), cv(fut + 1.25 * strad)] if strad else None,
                           "regime": ("gamma positivo" if gx(sp) > 0 else "gamma negativo") if opc else None,
                           "greg": greg_cme, "pin": pin_cme, "pcr_oi": pcr_cme,
                           # contratos em aberto por strike (convertido para o à vista), para as barras de "em aberto" do gráfico
-                          "perfil": [[cv(k), int(cc.get(k, 0)), int(pp.get(k, 0))] for k in kk if abs(k / fut - 1) <= 0.03 and (cc.get(k, 0) or pp.get(k, 0))]}
+                          "perfil": [[cv(k), int(cc.get(k, 0)), int(pp.get(k, 0))] for k in kk if abs(k / sp - 1) <= 0.03 and (cc.get(k, 0) or pp.get(k, 0))]}
         except Exception as e: STATUS.append({"bloco": "0DTE CME", "ok": False, "msg": str(e)[:120]})
+    travas_0dte(row, r_ok)
+    gld_ok = row["gld_ok"]; faixa_ok = faixa_ok and gld_ok
     # NÍVEIS FIXOS DO DIA (24/11/2026, pedido dela: teto, piso, flip e faixa mudavam a cada coleta e tiravam a credibilidade).
     # 9h30–10h NY: calibra (mediana das coletas, que descarta cotação ruim da abertura); a partir das 10h NY fixa até o vencimento.
     # Fora do pregão: valores provisórios (ainda não fixos). O que continua ao vivo: preço, regime de gamma agora, barras e volume.
     try:
         FXd = (ler("mi_0dte_fixo.json") or [{}])[0]; vk = venc.isoformat(); est = FXd.get(vk) or {"amostras": [], "fixo": None}
-        mnt = ny.hour * 60 + ny.minute; hhmm = ny.strftime("%H:%M"); dia_ok = ny.weekday() < 5 and venc == ny.date() and not parado and faixa_ok
+        mnt = ny.hour * 60 + ny.minute; hhmm = ny.strftime("%H:%M"); dia_ok = ny.weekday() < 5 and venc == ny.date() and gld_ok and faixa_ok
         cm_ = row.get("cme") or {}
         amostra = {"t": hhmm, "call_wall": row["call_wall"], "put_wall": row["put_wall"], "gamma_flip": row["gamma_flip"], "max_pain": row["max_pain"],
                    "faixa": row["faixa"], "s1": row["s1"], "faixa_pct": row["faixa_pct"], "cme_flip": cm_.get("gamma_flip")}
@@ -1037,6 +1123,7 @@ def b_0dte():
             return o_
         row["vivo"] = {k: row[k] for k in ("call_wall", "put_wall", "gamma_flip", "max_pain", "faixa", "s1")} | {"cme_flip": cm_.get("gamma_flip")}
         uso = None; row["fixacao"] = "provisório até as 10:00 NY"
+        if not gld_ok: row["fixacao"] = "sem dado"
         if dia_ok and 9 * 60 + 30 <= mnt < 10 * 60:
             if not any(a_["t"] == hhmm for a_ in est["amostras"]): est["amostras"].append(amostra)
             uso = consolida(est["amostras"]); row["fixacao"] = "calibrando até as 10:00 NY"
@@ -1044,20 +1131,24 @@ def b_0dte():
             if est["fixo"] is None:
                 est["fixo"] = consolida(est["amostras"] + [amostra]); est["fixado_em"] = hhmm
             uso = est["fixo"]; row["fixacao"] = "fixo desde " + est["fixado_em"] + " NY"
-        elif venc == ny.date() and est.get("fixo") and mnt > 16 * 60 + 15: uso = est["fixo"]; row["fixacao"] = "fixo desde " + est["fixado_em"] + " NY"
+        elif venc == ny.date() and est.get("fixo") and mnt >= 10 * 60: uso = est["fixo"]; row["fixacao"] = "fixo desde " + est["fixado_em"] + " NY"   # GLD falhou depois de fixar: o fixo vale
         if uso:
             for k in ("call_wall", "put_wall", "gamma_flip", "max_pain", "faixa", "s1", "faixa_pct"):
                 if uso.get(k) is not None and (not isinstance(uso[k], list) or None not in uso[k]): row[k] = uso[k]
-        # flip da CME: fixo desde o boletim (a 1ª conta depois que o PDF chega); recalcula só quando chega um boletim novo
+        # flip da CME: fixo desde o boletim (a 1ª conta depois que o PDF chega); guardado na escala do futuro, para seguir a régua do dia
         if cm_ and cm_.get("pregao"):
-            ck = f"cme|{vk}|{cm_['pregao']}"
-            if ck in FXd: row["cme"]["gamma_flip"] = FXd[ck]
-            elif cm_.get("gamma_flip") is not None: FXd[ck] = cm_["gamma_flip"]
+            ck = f"cme2|{vk}|{cm_['pregao']}"; b_ = 1 - cm_["base"] / cm_["futuro"]
+            if ck not in FXd and cm_.get("gamma_flip_f") is not None: FXd[ck] = cm_["gamma_flip_f"]
+            if ck in FXd: row["cme"]["gamma_flip"] = rnd(FXd[ck] * b_, 1)
+        if uso and uso.get("faixa"):   # com nível fixo em uso, o GLD volta a ser válido
+            row["gld_ok"] = True; row.pop("sem_dado_gld", None)
         FXd[vk] = est
-        for pre_ in (lambda k: k[:1].isdigit(), lambda k: k.startswith("cme|")):
+        for k_ in [k for k in FXd if k.startswith("cme|")]: FXd.pop(k_)   # formato antigo (régua errada)
+        for pre_ in (lambda k: k[:1].isdigit(), lambda k: k.startswith("cme2|")):
             for k_ in sorted(k for k in FXd if pre_(k))[:-6]: FXd.pop(k_)
         save("mi_0dte_fixo.json", [FXd])
     except Exception as e: STATUS.append({"bloco": "0DTE níveis fixos", "ok": False, "msg": str(e)[:120]})
+    for x_ in (row, row.get("cme") or {}): x_.pop("gamma_flip_f", None)
     save("mi_0dte.json", [row])
     # histórico do dia (um ponto por coleta) para o gráfico; zera quando muda o vencimento
     # só pontos do PRÓPRIO dia do vencimento (antes, depois das 16h o vencimento seguinte recebia pontos da tarde anterior)
@@ -1093,9 +1184,10 @@ def b_0dte():
                "gld_total": pc(ops), "gld_0dte": pc([o for o in ops if o["venc"] == d0]),
                "gld_7d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 7]),
                "gld_30d": pc([o for o in ops if 0 <= (o["venc"] - d0).days <= 30])}
+        gld_pc = row["abertos"] > 0 and not parado   # sem contratos em aberto ou GLD parado (feriado): grava só a CME
         # skew 25-delta (vol. da put 25Δ − vol. da call 25Δ, em pontos) do vencimento mais perto de 30 dias
         vs = [v for v in {o["venc"] for o in ops} if (v - d0).days >= 7]
-        if vs:
+        if vs and gld_pc:
             v30 = min(vs, key=lambda v: abs((v - d0).days - 30)); s30 = [o for o in ops if o["venc"] == v30 and o["iv"] > 0 and o["delta"]]
             pc25 = min((o for o in s30 if o["tipo"] == "P"), key=lambda o: abs(abs(o["delta"]) - 0.25), default=None)
             cc25 = min((o for o in s30 if o["tipo"] == "C"), key=lambda o: abs(o["delta"] - 0.25), default=None)
@@ -1104,7 +1196,7 @@ def b_0dte():
         cad = ler("ouro_cadeia.json")
         if cad:   # CME (tarefa noturna): séries de 0–2 dias úteis + 1ª semanal, pregão anterior
             cm = [{"tipo": str(o.get("tipo", ""))[:1].upper(), "oi": float(o.get("oi") or 0),
-                   "vol": float(o.get("volume") or o.get("vol") or 0)} for o in cad]
+                   "vol": float(o.get("volume") or o.get("vol") or 0)} for o in cad if abs(float(o["strike"]) / float(o["futuro"]) - 1) <= 0.05]   # ±5%, série comparável
             rec["cme_curto"] = pc(cm) | {"pregao": cad[0].get("data_pregao")}
             try:   # skew 25Δ da CME na 1ª semanal (≥ 3 dias): vol. implícita pelo settle (Black-76)
                 pg = dt.date.fromisoformat(cad[0]["data_pregao"])
@@ -1123,16 +1215,20 @@ def b_0dte():
                 ip, ic = b76(float(pp_["strike"]), "P", float(pp_["settle"])), b76(float(cc_["strike"]), "C", float(cc_["settle"]))
                 rec["cme_skew25"] = {"venc": v, "skew": rnd(ip - ic, 2), "iv_put": rnd(ip, 2), "iv_call": rnd(ic, 2)}
             except Exception: pass
-        ph = {h["data"]: h for h in ler("mi_pcr_hist.json")}; ph[rec["data"]] = rec
+        if not gld_pc:
+            for k_ in ("gld_total", "gld_0dte", "gld_7d", "gld_30d"): rec.pop(k_, None)
+            rec["gld_invalido"] = row.get("sem_dado_gld") or "GLD parado"
+        ph = {h["data"]: h for h in ler("mi_pcr_hist.json")}
+        if gld_pc or "gld_total" not in ph.get(rec["data"], {}): ph[rec["data"]] = rec   # não apaga um registro bom do mesmo dia
         save("mi_pcr_hist.json", sorted(ph.values(), key=lambda x: x["data"])[-2000:])
     # DIÁRIO DO OURO (16/11/2026, pedido da usuária): para testar se as opções antecipam dia de PING-PONG (lado a lado, bom para
     # o robô de compra e venda) × dia de TENDÊNCIA, e o LADO do dia. De manhã (1ª coleta com o GLD aberto, 9h30–10h30 NY) grava o
     # estado das opções; depois das 17h NY completa com o que o dia fez (régua da Vantage). Teste pré-registrado com ~60 dias.
     try:
         di = {x["dia"]: x for x in ler("mi_diario_ouro.json")}; hoje_s = ny.date().isoformat()
-        if ny.weekday() < 5 and 10 * 60 <= ny.hour * 60 + ny.minute <= 10 * 60 + 30 and hoje_s not in di and not parado and str(row.get("fixacao", "")).startswith("fixo"):   # 24/11: níveis fixos das 10h NY (OI); antes, 1ª coleta 9h30 com OI+volume
+        if ny.weekday() < 5 and 10 * 60 <= ny.hour * 60 + ny.minute <= 10 * 60 + 30 and hoje_s not in di and gld_ok and row.get("regime") and not parado and str(row.get("fixacao", "")).startswith("fixo"):   # 24/11: níveis fixos das 10h NY (OI); antes, 1ª coleta 9h30 com OI+volume
             cm = row.get("cme") or {}
-            di[hoje_s] = {"dia": hoje_s, "manha": {"hora": ny.strftime("%H:%M"), "ouro": row["ouro"], "regime_gld": row["regime"][:14],
+            di[hoje_s] = {"dia": hoje_s, "manha": {"hora": ny.strftime("%H:%M"), "ouro": row["ouro"], "regime_gld": (row["regime"] or "")[:14] or None,
                           "flip_gld": row["gamma_flip"], "teto_gld": row["call_wall"], "piso_gld": row["put_wall"], "faixa_pct": row["faixa_pct"],
                           "regime_cme": cm.get("regime"), "flip_cme": cm.get("gamma_flip"), "teto_cme": cm.get("call_wall"), "piso_cme": cm.get("put_wall"),
                           "pcr_gld_0dte": (rec.get("gld_0dte") or {}).get("pcr_oi") if "rec" in dir() else None,
@@ -1534,7 +1630,12 @@ def b_score():
                 if zj_ and zj_.get("vencimento"): f.write(f"  [OPÇÕES] 0DTE do iene na CME (vence {zj_.get('vencimento')}): teto {zj_.get('call_wall')}, piso {zj_.get('put_wall')}, gamma flip {zj_.get('gamma_flip')}, max pain {zj_.get('max_pain')}, faixa {zj_.get('faixa')}.\n")
             if x["ativo"] == "XAUUSD":
                 z_ = (ler("mi_0dte.json") or [{}])[0]
-                if z_: f.write(f"  0DTE GLD ({z_.get('vencimento')}; níveis {z_.get('fixacao')}): teto {z_.get('call_wall')}, piso {z_.get('put_wall')}, gamma flip {z_.get('gamma_flip')}, max pain {z_.get('max_pain')}, faixa do 0DTE até o vencimento (NÃO é a faixa do dia; a do dia é a linha [DIA]) {z_.get('faixa')}; regime de gamma agora: {z_.get('regime')}\n")
+                nd = lambda v: "sem dado" if v is None else v
+                if z_ and z_.get("sem_dado_gld"): f.write(f"  0DTE GLD ({z_.get('vencimento')}): SEM DADO ({z_['sem_dado_gld']}). Não cite teto, piso, flip, max pain, faixa nem regime do GLD.\n")
+                elif z_: f.write(f"  0DTE GLD ({z_.get('vencimento')}; níveis {z_.get('fixacao')}): teto {nd(z_.get('call_wall'))}, piso {nd(z_.get('put_wall'))}, gamma flip {nd(z_.get('gamma_flip'))}, max pain {nd(z_.get('max_pain'))}, faixa do 0DTE até o vencimento (NÃO é a faixa do dia; a do dia é a linha [DIA]) {nd(z_.get('faixa'))}; regime de gamma agora: {nd(z_.get('regime'))}\n")
+                cm_ = z_.get("cme") or {}
+                if cm_.get("sem_dado"): f.write(f"  0DTE CME: SEM DADO ({cm_['sem_dado']}).\n")
+                elif cm_: f.write(f"  0DTE CME ({z_.get('vencimento')}, ajuste de {cm_.get('pregao')}): teto {nd(cm_.get('call_wall'))}, piso {nd(cm_.get('put_wall'))}, gamma flip {nd(cm_.get('gamma_flip'))}, max pain {nd(cm_.get('max_pain'))}\n")
                 if z_ and z_.get('vencimento') != NOW.astimezone(ZoneInfo('America/New_York')).date().isoformat(): f.write(f"  atenção: este 0DTE vence em {z_.get('vencimento')}, não hoje; não diga que os níveis foram fixados hoje.\n")
         rd = {k: mac.get(k) for k in ("Liquidez líquida Fed", "VIX ÷ VIX 3 meses", "MOVE (vol. de Treasuries)", "Condições financeiras (NFCI)", "US2Y", "US10Y", "Juro real 10a", "Spread 2a EUA−Alemanha")}
         f.write("\nRadar institucional e juros: " + "; ".join(f"{k} {v['valor']} (20d {v['var_20d']}{v['unidade_var']}, pctil 1a {v['pctil_1a']})" for k, v in rd.items() if v) + "\n")

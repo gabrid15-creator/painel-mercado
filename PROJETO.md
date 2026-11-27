@@ -92,7 +92,9 @@
 
 ## 3. Réguas de preço (crítico)
 
-- **Ouro no painel = régua da Vantage = GC=F − US$ 6,5.**
+- **RÉGUA ATUAL (27/11/2026, vale sobre o histórico abaixo):** GC fev. − XAUUSD Vantage = **US$ 27,6** medido no mesmo minuto (25/11 18:30 UTC), encolhendo em linha reta até 24/02/2027 (`REGUA` e `base_vantage()` no `coletor.py`; mesmas constantes no `confere_opcoes.py`). **Remedir 1 vez por semana** (candle M1 do MT5) e a cada troca; passou de 7 dias, o `mi_status` avisa. CME: nível = strike − régua quando a opção é sobre o contrato do GC=F; o preço do ajuste é a barra que TERMINA às 13h30 NY (antes usava 13h35: ~US$ 7 de erro).
+- **Trava das opções do ouro (27/11/2026):** `travas_0dte()` no `coletor.py`: sem contratos em aberto, GLD parado ou sem o ouro do mesmo instante → nenhum nível do GLD é publicado, fixado, gravado ou mandado à IA (`sem_dado_gld`); teto abaixo/piso acima do preço, faixa sem o preço, max pain a > 10% e régua da CME fora de US$ 3 também caem; aviso no `mi_status`. Conferente independente: `confere_opcoes.py <pasta dados>`. Registros inválidos marcados por `b_limpa()` (originais em `mi_invalidos.json`). Janela de 3% no preço atual; cadeia da CME inteira (max pain); flip da CME guardado na escala do futuro; charm = variação real do delta até o vencimento; `preco_hora` na tela.
+- Histórico (substituído): **Ouro no painel = régua da Vantage = GC=F − US$ 6,5.**
   - O fator `f = 1 − 6,5 ÷ GC` vale para TUDO do ouro: série, barras de 1 h do mapa, razão do GLD e régua da CME.
   - No código: `VANTAGE_USD = 6.5` e `CALIB = "16/11/2026"`, em `b_precos()`.
   - Calibrado com pares simultâneos ditados por ela: GC 3.882 × Vantage 3.875; 3.880 × 3.874.

@@ -364,3 +364,10 @@ NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou
 ## 27/11/2026 — Code: mapa do ouro no feriado e liquidez
 - Mapa do ouro preso em "qua 25/11 20h → qui 26/11 20h": o Yahoo parou as barras intradiárias (1 h e 5 min) de TODOS os futuros da CME (GC, SI, ES, 6J) em 25/11 23h55 NY, apesar de o último negócio ser de 26/11 19h23; o código pegava a sessão da última barra. Agora a sessão vem do relógio (18h NY, dia útil); sem barra, abertura = preço da 1ª coleta (congelado em `mapa_fixo`, `ab_estimada`). Conferido 26/11 19h40 NY: ouro "qui 26/11 20h → sex 27/11 20h", abertura estimada 3.565,4; moedas iguais (com barras reais).
 - Liquidez: o fiscaldata do Tesouro dava 504 em 15 s (até com 40 dias) e derrubava RRP/SOFR/Fed funds juntos. TGA agora com timeout 25 s e reserva FRED WTREGEN (semanal; milhões → bilhões); o Fed de NY responde em < 1 s. Conferido: bloco ok, TGA 916,6 bi (18/11), RRP 0,3 (25/11), SOFR 3,94, Fed funds 3,88. Com a reserva, a liquidez líquida fica semanal (última 18/11).
+
+## 27/11/2026: auditoria das opções do ouro (recados de Estratégias)
+- Falhas: GLD com 0 contratos em aberto publicava teto, piso e max pain (2.233); régua da CME descontava ~US$ 36–37 por usar a barra das 13h35; janela de 3% presa no ajuste cortava o teto; cadeia cortada em 5% no max pain; flip congelado com régua errada; charm linear.
+- Correções: ver PROJETO.md §3. Max pain CME 27/11 mudou de 3585 para 3600 (strike) com a cadeia inteira.
+- Registros CME anteriores a 27/11 (`mi_0dte_hist`, diário) foram gravados com a régua antiga (~US$ 7 a 10 de diferença) e não foram refeitos.
+- Marcados como inválidos: diário 18 e 19/11 (parte do GLD), put/call 26/11 (feriado), retrato 27/11.
+- Robô da CME (P13): rodou de 03:00 a 05:30 em 27/11 sem falha; sem boletim novo por causa do feriado de 26/11.

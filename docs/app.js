@@ -722,9 +722,9 @@
     const pos = (v) => { if (!dentro(v)) return null; if (v <= pf[0][0]) return y(0) + bh / 2; if (v >= pf[pf.length - 1][0]) return y(pf.length - 1) + bh / 2;
       let i = 0; while (i < pf.length - 1 && pf[i + 1][0] < v) i++; const f = (v - pf[i][0]) / (pf[i + 1][0] - pf[i][0]); return y(i) + bh / 2 + f * (y(i + 1) - y(i)); };
     const fs = cel ? '10px' : '11px', mu = 'var(--color-fg-muted)';
-    svg.append('text').attr('x', xm - 6).attr('y', 12).attr('text-anchor', 'end').style('font-size', fs).style('font-weight', 700).style('fill', '#c8443a').text('◀ puts (apostam na queda)');
-    svg.append('text').attr('x', xm + 6).attr('y', 12).style('font-size', fs).style('font-weight', 700).style('fill', '#1f8a5b').text('calls (apostam na alta) ▶');
-    if (temVol) svg.append('text').attr('x', xm).attr('y', 28).attr('text-anchor', 'middle').style('font-size', fs).style('fill', mu).text(cel ? 'clara = em aberto · escura = volume (toque p/ números)' : 'barra clara = em aberto · escura = volume do dia · número: em aberto | volume');
+    svg.append('text').attr('x', xm - 6).attr('y', 12).attr('text-anchor', 'end').style('font-size', fs).style('font-weight', 700).style('fill', '#c8443a').text(W < 330 ? '◀ puts (queda)' : '◀ puts (apostam na queda)');
+    svg.append('text').attr('x', xm + 6).attr('y', 12).style('font-size', fs).style('font-weight', 700).style('fill', '#1f8a5b').text(W < 330 ? 'calls (alta) ▶' : 'calls (apostam na alta) ▶');
+    if (temVol) svg.append('text').attr('x', xm).attr('y', 28).attr('text-anchor', 'middle').style('font-size', fs).style('fill', mu).text(W < 330 ? 'clara = em aberto · escura = volume' : cel ? 'clara = em aberto · escura = volume (toque p/ números)' : 'barra clara = em aberto · escura = volume do dia · número: em aberto | volume');
     if (lv.faixa && dentro(lv.faixa[0]) && dentro(lv.faixa[1])) { const ya = pos(lv.faixa[1]), yb = pos(lv.faixa[0]); svg.append('rect').attr('x', x0).attr('width', x1 - x0).attr('y', ya).attr('height', Math.max(2, yb - ya)).style('fill', '#3b7dd8').style('opacity', 0.1); }
     // níveis (linhas atrás das barras); outra fonte (CME) pontilhada; onde as duas concordam, faixa dourada
     const L = [['preço', lv.preco, 'var(--color-fg)', 'cheia'], ['teto', lv.teto, '#c8443a'], ['piso', lv.piso, '#1f8a5b'], ['gamma', lv.gamma, '#c98a12'], ['max pain', lv.mp, '#7b5cc4']];
@@ -797,8 +797,8 @@
     const rows = [...grid.values()].map((b) => [b.k, b.c, b.p, ['Em aberto GLD: ' + nf(b.gc, 0) + ' calls / ' + nf(b.gp, 0) + ' puts', 'Em aberto CME: ' + nf(b.mc, 0) + ' calls / ' + nf(b.mp, 0) + ' puts (equivalente GLD)'], b.vc, b.vp]);
     const tot = (lst, f, i) => d3.sum(lst || [], (r) => Math.round(r[i] * f)), cm = z.cme || {};
     drawBorb(el, rows, { preco: z.ouro, teto: z.call_wall, piso: z.put_wall, gamma: z.gamma_flip, mp: z.max_pain, faixa: faixaViva, s1: s1g }, {
-      casas: 0, rotulo: 'Contratos em aberto (GLD + CME)', tol: rat, lv2: { teto: cm.call_wall, piso: cm.put_wall, gamma: cm.gamma_flip, mp: cm.max_pain },
-      pcrs: [['em aberto, GLD + CME', tot(z.perfil_oi || z.perfil, 1, 2) + tot(cm.perfil, fat, 2), tot(z.perfil_oi || z.perfil, 1, 1) + tot(cm.perfil, fat, 1)],
+      casas: 0, rotulo: z.sem_dado_gld ? 'Contratos em aberto (CME)' : 'Contratos em aberto (GLD + CME)', tol: rat, lv2: { teto: cm.call_wall, piso: cm.put_wall, gamma: cm.gamma_flip, mp: cm.max_pain },
+      pcrs: [[z.sem_dado_gld ? 'em aberto, CME' : 'em aberto, GLD + CME', tot(z.perfil_oi || z.perfil, 1, 2) + tot(cm.perfil, fat, 2), tot(z.perfil_oi || z.perfil, 1, 1) + tot(cm.perfil, fat, 1)],
              [z.gld_parado ? 'volume do último pregão, GLD' : 'volume do dia, GLD (ao vivo)', tot(z.perfil_vol, 1, 2), tot(z.perfil_vol, 1, 1)]] });
   }
 
@@ -890,7 +890,9 @@
       const hb = +new Date(Date.now() - 3 * 3600000).toISOString().slice(11, 13), v = HR[hb];
       lin('<b>Esta hora (' + hb + 'h):</b> ' + (v < 0.25 ? 'parada' : v > 0.35 ? 'agitada' : 'normal') + ', costuma andar ~' + pp(v) + '. Mais agitado 10h–12h; mais parado 17h–1h.'); }
     { const z0 = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;   // paredes das opções do dia: os mesmos números do card 0DTE (fixos desde as 10h de NY)
-      if (z0 && z0.call_wall) lin('<b>Paredes das opções do dia</b> (' + (z0.fixacao || '') + '): <span class="lv lv-cw">teto</span> <b>' + nf(z0.call_wall, 0) + '</b> · <span class="lv lv-gf">gamma flip</span> <b>' + nf(z0.gamma_flip, 0) + '</b> · <span class="lv lv-pw">piso</span> <b>' + nf(z0.put_wall, 0) + '</b>. Acima do flip o mercado tende a segurar; abaixo, a acelerar (retrato, não previsão).'); }
+      if (z0) { const g = z0.call_wall != null || z0.put_wall != null || z0.gamma_flip != null, s = g ? z0 : (z0.cme || {}), v = (x) => (x == null ? 'sem dado' : nf(x, 0));
+        const tem = s.call_wall != null || s.put_wall != null || s.gamma_flip != null;
+        lin('<b>Paredes das opções do dia</b> (' + (g ? 'GLD, ' + (z0.fixacao || '') : 'CME' + (z0.sem_dado_gld ? '; GLD sem dado' : '')) + '): ' + (tem ? '<span class="lv lv-cw">teto</span> <b>' + v(s.call_wall) + '</b> · <span class="lv lv-gf">gamma flip</span> <b>' + v(s.gamma_flip) + '</b> · <span class="lv lv-pw">piso</span> <b>' + v(s.put_wall) + '</b>. Acima do flip o mercado tende a segurar; abaixo, a acelerar (retrato, não previsão).' : '<b>sem dado</b>.')); } }
     lin('<b>Direção (compra ou venda):</b> <span class="mi-neg">nenhum sinal comprovado</span>. Opere pelos níveis acima; o 0DTE e os demais cards são retrato, não previsão.');
   }
 
@@ -1081,11 +1083,11 @@
     const z = atv === 'XAUUSD' ? (D('mi_0dte').data || [])[0] : null;
     if (mostra('.op-card.z0', z)) { const t = $('.z0-t tbody'); t.replaceChildren();
       const sg0 = (D('mi_status').data || []).find((x) => /0DTE ouro/.test(x.bloco) && !x.ok);   // fonte do GLD falhou na última coleta: avisa em vez de parecer ao vivo
-      $('.z0-chip').textContent = (sg0 ? '⚠ sem atualizar (fonte do GLD recusou o acesso) · retrato de ' + (z.atualizado || '') + ' · ' : '') + 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + (z.fixacao ? ' · níveis: ' + z.fixacao : '') + ' · GLD ' + (z.gld_parado ? 'fechado (' + z.gld_parado.slice(0, 5) + ')' : z.atualizado) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
+      $('.z0-chip').textContent = (sg0 ? '⚠ sem atualizar (fonte do GLD recusou o acesso) · retrato de ' + (z.atualizado || '') + ' · ' : '') + 'vence ' + br(z.vencimento).slice(0, 5) + ' ' + nyBR(z.vencimento, 16) + (z.fixacao ? ' · níveis: ' + z.fixacao : '') + (z.sem_dado_gld ? ' · GLD sem dado: ' + z.sem_dado_gld : ' · GLD ' + (z.gld_parado ? 'fechado (' + z.gld_parado.slice(0, 5) + ')' : z.atualizado)) + (z.cme ? ' · CME ajuste ' + br(z.cme.pregao).slice(0, 5) : '');
       const n1 = (v) => (v == null ? '—' : nf(v, 1));
       const m = z.cme || {};
-      const niv = [['Ouro agora', z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],
-        ['Max pain', z.max_pain, 'lv-mp', m.max_pain], ['Piso (put wall)', z.put_wall, 'lv-pw', m.put_wall]].filter((x) => x[1] != null).sort((x, y) => y[1] - x[1]);   // escada: do mais alto ao mais baixo
+      const niv = [['Ouro agora' + (z.preco_hora ? ' (preço de ' + z.preco_hora + ')' : ''), z.ouro, 'lv-now', null], ['Teto (call wall)', z.call_wall, 'lv-cw', m.call_wall], ['Gamma flip', z.gamma_flip, 'lv-gf', m.gamma_flip],
+        ['Max pain', z.max_pain, 'lv-mp', m.max_pain], ['Piso (put wall)', z.put_wall, 'lv-pw', m.put_wall]].filter((x) => x[1] != null || x[3] != null).sort((x, y) => (y[1] ?? y[3]) - (x[1] ?? x[3]));   // escada: do mais alto ao mais baixo
       const lin = [...niv.map(([nm, v, c, k]) => [nm, n1(v), c, k == null ? '—' : n1(k)]),
         ];
       // Faixa do DIA (a que tem teste): o σ fixo da abertura, o mesmo do mapa e do "O que olhar hoje"; na coluna da CME, a opção de 1 dia do ajuste de ontem (mesmo dia, outro caminho)
@@ -1094,7 +1096,7 @@
       // O que FALTA andar até as 16h de NY (straddle do GLD que vence hoje, ao vivo): encolhe com o tempo; não é a faixa do dia
       const vv = z.vivo && z.vivo.faixa ? z.vivo.faixa : z.faixa;
       if (vv) lin.push(['O que falta andar até o vencimento (GLD, ao vivo)', n1(vv[0]) + ' – ' + n1(vv[1]), 'lv-rg', '—']);
-      const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, z.gld_parado ? 'GLD (último pregão)' : cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
+      const hd = document.createElement('tr'); td(hd, ''); const cel0 = innerWidth < 600; td(hd, z.sem_dado_gld ? 'GLD (sem dado)' : z.gld_parado ? 'GLD (último pregão)' : cel0 ? 'GLD (ao vivo)' : 'GLD (ao vivo, 15 min)', 'num'); td(hd, z.cme ? 'CME (ajuste ' + br(z.cme.pregao).slice(0, 5) + ')' : (cel0 ? 'CME (sem PDF)' : 'CME (sem PDF para este vencimento)'), 'num'); hd.style.fontSize = '12px'; t.appendChild(hd);
       const tol = z.gld ? z.ouro / z.gld : z.ouro * 0.003;   // 1 strike do GLD em preço de ouro (~US$ 11): GLD e CME "concordam" se ficam a até 1 degrau
       const par = { 'Teto (call wall)': [z.call_wall, m.call_wall], 'Piso (put wall)': [z.put_wall, m.put_wall], 'Gamma flip': [z.gamma_flip, m.gamma_flip], 'Max pain': [z.max_pain, m.max_pain] };
       for (const [nm, v, c, k] of lin) { const tr = document.createElement('tr'); cel(tr, lv(nm, c)); td(tr, v, 'num').style.fontWeight = 600; const ck = td(tr, k, 'num'); ck.style.fontWeight = 600;
@@ -1103,7 +1105,8 @@
           else { s.style.color = 'var(--color-fg-muted)'; s.textContent = 'dif. US$ ' + nf(dif, 0); }
           ck.appendChild(s); }
         t.appendChild(tr); }
-      const tr = document.createElement('tr'); td(tr, 'Regime: ' + z.regime); td(tr, nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' + (z.cme.regime ? ' · ' + z.cme.regime : '') : '', 'num'); t.appendChild(tr);
+      const tr = document.createElement('tr'); td(tr, 'Regime: ' + (z.regime || 'GLD sem dado')); td(tr, z.sem_dado_gld ? 'sem dado' : nf(z.contratos_hoje, 0) + ' negociados / ' + nf(z.abertos, 0) + ' em aberto', 'num'); td(tr, z.cme ? nf(z.cme.abertos, 0) + ' em aberto' + (z.cme.regime ? ' · ' + z.cme.regime : '') : '', 'num'); t.appendChild(tr);
+      if (m.sem_dado) { const tr2 = document.createElement('tr'); const c2 = td(tr2, 'CME sem dado: ' + m.sem_dado); c2.colSpan = 3; t.appendChild(tr2); }
       drawZ0b(z);
     }
   }

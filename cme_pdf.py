@@ -115,7 +115,7 @@ sel = []
 for v, f in F.items():
     vv = [x for x in rows if x["venc"] == v]; kk = min({x["strike"] for x in vv}, key=lambda k: abs(k - f))
     for x in vv:
-        if (x["oi"] > 0 and abs(x["strike"] / f - 1) <= 0.05) or x["strike"] == kk:
+        if x["oi"] > 0 or x["strike"] == kk or abs(x["strike"] / f - 1) <= 0.05:   # cadeia inteira (27/11/2026): o max pain usa todos os contratos em aberto
             x.update({"futuro": f, "data_pregao": pregao.isoformat(), "strike": int(x["strike"]) if x["strike"] % 1 == 0 else x["strike"]}); sel.append(x)
 if len(sel) < 10: sys.exit(f"poucas linhas ({len(sel)}): confira se é o PDF certo (Section 64)")
 out = {"ouro_cadeia": sel, "ouro_boletim": [{"data_pregao": pregao.isoformat(), "futuro": F[min(F)], "futuro_vencimento": "",
