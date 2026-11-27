@@ -253,13 +253,21 @@ def b_tsy():
 @bloco("Liquidez (Tesouro e Fed de NY)")
 def b_liq():
     ini = (NOW.date() - dt.timedelta(days=3 * 366)).isoformat()
-    js = json.loads(get("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance"
-                        f"?fields=record_date,account_type,open_today_bal&filter=record_date:gte:{ini}&page%5Bsize%5D=10000"))
+    # 27/11/2026: o Tesouro (fiscaldata) passou a demorar > 15 s / dar 504 com 3 anos de uma vez e derrubava o bloco inteiro (RRP, SOFR e
+    # Fed funds juntos). Agora o TGA tem reserva no FRED (WTREGEN, semanal, milhões) e uma falha dele não derruba as séries do Fed de NY.
     tga = {}
-    for r in js["data"]:
-        if "TGA" in r["account_type"] and "Opening" in r["account_type"] and r["open_today_bal"] not in (None, "null"):
-            tga[dt.date.fromisoformat(r["record_date"])] = float(r["open_today_bal"]) / 1000
-    FR["TGA"] = tga
+    try:
+        js = json.loads(get("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance"
+                            f"?fields=record_date,account_type,open_today_bal&filter=record_date:gte:{ini}&page%5Bsize%5D=10000", timeout=25))
+        for r in js["data"]:
+            if "TGA" in r["account_type"] and "Opening" in r["account_type"] and r["open_today_bal"] not in (None, "null"):
+                tga[dt.date.fromisoformat(r["record_date"])] = float(r["open_today_bal"]) / 1000
+    except Exception as e:
+        try:
+            tga = {d: v / 1000 for d, v in fred(["WTREGEN"], ini)["WTREGEN"].items()}
+            STATUS.append({"bloco": "Liquidez: TGA", "ok": True, "msg": "Tesouro não respondeu (" + str(e)[:60] + "); TGA semanal pelo FRED"})
+        except Exception as e2: STATUS.append({"bloco": "Liquidez: TGA", "ok": False, "msg": "Tesouro e FRED falharam: " + str(e2)[:80]})
+    if tga: FR["TGA"] = tga
     rrp = {}
     for o in json.loads(get(f"https://markets.newyorkfed.org/api/rp/reverserepo/propositions/search.json?startDate={ini}"))["repo"]["operations"]:
         d = dt.date.fromisoformat(o["operationDate"]); rrp[d] = rrp.get(d, 0) + float(o.get("totalAmtAccepted") or 0) / 1e9
@@ -677,13 +685,23 @@ def b_faixa():
             fz = SPOT["fator"] if a == "XAUUSD" else 1   # ouro no à vista
             bars = [(dt.datetime.fromtimestamp(t, NYz), o * fz, h * fz, l * fz) for t, o, h, l in zip(j["timestamp"], q["open"], q["high"], q["low"]) if o and h and l]
             sess = lambda d: (d + dt.timedelta(hours=6)).date()   # dia de negociação começa 18h NY (20h BRT; 19h no horário de verão americano)
-            hoje_s = sess(bars[-1][0]); dia = [b for b in bars if sess(b[0]) == hoje_s]
+            hoje_s = sess(bars[-1][0])
+            # 27/11/2026: no feriado de 26/11 o Yahoo parou as barras de 1 h de TODOS os futuros da CME em 25/11 23h NY e o mapa do ouro não virou
+            # a sessão (seguia "qua 20h → qui 20h"). Agora a sessão segue o RELÓGIO (18h NY) em dia útil; sem barra da sessão nova,
+            # a abertura é o preço da 1ª coleta, congelado (ab_est) e marcado como estimado.
+            s_rel = sess(NOW.astimezone(NYz))
+            if s_rel > hoje_s and s_rel.weekday() < 5: hoje_s = s_rel
+            dia = [b for b in bars if sess(b[0]) == hoje_s]; ab_est = False
             seg = hoje_s - dt.timedelta(days=hoje_s.weekday()); sem = [b for b in bars if sess(b[0]) >= seg]
             # σ congelado na 1ª coleta da sessão (dia) e da semana: os níveis são projetados na abertura e não mudam até a próxima
             kd, kw = f"{a}|{hoje_s}", f"{a}|sem|{seg}"   # chave da semana separada: na segunda hoje_s == seg e o σ da semana saía igual ao do dia
             if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
             if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
             sd = FIXO[kd]["sd"]
+            if not dia:
+                ab0 = FIXO[kd].setdefault("ab_est", px); ab_est = True
+                dia = [(NOW.astimezone(NYz), ab0, max(ab0, px), min(ab0, px))]
+                if not sem or sess(sem[-1][0]) < hoje_s: sem = sem + dia
             ab_sem = sem[0][1] if sem else None
             if a != "XAUUSD" and sem and sem[0][0].hour != 18:   # Yahoo FX sem o domingo 18h–19h NY: abertura pelo futuro × razão à vista/futuro na 1ª hora comum
                 try:
@@ -719,7 +737,7 @@ def b_faixa():
                            "ts_dia_fim": int(dt.datetime.combine(hoje_s, dt.time(hab), NYz).timestamp() * 1000),
                            "ts_sem_ini": int(dt.datetime.combine(seg - dt.timedelta(days=1), dt.time(hab), NYz).timestamp() * 1000),
                            "ts_sem_fim": int(dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).timestamp() * 1000),
-                           "preco": rnd(px, casas)}
+                           "preco": rnd(px, casas), "ab_estimada": ab_est}
             mp = row["mapa"]
             # faixa do DIA e da SEMANA: a partir do preço de ABERTURA e com o σ congelado, a mesma conta do mapa (24/11/2026: a faixa saía centrada no
             # preço de agora e mudava a cada coleta, e a leitura da IA, o mapa e o 0DTE mostravam números diferentes). Mês continua no preço de agora.

@@ -360,3 +360,7 @@ Timer falhou em 25 e 26/11 ("o Brave não baixou"); rodado à mão em 26/11 19:2
 
 ## 26/11/2026 21h — recados da reconferência
 NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou -0,73%); `feriado_eua` no `mi_quant_diario`; IA falhava por resposta cortada (7.698 de 8.000 tokens) → 16.000. Testado: 72 casos visuais sem estouro nem erro, conferido na coleta 21:05.
+
+## 27/11/2026 — Code: mapa do ouro no feriado e liquidez
+- Mapa do ouro preso em "qua 25/11 20h → qui 26/11 20h": o Yahoo parou as barras intradiárias (1 h e 5 min) de TODOS os futuros da CME (GC, SI, ES, 6J) em 25/11 23h55 NY, apesar de o último negócio ser de 26/11 19h23; o código pegava a sessão da última barra. Agora a sessão vem do relógio (18h NY, dia útil); sem barra, abertura = preço da 1ª coleta (congelado em `mapa_fixo`, `ab_estimada`). Conferido 26/11 19h40 NY: ouro "qui 26/11 20h → sex 27/11 20h", abertura estimada 3.565,4; moedas iguais (com barras reais).
+- Liquidez: o fiscaldata do Tesouro dava 504 em 15 s (até com 40 dias) e derrubava RRP/SOFR/Fed funds juntos. TGA agora com timeout 25 s e reserva FRED WTREGEN (semanal; milhões → bilhões); o Fed de NY responde em < 1 s. Conferido: bloco ok, TGA 916,6 bi (18/11), RRP 0,3 (25/11), SOFR 3,94, Fed funds 3,88. Com a reserva, a liquidez líquida fica semanal (última 18/11).
