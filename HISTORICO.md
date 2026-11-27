@@ -389,3 +389,10 @@ NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou
 
 ## 27/11/2026 13h: régua pelo MT5 (programa e leitura no painel)
 Programa `mt5/ReguaPainel.mq5` (só leitura, não compilado ainda), ramo `regua`, bloco `b_regua_mt5` + `confere_regua.py`. Teste com dados simulados: mediana correta, salto de US$ 4,6 travado, horário 1 h errado reprovado pela dispersão. Sem dado real ainda. Nada muda na tela.
+
+## 27/11/2026 13h25: pedidos do Gabriel (13h08 e 13h13)
+- Mapa de opções: mouse ou toque mostra preço do nível, strike, contratos e distância (e055149).
+- Texto "leitura sai às 11h": agora diz o motivo pelo relógio de NY (mercado fechado, falta de preço por hora, horário, pregão encerrado).
+- Abertura do ouro pela barra 18h00 do MT5, só com régua do último pregão válida (60+ min, dispersão até US$ 1) e preço a até 6%.
+- MT5 passa a enviar ao repositório separado `painel-regua` (ainda a criar). Ramo `regua` ficou sem uso: apagar foi recusado (403).
+- HAR + GVZ em sombra no ar: 1º dia σ 2,60% (GVZ 2,26%), 80% a 4,28% (GVZ 3,48%); placar 0 de 60. Conta em stdlib igual à do numpy; semente transcrita do doc do Projeto (500 linhas, datas conferidas).

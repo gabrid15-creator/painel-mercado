@@ -32,7 +32,7 @@
 | DTCC | `dtcc.py` (≤ 150 s): balcão de opções de câmbio; estado `dtcc_estado.json` → `mi_otc.json`, `mi_otc_hist.json`. Card escondido. **P7 (26/11, Code):** dia só vira coberto com o arquivo fechado lido (404 recente = tenta de novo; > 4 dias = feriado); dia lido só pelos pacotes fica em `prov` até o arquivo sair; `erros` = só da rodada (`erros_total` acumula); vol. implícita exige 10 negócios, alarga para 48 h/72 h (`janela`), < 5 em 72 h = sem vol. (`testes/min_negocios_dtcc.py`). |
 | Liquidez | `b_liq`: TGA pelo Tesouro (fiscaldata, 25 s); se falhar (27/11: 504/lento), TGA semanal pelo FRED (WTREGEN) com aviso no status; RRP, SOFR e Fed funds (Fed de NY) não caem mais junto. |
 | 1 min | `minutos.py` 1×/dia ~01h UTC → branch `minutos` (`AAAA-MM-DD.csv.gz`: GC, SI, DXY, 6E, 6J, 6S). |
-| Branches | `main` (código), `dados` (coleta), `minutos`, `pdfs`, `log` (log do robô do PC). |
+| Branches | `main` (código), `dados` (coleta), `minutos`, `pdfs`, `log` (log do robô do PC), `regua` (sem uso, pode apagar). |
 
 **Funções do `coletor.py`:**
 - Preços e macro: `b_precos` (preços + régua Vantage), `b_tsy`, `b_liq`, `b_bund`, `b_fred`, `b_macro`, `b_ativos`, `b_cot`, `b_dolar`.
@@ -141,7 +141,7 @@
      - tabela **Precisão medida** visível (`faixa_backtest.json`).
    - **Conferência diária** (`mi_validacao.json`): toque real × chance prevista, faixa e 0DTE (GLD e CME separados).
    - **Call wall e put wall (CME)** (`.op-card.pw`, `b_paredes` → `mi_paredes.json`; histórico `mi_paredes_hist.json`; rótulo "referência, sem teste"): fixas na chegada do boletim; soma o contrato em aberto dos vencimentos coletados ainda vivos (ouro: semanais + próximo mensal, desde 27/11 11h28; mudança registrada em `mudancas`); só strikes a até 1σ semanal do ajuste; call = mais calls acima, put = mais puts abaixo; ouro nível = strike − régua; iene = USDJPY às 15h NY × F ÷ strike (call do USDJPY vem das puts de iene); preço passou = "rompida" + 2ª parede. Mapa (`drawMapaOp`): puts à esquerda, calls à direita, paredes, 2ª tracejada, preço com horário. Conferente independente `confere_opcoes.py` (roda em toda coleta). 25/11: ouro 3573 / 2ª 3673 / put 3473.
-   - **Faixa do ouro** (27/11 12:34; vale no lugar do ±0,44σ/±1σ como teto): 80% e 95% em destaque, 50% dia normal, "não sai por nenhum dos dois lados". k de 250 sessões do GC (`mi_faixa_k.json`, aprovado contra 1,00/1,55/2,44); registro e acerto em `mi_faixa_ouro.json`; `confere_faixa.py`. HAR+GVZ em sombra aguarda semente.
+   - **Faixa do ouro** (27/11 12:34; vale no lugar do ±0,44σ/±1σ como teto): 80% e 95% em destaque, 50% dia normal, "não sai por nenhum dos dois lados". k de 250 sessões do GC (`mi_faixa_k.json`, aprovado contra 1,00/1,55/2,44); registro e acerto em `mi_faixa_ouro.json`; `confere_faixa.py`. **HAR+GVZ em sombra (27/11 13h):** `b_har` com a semente `dados_fixos/semente_rv.csv` (500 sessões da Vantage) + variância do MT5 ou do GC 5 min ajustado; grava `mi_har_rv.json` e `mi_har_sombra.json`; troca só com 60+ sessões, erro menor e intervalo de 95% sem cruzar zero. Nada na tela.
    - **Grandes fora da faixa** (27/11 12:22): strikes entre 1σ e 2σ semanal do ajuste com mais contratos que a parede do mesmo lado (`fora_call`/`fora_put`); aparecem na tabela, no mapa (eixo até 2σ no máximo), no digest e na IA; não são parede. Boletim 25/11: calls 3723, 3773, 3873; puts nenhuma.
    - **GLD complementar** (27/11): foto única do dia (`mi_gld_oi.json`) na 1ª coleta com pregão aberto (10h–16h NY), contratos em aberto > 0 e GLD não parado, vencimentos até o mensal; vale no máximo até o dia útil seguinte; mesma regra de parede sobre o ajuste da CME; tamanho em contratos equivalentes (n ÷ razão); a até US$ 6 da parede CME = "coincide com o GLD" (nunca "confirmada": não é teste); mais longe = linha roxa própria; sem foto válida = "GLD sem dado". Não soma nem move a CME. Uso: referência no gráfico, não serve para entrada, saída nem proteção.
    - **Vencimento mensal da CME** (`ouro_mensal.json`, só para teste futuro; leitor e `confere_cme.py`).
@@ -152,6 +152,7 @@
 - **Cores dos níveis:** teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom.
 
 **Convenções do front (`app.js`):**
+- `toqueMapa()` (27/11): mouse ou toque no mapa de opções mostra preço, strike, contratos e distância. `semCedo()` explica por que a leitura das 11h não apareceu.
 - `drawMapaOp(el, w, cs)` desenha o mapa das opções a partir de uma linha do `mi_paredes`.
 - `prepAjuda()` põe o "?" dentro do h2, com o texto do título em `span.h2-t`.
 - Textos de ajuda ficam em `div.op-note.ajuda.guia` (introdução em `<p>` + itens em `<ul>`, sem bolinha). Abrem com `.abre` no card ou com `body.ver-ajuda` (botão "? Explicações").
@@ -246,7 +247,7 @@
 5. Pergunta sem resposta: suavizar o gamma flip do GLD (média de 15 min)?
 6. Conferir os leitores em 01/01/2027. Databento quando ela assinar.
 
-- **Régua automática (27/11 12:22):** fonte xaus.com reprovada e removida. Vale a régua datada. **Régua pelo MT5 (27/11 13h, aprovado):** `mt5/ReguaPainel.mq5` (só leitura) manda o XAUUSD de 1 min ao ramo `regua` (`ultimo.csv`); `b_regua_mt5` casa com o GC fev no mesmo minuto e grava `mi_regua_mt5.json` (mediana do pregão; válido com 60+ minutos, dispersão até US$ 1, mudança até US$ 3); `confere_regua.py`. SÓ GRAVA: a troca da régua datada exige 3 pregões válidos e nova decisão. Falta instalar no servidor previsto para 29/11.
+- **Régua automática (27/11 12:22):** fonte xaus.com reprovada e removida. Vale a régua datada. **Régua pelo MT5 (27/11, aprovado):** `mt5/ReguaPainel.mq5` (só leitura, não compilado) manda o XAUUSD de 1 min ao repositório SEPARADO `gabrid15-creator/painel-regua` (`ultimo.csv`; a chave só desse repositório, nunca com acesso à main). `b_regua_mt5` casa com o GC fev no mesmo minuto e grava `mi_regua_mt5.json` (mediana do pregão; válido com 60+ minutos, dispersão até US$ 1, mudança até US$ 3); `confere_regua.py`. SÓ GRAVA: trocar a régua datada exige 3 pregões válidos e nova decisão. A abertura do ouro usa a barra 18h00 do MT5 quando a régua do último pregão é válida (`mapa.ab_fonte`). Falta: criar o repositório (público, só o Gabriel), a chave e instalar no servidor previsto para 29/11.
 - Auditoria de 26/11: resta ver o P1 ao vivo em 30/11. Opções do ouro (27/11) corrigidas, falta a reconferência de Estratégias. Régua: remedir até 02/12.
 
 ---
