@@ -2,7 +2,7 @@
 
 > Memória entre conversas, lida sozinha via `CLAUDE.md`. **Atualizar a cada mudança** no painel, cálculos ou dados (e anexar o detalhe no `HISTORICO.md`).
 > `HISTORICO.md` = diário completo (números antigos, o porquê de cada decisão). Só abrir se precisar.
-> Última revisão: 16/11/2026.
+> Última revisão: 27/11/2026.
 
 **Site:** https://gabrid15-creator.github.io/painel-mercado/ · **Repo:** `gabrid15-creator/painel-mercado` · commit e push direto na `main` · **Horário:** sempre Brasília (BRT).
 
@@ -116,6 +116,8 @@
 
 ## 4. O que está no painel (aba Mercado, de cima para baixo)
 
+> **27/11/2026 (decisão do Gabriel, vale sobre o que houver de antigo abaixo ou no §2/§3):** das opções, a tela, o `digest.txt` e a IA mostram **só call wall e put wall da CME** (ouro e iene) e o mapa de barras. Saíram: GLD, borboleta, flip, max pain, regime, gregas, pin, PCR, faixas por straddle e faixa da CME; a coleta continua gravando em arquivo. Faixa do dia única: GVZ a partir da abertura das 20h (±0,44σ metade; ±1σ 82%, 3.770 dias). Abertura estimada: avisa e não marca toque, máxima, mínima nem rompimento. Voltar exige 60 pregões e passar de 97,5% de níveis sorteados (`claude/quant-opcoes-fica-sai.md`).
+
 0. **Cabeçalho "Dados de …"**: mostra também "CME: boletim de dd/mm (preliminar/final), chegou dd/mm hh:mm" (`cmeInfo()`, campo `recebido_em` gravado pelos leitores; 20/11).
 1. **Panorama do dia:** leitura da IA; Fear & Greed, red folder, VIX, DXY.
 2. **Macro, o que move o dólar:**
@@ -125,7 +127,7 @@
 3. **Ativo, níveis e opções** (o seletor gruda no topo):
    - **"O que olhar hoje"** (20/11, pedido dela: painel confuso; `drawRS()`, `.op-card.rs`): σ do dia em pips/US$, dia normal (= grade) e stop (90%), níveis −1σ/normal/abertura/normal/+1σ com ✓, "Agora" (posição em σ + rompimento), resto do dia (Ásia+Londres), hora (ouro), "Direção: nenhum sinal comprovado". O mapa detalhado (tabelas, faixa, rompimento, precisão, conferência) fica em `details.mp-det` recolhido.
    - **"Quando o mercado fica lateral"** (24/11/2026, pedido dela; `drawLat()`, `.op-card.lat`, `docs/data/lateralidade.json`, igual nos 5 ativos): % de dias estreitos/normais/largos e de corpo pequeno, ontem → hoje, payroll (dia e semana), horas paradas/agitadas (Brasília), mês só onde passou (USDJPY). Dia da semana e semana do mês: **nenhuma diferença comprovada** (o "efeito segunda" das barras diárias do Yahoo era artefato do corte à meia-noite; na sessão real 18h→17h NY não existe). Scripts `testes/lateralidade.py` (15 anos diário, 75 testes, Bonferroni, metades) e `testes/lateralidade2.py` (sessão real 2 anos, persistência, GVZ). Registro diário para medir notícias: `mi_lateral_diario.json` (amplitude em σ, corpo, red folders do dia; 16h–18h NY).
-   - **Padronização (24/11/2026, pedido dela): mesmo cálculo, mesmo roteiro e mesmos números em todos os ativos.** `docs/data/padrao.json` é a fonte única (dia normal, cortes Ásia+Londres, horas do ouro): a tela (`qNormal/cCedo/hOuro`) e o resumo da IA leem dali. A leitura da IA segue o mesmo roteiro para os 5 ativos ([σ], [DIA fixo], [SEMANA fixa], [AGORA], [LATERALIDADE], [RESTO DO DIA], [OPÇÕES]); só a linha de opções muda (ouro = 0DTE GLD+CME, iene = 0DTE CME, euro/franco/libra = σ pelas opções de balcão DTCC, sem 0DTE próprio). **Qual σ olhar:** o do DIA fixo na abertura (card "O que olhar hoje", mesmo número do mapa e da IA; testado: ±1σ 78–83%, ±2σ 96–99%); o da SEMANA para posição de vários dias (73–83% / 97%); 0DTE = complemento ainda sem teste (fim de dez.).
+   - **Padronização (24/11/2026, pedido dela): mesmo cálculo, mesmo roteiro e mesmos números em todos os ativos.** `docs/data/padrao.json` é a fonte única (dia normal, cortes Ásia+Londres, horas do ouro): a tela (`qNormal/cCedo/hOuro`) e o resumo da IA leem dali. A leitura da IA segue o mesmo roteiro para os 5 ativos ([σ], [DIA fixo], [SEMANA fixa], [AGORA], [LATERALIDADE], [RESTO DO DIA], [OPÇÕES]); só a linha de opções muda (ouro e iene = paredes da CME, euro/franco/libra = σ pelas opções de balcão DTCC, sem 0DTE próprio). **Qual σ olhar:** o do DIA fixo na abertura (card "O que olhar hoje", mesmo número do mapa e da IA; testado: ±1σ 78–83%, ±2σ 96–99%); o da SEMANA para posição de vários dias (73–83% / 97%); 0DTE = complemento ainda sem teste (fim de dez.).
    - **Mapa "até onde o preço deve ir":**
      - tabelas Hoje e Semana, níveis ±0,5/1/1,5/2σ a partir da abertura;
      - "chance agora": z = distância log ÷ (σ × √fração restante), com a curva real medida em 2 anos de 1 h (`toque_tabela.json`);
@@ -133,37 +135,21 @@
      - "Teste um preço" aceita vírgula e ponto.
    - **Rompimento do σ do dia** (`.mp-romp`, `rompimento.json`): preço de cada gatilho (±1σ/±1,25σ/±1,5σ), o que costuma acontecer depois e a linha "Hoje: em cima Xσ → …".
    - **Faixa esperada:**
-     - ouro = GVZ, mais a CME (straddle no dinheiro da 1ª série com ≥ 3 dias úteis);
+     - ouro = GVZ (faixa única);
      - moedas = **vol. implícita das opções de balcão (DTCC)**: `dtcc.py` → `mi_otc.pares[].vol_impl` (negócios das últimas 24 h, prazo 1–30 d, strike ≤ 1% do preço na hora, prêmio → Black; mediana; ≥ 5 negócios); `b_faixa` usa se o mi_otc tiver < 3 h; reserva: vol. realizada 21 d × 1,09. 17/11: USDJPY DTCC 6,76% × CME 6,82%;
      - etiqueta da vol. contra a média de 1/3/5 anos (pesos 50/30/20);
      - tabela **Precisão medida** visível (`faixa_backtest.json`).
    - **Conferência diária** (`mi_validacao.json`): toque real × chance prevista, faixa e 0DTE (GLD e CME separados).
-   - **0DTE ouro:** só a **borboleta** (`drawBorb`).
-     - **Níveis fixos do dia (24/11/2026, pedido dela: teto/piso/flip mudavam a cada coleta):** teto, piso, max pain, gamma flip (GLD e CME) e faixa são calculados **só com contratos em aberto** (sem o volume do dia); 9h30–10h NY = calibra (mediana das coletas), **10h NY = fixa até o vencimento** (`mi_0dte_fixo.json`; campo `fixacao` no `mi_0dte`; valores ao vivo ficam em `vivo`, `cwv/pwv/gfv` no `mi_0dte_dia`). Ao vivo: preço, regime de gamma agora, barras/volume. O retrato de validação (`mi_0dte_hist`) e a foto da manhã do diário passam a ser os níveis fixos das 10h NY (antes: 1ª coleta, com OI + volume; dias 12–23/11 têm outra definição).
-     - **Faixas do card 0DTE (25/11/2026, ela não entendia a "faixa até o vencimento" do GLD):** (1) **Faixa do dia ±1σ** = σ fixo da abertura (a do mapa; coluna CME = straddle de 1 dia do ajuste de ontem, mesmo tamanho: 23–24/11 ±70–72); (2) **"O que falta andar"** = straddle do GLD que vence hoje às 16h NY, centrado no preço de agora, ao vivo: encolhe com o tempo (implícita ~38% a.a., coerente) e NÃO é faixa do dia. O ±1σ tracejado do gráfico agora é o do dia; a sombra azul é o que falta andar. O `faixa`/`s1` congelado às 10h NY segue só para a validação (`mi_0dte_hist`: preço de fechamento × faixa de 10h NY→16h).
-     - **Quando cada nível fica fixo:** CME (teto, piso, max pain, faixa) = desde que o boletim chega (~3h BRT); flip da CME = na 1ª conta depois do boletim (`cme|venc|pregão` no `mi_0dte_fixo.json`); GLD = provisório até as 10h NY (12h BRT no inverno, 11h no verão americano), depois fixo. σ do mapa = fixo desde a abertura das 20h BRT.
-     - **Uma só leitura:** `faixas` dia/semana do `mi_faixa` (e da CME) agora saem do preço de ABERTURA com σ congelado = igual ao mapa e à leitura da IA (antes saíam do preço de agora). A IA recebe os mesmos níveis e é instruída a não calcular outra faixa.
-     - Grade de strikes do GLD em ±max(1,3%, 1,15σ).
-     - Barras: clara = contratos em aberto GLD + CME (equivalente GLD); escura = volume do dia do GLD (ao vivo). Verde = calls, vermelho = puts.
-     - Níveis do GLD tracejados, mais ±1σ; níveis da CME pontilhados.
-     - Faixa dourada ✓ onde GLD e CME concordam (tolerância = 1 strike do GLD ≈ US$ 11).
-     - "Fora do gráfico" para nível fora da escala.
-     - Dois PCR em número grande: > 1,05 = +Puts vermelho; < 0,95 = +Calls verde. É retrato, não prevê.
-     - Tabela GLD × CME: teto, flip, max pain, piso, faixa, ±1σ.
-     - No celular, só contratos em aberto.
-   - **0DTE iene:** o mesmo card, só com CME (vencimento mais próximo com ≥ 10 strikes; PCR em ±2%).
-   - **Balcão (DTCC):** escondido (`MOSTRA_OTC = false` no `app.js`), só grava.
+   - **Call wall e put wall (CME)** (`.op-card.pw`, `b_paredes` → `mi_paredes.json`; histórico `mi_paredes_hist.json`; rótulo "referência, sem teste"): fixas na chegada do boletim; soma o contrato em aberto dos vencimentos coletados ainda vivos; só strikes a até 1σ semanal do ajuste; call = mais calls acima, put = mais puts abaixo; ouro nível = strike − régua; iene = USDJPY às 15h NY × F ÷ strike (call do USDJPY vem das puts de iene); preço passou = "rompida" + 2ª parede. Mapa (`drawMapaOp`): puts à esquerda, calls à direita, paredes, 2ª tracejada, preço com horário. Conferente independente `confere_opcoes.py` (roda em toda coleta). 25/11: ouro 3573 / 2ª 3698 / put 3473.
+   - **Vencimento mensal da CME** (`ouro_mensal.json`, só para teste futuro; leitor e `confere_cme.py`).
+   - **Balcão (DTCC):** não aparece na tela, só grava.
    - **"Mais sobre o ativo e o mercado"** (`details.mais`, recolhido): Regime, CTA (só ouro), preço/ATR, sazonalidade, COT, correlações, Goldbach, tabela macro.
 4. **Agenda e notícias:** Forex Factory com "Atual" ao vivo (biquote/BLS/FRED); notícias com filtro. **Histórico recolhido (25/11, pedido dela):** Agenda da semana e "Eventos de hoje em diante" (aba Alto impacto) mostram só de HOJE em diante; dias anteriores ficam atrás do botão "▸ Ver N eventos de dias anteriores" (`barraAnt()`, barra ACIMA da tabela). Calendários (Alto impacto e Goldbach): mês atual e seguinte abertos; o anterior em `details.gb-ant` recolhido (Goldbach só mostra o anterior se houver dados dele).
 - **Aba Dias de alto impacto:** calendário EUA + Goldbach/Hopiplaka (`goldbach_gen.py`).
 - **Cores dos níveis:** teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom.
 
 **Convenções do front (`app.js`):**
-- `drawBorb(el, rows, lv, o)` desenha a borboleta:
-  - `rows` = `[k, calls, puts, extras, volC?, volP?]`;
-  - `lv` = `{preco, teto, piso, gamma, mp, faixa, s1}`;
-  - opções: `o.lv2` (níveis da CME), `o.tol` (faixa de concordância), `o.pcrs`, `o.pcr`, `o.pcrRot`, `o.dec`.
-- `drawZ0b` desenha o 0DTE do ouro; `drawZ0j`, o do iene.
+- `drawMapaOp(el, w, cs)` desenha o mapa das opções a partir de uma linha do `mi_paredes`.
 - `prepAjuda()` põe o "?" dentro do h2, com o texto do título em `span.h2-t`.
 - Textos de ajuda ficam em `div.op-note.ajuda.guia` (introdução em `<p>` + itens em `<ul>`, sem bolinha). Abrem com `.abre` no card ou com `body.ver-ajuda` (botão "? Explicações").
 - Tabelas vão dentro de `.tbl-x`; divisórias de seção usam `.sec-t`.
@@ -257,6 +243,7 @@
 5. Pergunta sem resposta: suavizar o gamma flip do GLD (média de 15 min)?
 6. Conferir os leitores em 01/01/2027. Databento quando ela assinar.
 
+- **Régua automática em paralelo** (27/11, `b_regua_auto` → `mi_regua_auto.json`): GC fev − ouro à vista (xaus.com) no mesmo minuto, mediana do dia, descarte > 120 s, trava US$ 3. Só grava; após 3 pregões comparar com a régua datada e medir à vista × Vantage antes de trocar.
 - Auditoria de 26/11: resta ver o P1 ao vivo em 30/11. Opções do ouro (27/11) corrigidas, falta a reconferência de Estratégias. Régua: remedir até 02/12.
 
 ---
