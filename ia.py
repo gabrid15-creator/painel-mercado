@@ -33,7 +33,7 @@ else:   # último horário noturno (20h ou 0h) que já passou
     hoje0 = agora.replace(hour=0, minute=0, second=0, microsecond=0)
     marcos = [m for m in (hoje0 - dt.timedelta(hours=4), hoje0, hoje0 + dt.timedelta(hours=20)) if m <= agora]
     vencida = not ultima or ultima < max(marcos)
-formato_velho = bool(ant) and ant[0].get("formato") != 5   # formato novo (sem viés): refaz uma vez
+formato_velho = bool(ant) and ant[0].get("formato") != 6   # formato novo (sem viés): refaz uma vez
 if ultima and not red_depois and not formato_velho and (not vencida or fim_de_semana):
     print(f"leitura de {ultima:%d/%m %H:%M} ainda vale"); sys.exit(0)
 
@@ -68,7 +68,7 @@ if resp.stop_reason == "refusal":
 txt = "".join(b.text for b in resp.content if b.type == "text")
 try:
     itens = json.loads(txt[txt.index("["): txt.rindex("]") + 1])
-    rows = [{"ativo": x["ativo"], "formato": 5, "texto": re.sub(r"\[(?:σ|FAIXA|DIA|SEMANA|AGORA|LATERALIDADE|RESTO DO DIA|OPÇÕES)[^\]]*\]\s*", "", x["texto"]).strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
+    rows = [{"ativo": x["ativo"], "formato": 6, "texto": re.sub(r"\[(?:σ|FAIXA|DIA|SEMANA|AGORA|LATERALIDADE|RESTO DO DIA|OPÇÕES)[^\]]*\]\s*", "", x["texto"]).strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
 except Exception as e:
     print(f"resposta fora do formato; leitura anterior mantida: {e} (parou por {resp.stop_reason}, {resp.usage.output_tokens} tokens de saída, começo: {txt[:150]!r})"); sys.exit(0)
 if len(rows) < 5:
