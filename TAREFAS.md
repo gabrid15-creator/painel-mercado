@@ -23,6 +23,7 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | feito | CHAT | Confirmar o robô da CME no log de 27/11 | rodou 03:00 a 05:30 sem falha; boletim novo não saiu pelo feriado de 26/11 |
 | feito | CHAT | CME 25/11 (ouro e iene) | 26/11 19:20, automático, 0 erro, commit 0bfd6c5. Desfazer: `git revert 0bfd6c5` |
 | aberto | CHAT | CME iene de 24/11 | aguarda PDFs do Gabriel |
+| fazendo | CHAT | Recado URGENTE 27/11 11h10: paredes fixas, enxugar opções, faixa única, abertura do ouro, mensal | coletor.py, confere_opcoes.py, cme_pdf.py, confere_cme.py, cme_local.py, ia.py, docs/ |
 | aberto | CHAT | Remedir a régua da Vantage 1 vez por semana (próxima até 02/12) e na troca de contrato | candle M1 do MT5 no mesmo minuto; `REGUA` no `coletor.py` e constantes no `confere_opcoes.py` |
 | feito | CODE | Conferir a coleta depois da troca de contrato do GC (ouro e níveis da CME coerentes) | 26/11: coerente (sem salto de ~US$ 29 entre 24 e 25/11; régua dez. + 1,9 = US$ 29,3; níveis GLD e CME em volta do preço). Só corrigido o texto `como` do `mi_geral` (dizia 6,5 fixo). Desfazer: `git revert` deste commit |
 | aberto | CODE | Euro e franco na CME só se precisar de dado ao vivo; a leitura dos PDFs é do chat | combinar antes (não iniciado). Obs. 26/11: o Code voltou ao ambiente "painel-mercado" (Yahoo, FRED, DTCC etc. liberados; incluído `cdn-api.cboe.com`, para onde a Cboe agora redireciona o GLD.json) |
