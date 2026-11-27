@@ -33,6 +33,7 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | feito | CODE | P7: `dtcc.py` só marcar dia coberto com arquivo fechado; ver 88 erros; avaliar mínimo > 5 negócios | 26/11: só arquivo fechado marca o dia; erros por rodada (os 88 eram acumulado de conexão derrubada); mínimo 10 negócios com janela 48/72 h. Desfazer: `git revert` deste commit |
 | feito | CODE | P11 (resto): σ do NAS100 pelo VXN | 26/11: testado (dia ±1σ 77–78%, ±2σ 97,5%, 2001+), no `mi_faixa`, sem mapa. Desfazer: `git revert` deste commit |
 | feito | CHAT | NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura; `feriado_eua` no diário quant; IA com mais espaço de resposta | 26/11 21:05, conferido na coleta. Desfazer: `git revert 2531c9b f8c09ec`. Arquivos liberados |
+| fazendo | CHAT | Recados de 27/11: auditoria das opções (0DTE inválido, régua medida, trava na coleta, flip, charm, cadeia CME inteira) e P13 | `coletor.py`, `cme_pdf.py`, `cme/`, `docs/app.js` |
 | feito | CODE | Mapa do ouro não virou a sessão: 26/11 21:05 ainda "qua 25/11 20h a qui 26/11 20h" (moedas já em 26/11 20h) | 27/11: era o Yahoo (sem barras da CME desde 25/11 23h NY) + sessão pela última barra; agora pelo relógio, abertura estimada se faltar barra (`mapa.ab_estimada`). Desfazer: `git revert` deste commit |
 | feito | CODE | Liquidez (Tesouro e Fed de NY) estoura o tempo em algumas coletas (26/11 20:16 e 21:01) | 27/11: o Tesouro (TGA) dá 504/lento; reserva FRED WTREGEN e o Fed de NY não cai junto. Desfazer: `git revert` deste commit |
 
