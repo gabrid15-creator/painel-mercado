@@ -246,7 +246,7 @@
 5. Pergunta sem resposta: suavizar o gamma flip do GLD (média de 15 min)?
 6. Conferir os leitores em 01/01/2027. Databento quando ela assinar.
 
-- **Régua automática (27/11 12:22):** fonte xaus.com reprovada e removida. Vale a régua datada. Ideia nova aguardando ok do Gabriel: programa só de leitura no MT5 (XAUUSD 1 min) num computador sempre ligado.
+- **Régua automática (27/11 12:22):** fonte xaus.com reprovada e removida. Vale a régua datada. **Régua pelo MT5 (27/11 13h, aprovado):** `mt5/ReguaPainel.mq5` (só leitura) manda o XAUUSD de 1 min ao ramo `regua` (`ultimo.csv`); `b_regua_mt5` casa com o GC fev no mesmo minuto e grava `mi_regua_mt5.json` (mediana do pregão; válido com 60+ minutos, dispersão até US$ 1, mudança até US$ 3); `confere_regua.py`. SÓ GRAVA: a troca da régua datada exige 3 pregões válidos e nova decisão. Falta instalar no servidor previsto para 29/11.
 - Auditoria de 26/11: resta ver o P1 ao vivo em 30/11. Opções do ouro (27/11) corrigidas, falta a reconferência de Estratégias. Régua: remedir até 02/12.
 
 ---

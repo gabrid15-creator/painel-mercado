@@ -42,6 +42,7 @@ jobs:
           cat out/mi_status.json || true
           python3 confere_opcoes.py out || true   # conferente independente das opções do ouro (só log)
           python3 confere_faixa.py out || true    # conferente da faixa do ouro (só log)
+          python3 confere_regua.py out || true    # conferente da régua do MT5 (só log)
       - name: Opções de balcão (DTCC, câmbio)
         run: timeout 150 python3 dtcc.py out || true
       - name: Opções (arquivo da tarefa noturna no Google Drive)

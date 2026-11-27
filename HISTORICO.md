@@ -386,3 +386,6 @@ NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou
 - Teto e piso do ouro = abertura x exp(±k x σ); σ = fechamento anterior do GVZ / raiz(252); k = quantis 50/80/95% da maior distância da abertura / σ nas últimas 250 sessões completas do GC (1 h), recalculado por sessão (`mi_faixa_k.json`). 1º cálculo: 0,987 / 1,546 / 2,397 (Estratégias, Vantage: 1,00 / 1,55 / 2,44): aprovado.
 - Tela, digest e IA (formato 8): 80% e 95% em destaque, 50% = dia normal, "não sai por nenhum dos dois lados". Registro diário e acerto em `mi_faixa_ouro.json` (pregão curto, feriado e abertura estimada fora). `confere_faixa.py` roda em toda coleta.
 - HAR + GVZ em sombra: aguarda a semente de variância de 5 min de Estratégias.
+
+## 27/11/2026 13h: régua pelo MT5 (programa e leitura no painel)
+Programa `mt5/ReguaPainel.mq5` (só leitura, não compilado ainda), ramo `regua`, bloco `b_regua_mt5` + `confere_regua.py`. Teste com dados simulados: mediana correta, salto de US$ 4,6 travado, horário 1 h errado reprovado pela dispersão. Sem dado real ainda. Nada muda na tela.

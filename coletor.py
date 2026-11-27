@@ -1580,6 +1580,60 @@ def b_paredes():
     save("mi_paredes_hist.json", sorted(hist.values(), key=lambda h: (h["dia"], h["ativo"]))[-2000:])
 b_paredes()
 
+URL_REGUA_MT5 = "https://raw.githubusercontent.com/gabrid15-creator/painel-mercado/regua/ultimo.csv"
+def regua_dias(csv_txt, gc):
+    """Casa o XAUUSD do MT5 (candles de 1 min em UTC) com o futuro no MESMO minuto. Devolve {pregão: resumo}.
+    gc = resposta do Yahoo (chart 1m). Ficam de fora a barra do futuro ainda em formação e as sem negócio (preço atrasado)."""
+    mt5 = {}
+    for l in csv_txt.splitlines():
+        c = l.split(",")
+        if len(c) == 5 and c[0].isdigit(): mt5[int(c[0]) // 60] = float(c[4])
+    q = gc["indicators"]["quote"][0]
+    barras = {t // 60: p for t, p, v in zip(gc.get("timestamp") or [], q.get("close") or [], q.get("volume") or []) if p is not None and v}
+    if barras: barras.pop(max(barras))
+    por = {}
+    for m in sorted(set(mt5) & set(barras)):
+        dia = (dt.datetime.fromtimestamp(m * 60, ZoneInfo("America/New_York")) + dt.timedelta(hours=6)).date()
+        if dia.weekday() < 5: por.setdefault(dia, []).append((m * 60, barras[m] - mt5[m]))
+    saida = {}
+    for dia, v in por.items():
+        med = st.median([x for _, x in v]); atual = base_vantage(dia)
+        saida[dia.isoformat()] = {"dia": dia.isoformat(), "n": len(v), "mediana": rnd(med, 2), "desvio": rnd(st.median([abs(x - med) for _, x in v]), 2),
+                                  "de": v[0][0], "ate": v[-1][0], "regua_datada": atual, "mediana_menos_regua": rnd(med - atual, 2)}
+    return saida
+
+def regua_travas(dias):
+    """Dia vale com 60 minutos casados ou mais, dispersão até US$ 1 (acima disso o horário ou o contrato não batem)
+    e mudança de até US$ 3 sobre o último dia válido."""
+    ant = None
+    for k in sorted(dias):
+        d = dias[k]
+        d["travada"] = ant is not None and abs(d["mediana"] - ant) > 3
+        d["valido"] = d["n"] >= 60 and d["desvio"] <= 1.0 and not d["travada"]
+        if d["valido"]: ant = d["mediana"]
+    return [dias[k] for k in sorted(dias)]
+
+@bloco("Régua pelo MT5 (só gravando)")
+def b_regua_mt5():
+    """27/11/2026 (aprovado pelo Gabriel): futuro menos XAUUSD da Vantage no mesmo minuto, mediana do pregão.
+    SÓ GRAVA em mi_regua_mt5.json; o painel segue com a REGUA datada até 3 pregões válidos e nova decisão."""
+    try: txt = get(URL_REGUA_MT5, timeout=10)
+    except urllib.error.HTTPError as e:
+        if e.code != 404: raise
+        STATUS.append({"bloco": "Régua pelo MT5 (só gravando)", "ok": True, "msg": "aguardando o primeiro envio do MT5"}); return
+    if isinstance(txt, bytes): txt = txt.decode()
+    gc = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{REGUA['contrato']}.CMX?range=5d&interval=1m", timeout=15))["chart"]["result"][0]
+    dias = {d["dia"]: d for d in ler("mi_regua_mt5.json")}
+    for k, d in regua_dias(txt, gc).items():
+        if d["n"] >= dias.get(k, {}).get("n", 0): dias[k] = d   # o envio cobre 24 h: fica a leitura mais completa do pregão
+    saida = regua_travas(dias)[-60:]
+    save("mi_regua_mt5.json", saida)
+    hoje = (NOW.astimezone(ZoneInfo("America/New_York")) + dt.timedelta(hours=6)).date().isoformat()
+    ok = sum(1 for d in saida if d["valido"] and d["dia"] < hoje)
+    u = saida[-1] if saida else {}
+    STATUS.append({"bloco": "Régua pelo MT5 (só gravando)", "ok": True, "msg": f"{ok} pregões válidos completos (mínimo 3); {u.get('dia')}: {u.get('n', 0)} minutos, mediana {u.get('mediana')}, régua datada {u.get('regua_datada')}"})
+b_regua_mt5()
+
 @bloco("Backtest diário")
 def b_valid():
     # confere o que o painel projetou contra o que aconteceu: toque dos níveis do mapa, faixa das opções e 0DTE
