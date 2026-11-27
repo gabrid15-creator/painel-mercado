@@ -1,0 +1,25 @@
+name: Alarme do boletim da CME
+# Falha de propósito quando o boletim não chegou: o GitHub avisa por e-mail quem acompanha falhas de workflows. Não grava nada.
+on:
+  schedule:
+    - cron: "45 15 * * 1-5"   # 12h45 de Brasília
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  boletim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dados
+      - name: Conferir a data do boletim
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          falhas = [s for s in json.load(open("mi_status.json")) if s["bloco"].startswith("Boletim da CME") and not s["ok"]]
+          if falhas:
+              print("::error::CME: " + falhas[0]["msg"]); sys.exit(1)
+          print("boletim em dia")
+          PY

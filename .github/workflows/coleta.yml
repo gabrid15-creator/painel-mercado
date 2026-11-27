@@ -33,7 +33,14 @@ jobs:
         run: |
           mkdir -p out
           cp docs/data/mi_*.json out/ 2>/dev/null || true
-          if git fetch -q --depth=1 origin dados 2>/dev/null; then git archive FETCH_HEAD | tar -x -C out; fi
+          # sem ler a branch "dados" a coleta PARA: publicar por cima apagaria os históricos (proteção de 27/11)
+          set -o pipefail
+          lido=""
+          for t in 1 2 3; do
+            if git fetch -q --depth=1 origin dados && git archive FETCH_HEAD | tar -x -C out; then lido=1; break; fi
+            sleep 10
+          done
+          [ -n "$lido" ] || { echo "não consegui ler a branch dados: nada será publicado"; exit 1; }
           rm -f out/op_boletim.json out/op_cadeia.json out/mi_regua_auto.json   # arquivos sem uso (régua automática descartada em 27/11)
       - name: Coletar
         run: |

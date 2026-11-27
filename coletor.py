@@ -1149,6 +1149,29 @@ def travas_0dte(row, r_ok):
     if avisos:   # o GLD não aparece mais na tela (27/11/2026): falha só dele é informativa
         STATUS.append({"bloco": "Trava das opções do ouro", "ok": all(a.startswith("GLD") for a in avisos), "msg": "; ".join(avisos)[:300]})
 
+def fotos_sombra(ant, agora, preco_ts, ouro, gld, cme):
+    """GRAVAÇÃO EM SOMBRA (27/11/2026, Estratégias, aprovada 14h19): níveis para teste futuro; nada vai à tela, ao digest ou à IA.
+    Uma foto na primeira coleta de cada hora (Brasília) com o ouro negociando. Devolve só as linhas novas."""
+    hora = agora.astimezone(BRT).strftime("%Y-%m-%d %H")
+    if preco_ts is None or agora.timestamp() - preco_ts > 30 * 60 or any(x["hora"].startswith(hora) for x in ant): return []
+    base = {"hora": agora.astimezone(BRT).strftime("%Y-%m-%d %H:%M"), "epoch": int(agora.timestamp()), "xauusd": rnd(ouro, 2),
+            "fonte_xauusd": "GC fev menos a régua datada"}
+    out = []
+    def poe(tipo, lado, nivel, original, conversao, venc, pregao, oi, parado, valido):
+        if nivel is None: return
+        out.append(base | {"tipo": tipo, "lado": lado, "nivel": rnd(nivel, 2), "original": rnd(original, 3), "conversao": conversao,
+                           "vencimento": venc, "pregao_dado": pregao, "contratos_abertos": oi, "gld_parado": parado, "valido": bool(valido)})
+    for lado, n, o in zip(("baixo", "cima"), gld["s1"] or (None, None), gld["original"]):
+        poe("1s_gld", lado, n, o, {"razao": rnd(gld["r"], 5)}, gld["venc"], gld["pregao"], gld["abertos"], gld["parado"], gld["valido"])
+    if cme:
+        d = cme["desconto"]
+        for lado, n in zip(("baixo", "cima"), cme["s1"] or (None, None)):
+            poe("1s_cme", lado, n, None if n is None else n + d, {"desconto": d}, gld["venc"], cme["pregao"], cme["abertos"], gld["parado"], cme["valido"])
+        f = cme["flip_f"]
+        if f is not None:
+            poe("flip_cme", "acima" if f - d >= ouro else "abaixo", f - d, f, {"desconto": d}, gld["venc"], cme["pregao"], cme["abertos"], gld["parado"], cme["valido"])
+    return out
+
 @bloco("Opções: limpeza de registros inválidos")
 def b_limpa():
     """Marca registros gravados sem contratos em aberto (auditoria de 27/11/2026). O original vai para mi_invalidos.json."""
@@ -1369,7 +1392,19 @@ def b_0dte():
                           # contratos em aberto por strike (convertido para o à vista), para as barras de "em aberto" do gráfico
                           "perfil": [[cv(k), int(cc.get(k, 0)), int(pp.get(k, 0))] for k in kk if abs(k / sp - 1) <= 0.03 and (cc.get(k, 0) or pp.get(k, 0))]}
         except Exception as e: STATUS.append({"bloco": "0DTE CME", "ok": False, "msg": str(e)[:120]})
+    bruto = json.loads(json.dumps({"s1": row["s1"], "abertos": row["abertos"], "cme": row.get("cme")}))   # antes das travas: só para a sombra
     travas_0dte(row, r_ok)
+    try:
+        cb = bruto["cme"]; cm = None
+        if cb:
+            cm = {"desconto": cb["base"], "s1": cb["s1"], "flip_f": cb.get("gamma_flip_f"), "pregao": cb["pregao"], "abertos": cb["abertos"],
+                  "valido": cb["abertos"] > 0 and abs(cb["base"] - base_vantage(venc)) <= 3}
+        gl = {"s1": bruto["s1"] if strad else None, "original": (S - 1.25 * strad, S + 1.25 * strad), "r": r, "venc": venc.isoformat(),
+              "pregao": str(j.get("last_trade_time"))[:10], "abertos": bruto["abertos"], "parado": parado,
+              "valido": r_ok and not parado and bruto["abertos"] > 0 and faixa_ok}
+        ant_s = ler("mi_niveis_sombra.json")   # arquivo de teste: só acrescenta, nunca reescreve nem corta linha
+        save("mi_niveis_sombra.json", ant_s + fotos_sombra(ant_s, NOW, tp_ if preco_hora else None, ouro, gl, cm))
+    except Exception as e: STATUS.append({"bloco": "Níveis em sombra", "ok": False, "msg": str(e)[:120]})
     gld_ok = row["gld_ok"]; faixa_ok = faixa_ok and gld_ok
     # NÍVEIS FIXOS DO DIA (24/11/2026, pedido dela: teto, piso, flip e faixa mudavam a cada coleta e tiravam a credibilidade).
     # 9h30–10h NY: calibra (mediana das coletas, que descarta cotação ruim da abertura); a partir das 10h NY fixa até o vencimento.
@@ -2152,6 +2187,26 @@ def b_quant():
     h = {r["data"]: r for r in ler("mi_quant_diario.json")}; h[hoje] = linha
     save("mi_quant_diario.json", [h[k] for k in sorted(h)])
 b_quant()
+
+def pregao_esperado(agora):
+    """Último pregão dos EUA cujo boletim da CME já deveria ter chegado (cobrança a partir das 12h30 de Brasília do dia útil seguinte)."""
+    util = lambda d: d.weekday() < 5 and d.isoformat() not in FERIADOS_EUA
+    a = agora.astimezone(BRT); d = a.date()
+    if not (util(d) and (a.hour, a.minute) >= (12, 30)):   # hoje ainda não cobra: vale o que já era devido no dia útil anterior
+        d -= dt.timedelta(days=1)
+        while not util(d): d -= dt.timedelta(days=1)
+    d -= dt.timedelta(days=1)
+    while not util(d): d -= dt.timedelta(days=1)
+    return d
+
+@bloco("Boletim da CME (chegada)")
+def b_boletim():
+    esp = pregao_esperado(NOW).isoformat(); falta = []
+    for arq, nome in (("ouro_boletim.json", "ouro"), ("iene_boletim.json", "iene")):
+        b = ler(arq); tem = b[0]["data_pregao"] if b else None
+        if not tem or tem < esp: falta.append(f"{nome} parado em {tem}, esperado {esp}")
+    if falta: raise ValueError("; ".join(falta))
+b_boletim()
 
 # ---------------------------------------------------------------- painel geral (uma linha) + status
 ag = [r for r in ler("mi_agenda.json") if r["impacto"] == "Alto" and r["data"] == NOW.date().isoformat()]

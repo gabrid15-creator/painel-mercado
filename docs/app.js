@@ -754,7 +754,7 @@
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv), m = fr && fr.mapa;
     if (!m && fr && fr.faixas) {   // sem mapa (NAS100): só a faixa da volatilidade, a partir do preço de agora
       const k0 = CASAS[atv], lin0 = (html) => { const p = document.createElement('p'); p.className = 'rs-l'; p.innerHTML = html; bx.appendChild(p); };
-      for (const f of fr.faixas.slice(0, 2)) lin0('<b>Faixa ' + (f.prazo === 'dia' ? 'do dia' : 'da semana') + ' (±1σ, ±' + nf(f.pct, 2) + '%):</b> <span class="rs-n">' + nf(f.s1[0], k0) + ' – ' + nf(f.s1[1], k0) + '</span> · ±2σ ' + nf(f.s2[0], k0) + ' – ' + nf(f.s2[1], k0));
+      for (const f of fr.faixas.slice(0, 2)) lin0('<b>Faixa ' + (f.prazo === 'dia' ? 'do dia' : 'da semana') + ' (±1σ, ±' + nf(f.pct, 2) + '%):</b> <span class="rs-n">' + nf(f.s1[0], k0) + ' a ' + nf(f.s1[1], k0) + '</span> · ±2σ ' + nf(f.s2[0], k0) + ' a ' + nf(f.s2[1], k0));
       lin0('Preço agora <b>' + nf(fr.preco, k0) + '</b> · ' + fr.fonte + '. A faixa parte do preço atual e muda junto com ele.');
       lin0('<span class="op-note">Em teste desde 2001, o dia fechou dentro de ±1σ em 77% das vezes e de ±2σ em 98%. Dia normal, chances e rompimento ainda não foram testados neste índice.</span>');
       lin0('<b>Direção (compra ou venda):</b> <span class="mi-neg">nenhum sinal comprovado</span>.'); return; }
@@ -769,7 +769,7 @@
     const T = atv === 'XAUUSD' && m.teto;
     if (T) { // ouro: teto e piso medidos pela maior distância da abertura (50/80/95%)
       const [f5, f8, f9] = T.faixas, fora = (f) => (est ? '' : [m.max_dia > f.cima ? 'saiu em cima' : '', m.min_dia < f.baixo ? 'saiu embaixo' : ''].filter(Boolean).join(' e ') || 'dentro');
-      lin('<b>Teto e piso de 80%:</b><br><span class="rs-n" style="white-space:nowrap">' + nf(f8.baixo, k) + ' – ' + nf(f8.cima, k) + '</span><br><b>Teto e piso de 95%:</b><br><span class="rs-n" style="white-space:nowrap">' + nf(f9.baixo, k) + ' – ' + nf(f9.cima, k) + '</span>');
+      lin('<b>Teto e piso de 80%:</b><br><span class="rs-n" style="white-space:nowrap">' + nf(f8.baixo, k) + ' a ' + nf(f8.cima, k) + '</span><br><b>Teto e piso de 95%:</b><br><span class="rs-n" style="white-space:nowrap">' + nf(f9.baixo, k) + ' a ' + nf(f9.cima, k) + '</span>');
       lin('Em 80% e em 95% das sessões o preço <b>não sai por nenhum dos dois lados</b>. Medido nas últimas ' + T.n + ' sessões; abertura ' + (est ? 'estimada ' : '') + nf(ab, k) + '.');
       const tb = document.createElement('table'); tb.className = 'op-table rs-t'; tb.innerHTML = '<thead><tr><th>Faixa</th><th class="num">Piso</th><th class="num">Teto</th><th>Hoje</th></tr></thead><tbody></tbody>';
       for (const [f, nm, c, forte] of [[f5, 'dia normal 50%', 'lv-s1', false], [f8, '80%', 'lv-gf', true], [f9, '95%', 'lv-cw', true]]) {
@@ -857,7 +857,7 @@
         const amp = Math.log(m.max_dia / m.min_dia) / sd;
         const T = atv === 'XAUUSD' && m.teto;
         const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Dia normal</b> · quanto o dia anda de verdade (' + (atv === 'XAUUSD' ? 'futuros da CME, 15 anos' : 'futuros da CME, 2 anos, com o σ das opções de balcão') + ')'; bx.appendChild(h);
-        const a1 = document.createElement('p'); a1.innerHTML = '<b>Metade dos dias</b> fecha entre <b>' + L(-Q[0]) + '</b> e <b>' + L(Q[0]) + '</b> (±' + pp(Q[0]) + ' da abertura, ' + nf(Q[0], 2) + 'σ). <b>9 em cada 10</b> fecham entre ' + L(-Q[1]) + ' e ' + L(Q[1]) + ' (±' + pp(Q[1]) + ').'; if (T) a1.innerHTML = '<b>Dia normal (50% das sessões):</b> o preço não sai por nenhum dos dois lados de <b>' + nf(T.faixas[0].baixo, k) + ' – ' + nf(T.faixas[0].cima, k) + '</b>. Em 80%: <b>' + nf(T.faixas[1].baixo, k) + ' – ' + nf(T.faixas[1].cima, k) + '</b>; em 95%: <b>' + nf(T.faixas[2].baixo, k) + ' – ' + nf(T.faixas[2].cima, k) + '</b>.'; bx.appendChild(a1);
+        const a1 = document.createElement('p'); a1.innerHTML = '<b>Metade dos dias</b> fecha entre <b>' + L(-Q[0]) + '</b> e <b>' + L(Q[0]) + '</b> (±' + pp(Q[0]) + ' da abertura, ' + nf(Q[0], 2) + 'σ). <b>9 em cada 10</b> fecham entre ' + L(-Q[1]) + ' e ' + L(Q[1]) + ' (±' + pp(Q[1]) + ').'; if (T) a1.innerHTML = '<b>Dia normal (50% das sessões):</b> o preço não sai por nenhum dos dois lados de <b>' + nf(T.faixas[0].baixo, k) + ' a ' + nf(T.faixas[0].cima, k) + '</b>. Em 80%: <b>' + nf(T.faixas[1].baixo, k) + ' a ' + nf(T.faixas[1].cima, k) + '</b>; em 95%: <b>' + nf(T.faixas[2].baixo, k) + ' a ' + nf(T.faixas[2].cima, k) + '</b>.'; bx.appendChild(a1);
         const a2 = document.createElement('p'); a2.innerHTML = 'Distância típica entre a máxima e a mínima do dia: <b>' + pp(Q[2]) + '</b>.' + (m.ab_estimada ? '' : ' <b>Hoje até agora:</b> ' + us + nf((m.max_dia - m.min_dia) / pip, 0) + un + ' (' + nf(amp / Q[2] * 100, 0) + '% do típico).'); bx.appendChild(a2);
         if (atv === 'XAUUSD') {   // quanto o ouro anda em cada hora (testes/horas_lateral.py, GC 1 h, 2 anos, em σ do dia; hora de Brasília)
           const HR = hOuro();
@@ -936,7 +936,7 @@
     const fr = (D('mi_faixa').data || []).find((r) => r.ativo === atv);
     if (mostra('.mp-fx', fr)) { const t = $('.fx-t tbody'); t.replaceChildren(); const k = casas(fr.preco);
       const linha = (f) => { const tr = document.createElement('tr'); td(tr, f.prazo + ' (±' + nf(f.pct, 2) + '%)').style.fontWeight = 600;
-        cel(tr, lv(nf(f.s1[0], k) + ' – ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' – ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr); };
+        cel(tr, lv(nf(f.s1[0], k) + ' a ' + nf(f.s1[1], k), 'lv-s1'), 'num'); cel(tr, lv(nf(f.s2[0], k) + ' a ' + nf(f.s2[1], k), 'lv-s2'), 'num'); t.appendChild(tr); };
       const fonte = (txt) => { const tr = document.createElement('tr'); const e = td(tr, txt); e.colSpan = 3; e.style.fontSize = '12px'; e.style.color = 'var(--color-fg-muted)'; t.appendChild(tr); return e; };
       // linha da fonte: vol. de hoje contra a média, com a etiqueta e o que ela significa
       const f0 = fonte(fr.fonte + ' · vol. hoje ' + nf(fr.iv, 1) + '%'); const nv = fr.nivel;
@@ -944,7 +944,7 @@
         const sig = /bem acima/.test(nv.txt) ? 'faixas largas' : /acima/.test(nv.txt) ? 'um pouco largas' : /bem abaixo/.test(nv.txt) ? 'faixas bem estreitas' : /abaixo/.test(nv.txt) ? 'faixas estreitas' : 'tamanho de sempre';
         f0.append(' contra a média ' + nf(nv.media, 1) + '% → ', lv(nv.txt, cl), ' ' + sig + ' (média 1a ' + nf(nv.m1, 1) + ' · 3a ' + nf(nv.m3, 1) + ' · 5a ' + nf(nv.m5, 1) + '%)'); }
       const T = atv === 'XAUUSD' && fr.mapa && fr.mapa.teto;
-      if (T) { const [f5, f8, f9] = T.faixas, e = fonte(''); e.innerHTML = '<b>Dia</b> (o preço não sai por nenhum dos dois lados): <b>80%</b> <span class="lv lv-gf">' + nf(f8.baixo, k) + ' – ' + nf(f8.cima, k) + '</span> · <b>95%</b> <span class="lv lv-cw">' + nf(f9.baixo, k) + ' – ' + nf(f9.cima, k) + '</span> · dia normal (50%) ' + nf(f5.baixo, k) + ' – ' + nf(f5.cima, k); e.style.color = 'var(--color-fg)'; e.style.fontSize = '14px'; }
+      if (T) { const [f5, f8, f9] = T.faixas, e = fonte(''); e.innerHTML = '<b>Dia</b> (o preço não sai por nenhum dos dois lados): <b>80%</b> <span class="lv lv-gf">' + nf(f8.baixo, k) + ' a ' + nf(f8.cima, k) + '</span> · <b>95%</b> <span class="lv lv-cw">' + nf(f9.baixo, k) + ' a ' + nf(f9.cima, k) + '</span> · dia normal (50%) ' + nf(f5.baixo, k) + ' a ' + nf(f5.cima, k); e.style.color = 'var(--color-fg)'; e.style.fontSize = '14px'; }
       fr.faixas.filter((f) => !(T && f.prazo === 'dia')).forEach(linha);
       // precisão medida (backtest longo, mesmo método do painel): visível, sem precisar abrir o ?
       const bt = (D('faixa_backtest').data || {})[atv], bx = $('.fx-bt');
@@ -997,8 +997,10 @@
     const passo = d3.min(d3.pairs(rows.map((r) => y(r[0]))), ([a, b]) => Math.abs(a - b)) || 6, h = Math.max(1.5, Math.min(8, passo * 0.85));
     y.ticks(8).forEach((v) => { sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', 'currentColor').attr('opacity', 0.1);
       sv.append('text').attr('x', m.l - 4).attr('y', y(v) + 4).attr('text-anchor', 'end').attr('fill', 'currentColor').attr('opacity', 0.7).text(nf(v, cs ? 1 : 0)); });
-    rows.forEach(([n, c, p]) => { [[c, meio, x(c), '#d9645a'], [p, x(-p), meio, '#3fa76a']].forEach(([q, a, b, cor]) => { if (!q) return;
-      sv.append('rect').attr('x', a).attr('y', y(n) - h / 2).attr('width', Math.max(1, b - a)).attr('height', h).attr('fill', cor).attr('opacity', 0.55)
+    const gl = sv.append('g'), forte = [...marc.map(([k]) => w[k].nivel), ...fora.map((v) => v.nivel)];   // linhas por baixo; barras das paredes por cima e mais grossas
+    rows.forEach(([n, c, p]) => { const f = forte.some((v) => Math.abs(v - n) <= Math.abs(n) * 1e-4), hb = f ? Math.max(8, h * 1.8) : h;
+      [[c, meio, x(c), '#d9645a'], [p, x(-p), meio, '#3fa76a']].forEach(([q, a, b, cor]) => { if (!q) return;
+      sv.append('rect').attr('x', a).attr('y', y(n) - hb / 2).attr('width', Math.max(1, b - a)).attr('height', hb).attr('fill', cor).attr('opacity', f ? 0.95 : 0.55)
         .append('title').text(nf(n, cs) + ' · calls ' + nf(c, 0) + ' · puts ' + nf(p, 0)); }); });
     gb.forEach(([n, c, p]) => { [[c, meio, x(c)], [p, x(-p), meio]].forEach(([q, a, b]) => { if (!q) return;
       sv.append('rect').attr('x', a).attr('y', y(n) + 1).attr('width', Math.max(1, b - a)).attr('height', 2).attr('fill', '#7b5cc4')
@@ -1006,16 +1008,16 @@
     sv.append('line').attr('x1', meio).attr('x2', meio).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'currentColor').attr('opacity', 0.35);
     const rot = [];
     marc.forEach(([k, nome, cor]) => { const v = w[k].nivel, romp = !k.endsWith('2') && w['rompida_' + k];
-      sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', cor).attr('stroke-width', coin[k] ? 4 : 2).attr('stroke-dasharray', k.endsWith('2') ? '6 4' : null);
-      rot.push({ y: y(v) - 4, x: m.l + 3, a: 'start', c: cor, t: nome + ' ' + nf(v, cs) + (romp ? ' (rompida)' : '') });
-      if (coin[k]) rot.push({ y: y(v) + 13, x: m.l + 3, a: 'start', c: '#7b5cc4', t: '★ coincide com o GLD' }); });
-    fora.forEach((v) => { sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v.nivel)).attr('y2', y(v.nivel)).attr('stroke', v.cor).attr('stroke-width', 1.5).attr('stroke-dasharray', '10 3 2 3');
-      rot.push({ y: y(v.nivel) - 4, x: W - m.r - 2, a: 'end', c: v.cor, t: v.l.toUpperCase() + ' grande fora da faixa ' + nf(v.nivel, cs) }); });
+      gl.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', cor).attr('stroke-width', coin[k] ? 2 : 1).attr('stroke-dasharray', k.endsWith('2') ? '6 4' : null);
+      rot.push({ y: y(v) - 7, x: m.l + 3, a: 'start', c: cor, t: nome + ' ' + nf(v, cs) + (romp ? ' (rompida)' : '') });
+      if (coin[k]) rot.push({ y: y(v) + 16, x: m.l + 3, a: 'start', c: '#7b5cc4', t: '★ coincide com o GLD' }); });
+    fora.forEach((v) => { gl.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v.nivel)).attr('y2', y(v.nivel)).attr('stroke', v.cor).attr('stroke-width', 1).attr('stroke-dasharray', '10 3 2 3');
+      rot.push({ y: y(v.nivel) - 7, x: W - m.r - 2, a: 'end', c: v.cor, t: v.l.toUpperCase() + ' grande fora da faixa ' + nf(v.nivel, cs) }); });
     soGld.forEach((k) => { const v = g[k].nivel;
-      sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', '#7b5cc4').attr('stroke-width', 2).attr('stroke-dasharray', '2 3');
-      rot.push({ y: y(v) - 4, x: W - m.r - 2, a: 'end', c: '#7b5cc4', t: (k.endsWith('2') ? '2ª ' : '') + 'GLD ' + k.replace('2', '').toUpperCase() + ' ' + nf(v, cs) + (g['rompida_' + k] ? ' (rompida)' : '') }); });
-    sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(w.preco)).attr('y2', y(w.preco)).attr('stroke', 'currentColor').attr('stroke-width', 2.5);
-    rot.push({ y: y(w.preco) - 4, x: W - m.r - 2, a: 'end', c: 'currentColor', t: 'PREÇO ' + nf(w.preco, cs) + ' (' + String(w.preco_hora || '').slice(-5) + ')' });
+      gl.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', '#7b5cc4').attr('stroke-width', 1).attr('stroke-dasharray', '2 3');
+      rot.push({ y: y(v) - 7, x: W - m.r - 2, a: 'end', c: '#7b5cc4', t: (k.endsWith('2') ? '2ª ' : '') + 'GLD ' + k.replace('2', '').toUpperCase() + ' ' + nf(v, cs) + (g['rompida_' + k] ? ' (rompida)' : '') }); });
+    gl.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(w.preco)).attr('y2', y(w.preco)).attr('stroke', 'currentColor').attr('stroke-width', 2);
+    rot.push({ y: y(w.preco) - 7, x: W - m.r - 2, a: 'end', c: 'currentColor', t: 'PREÇO ' + nf(w.preco, cs) + ' (' + String(w.preco_hora || '').slice(-5) + ')' });
     rot.sort((a, b) => a.y - b.y).forEach((r, i) => { r.y = Math.max(r.y, i ? rot[i - 1].y + 14 : 12);
       sv.append('text').attr('x', r.x).attr('y', r.y).attr('text-anchor', r.a).attr('fill', r.c).attr('font-weight', 700)
         .attr('stroke', 'var(--color-panel)').attr('stroke-width', 4).attr('paint-order', 'stroke').text(r.t); });
