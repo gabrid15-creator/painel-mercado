@@ -396,3 +396,9 @@ Programa `mt5/ReguaPainel.mq5` (só leitura, não compilado ainda), ramo `regua`
 - Abertura do ouro pela barra 18h00 do MT5, só com régua do último pregão válida (60+ min, dispersão até US$ 1) e preço a até 6%.
 - MT5 passa a enviar ao repositório separado `painel-regua` (ainda a criar). Ramo `regua` ficou sem uso: apagar foi recusado (403).
 - HAR + GVZ em sombra no ar: 1º dia σ 2,60% (GVZ 2,26%), 80% a 4,28% (GVZ 3,48%); placar 0 de 60. Conta em stdlib igual à do numpy; semente transcrita do doc do Projeto (500 linhas, datas conferidas).
+
+## 27/11/2026 14h50: pendências
+- Mapa: linhas finas por baixo, barras das paredes por cima e grossas; rótulos um pouco mais altos. Faixas com "a" no lugar do travessão. PC e celular sem sobreposição.
+- `mi_niveis_sombra.json` no ar (1ª foto 14h47). Defeito na 1ª foto: `original` do GLD saiu com o straddle da CME; corrigido (0929546), linhas antigas não reescritas.
+- Coleta para se a branch `dados` não for lida. Boletim atrasado aparece no status; `alarme_cme.yml` testado à mão (sucesso, boletim em dia).
+- Tarefa agendada de 17/05/2027 10h13 recriada (teste put/call e skew).

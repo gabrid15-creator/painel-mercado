@@ -31,6 +31,7 @@
 | GLD (0DTE) | Cboe `cdn.cboe.com/.../GLD.json` (bloqueou o servidor com 403 Cloudflare em 20–23/11/2026, não driblar) → reserva `gld_yahoo()` (Yahoo options + crumb). Se as duas falharem, o card 0DTE mostra "⚠ sem atualizar". **P6 (26/11, Code):** pela reserva Yahoo, delta por Black-Scholes com a vol. implícita do Yahoo (juro 0), todos os vencimentos (antes ≤ 40 dias) e `fonte_gld` no `mi_pcr_hist` → `gld_skew25` volta a gravar (26/11: +2,87 pts, venc. 24/12). Put/call de contratos em aberto total pelo Yahoo = 0,43 mesmo com todos os vencimentos (Cboe dava 0,29): diferença é do contrato em aberto do Yahoo, não da janela; comparar dias só da mesma fonte. |
 | DTCC | `dtcc.py` (≤ 150 s): balcão de opções de câmbio; estado `dtcc_estado.json` → `mi_otc.json`, `mi_otc_hist.json`. Card escondido. **P7 (26/11, Code):** dia só vira coberto com o arquivo fechado lido (404 recente = tenta de novo; > 4 dias = feriado); dia lido só pelos pacotes fica em `prov` até o arquivo sair; `erros` = só da rodada (`erros_total` acumula); vol. implícita exige 10 negócios, alarga para 48 h/72 h (`janela`), < 5 em 72 h = sem vol. (`testes/min_negocios_dtcc.py`). |
 | Liquidez | `b_liq`: TGA pelo Tesouro (fiscaldata, 25 s); se falhar (27/11: 504/lento), TGA semanal pelo FRED (WTREGEN) com aviso no status; RRP, SOFR e Fed funds (Fed de NY) não caem mais junto. |
+| Proteções | `coleta.yml` para se não ler a branch `dados` (não apaga históricos). `b_boletim` marca no status quando o boletim não chegou até 12h30 do dia útil seguinte; `alarme_cme.yml` (12h45) falha nesse caso para o GitHub avisar por e-mail (e-mail não testado). |
 | 1 min | `minutos.py` 1×/dia ~01h UTC → branch `minutos` (`AAAA-MM-DD.csv.gz`: GC, SI, DXY, 6E, 6J, 6S). |
 | Branches | `main` (código), `dados` (coleta), `minutos`, `pdfs`, `log` (log do robô do PC), `regua` (sem uso, pode apagar). |
 
@@ -152,6 +153,7 @@
 - **Cores dos níveis:** teto vermelho, piso verde, flip âmbar, max pain roxo, faixa azul, ±1σ verde-água, ±2σ marrom.
 
 **Convenções do front (`app.js`):**
+- Mapa de opções: linhas finas por baixo; barras das paredes e das calls grandes por cima e mais grossas. Faixas escritas com "a" (sem travessão).
 - `toqueMapa()` (27/11): mouse ou toque no mapa de opções mostra preço, strike, contratos e distância. `semCedo()` explica por que a leitura das 11h não apareceu.
 - `drawMapaOp(el, w, cs)` desenha o mapa das opções a partir de uma linha do `mi_paredes`.
 - `prepAjuda()` põe o "?" dentro do h2, com o texto do título em `span.h2-t`.
@@ -220,6 +222,10 @@
 - Não há histórico grátis de skew, delta ou curva de vol. → só gravando.
 - **Databento** (pago, CME histórico e ao vivo, a partir de ~US$ 199/mês) daria 1–2 anos de dados na hora. Ela disse que vai assinar "nos próximos dias".
 - Licença da CME: não exibir dado em tempo real em site público.
+
+---
+
+- **Níveis em sombra** (27/11, Estratégias): `mi_niveis_sombra.json`, 1 foto na 1ª coleta de cada hora com o ouro negociando (1σ GLD, 1σ CME, flip CME), só acrescenta; nada na tela, digest ou IA. Critério de medição: `claude/quant-niveis-sombra.md` (leitura semanal, conclusão com 40 sessões). A 1ª foto (27/11 14h47) tem `original` errado nas 2 linhas do GLD (o nível está certo; valor certo = nível ÷ razão).
 
 ---
 
