@@ -808,7 +808,7 @@ def b_faixa():
     # var. do dia do ouro desde a ABERTURA da sessão (o candle da corretora). A barra diária do GC=F fecha no ajuste (13h30 NY):
     # em 26/11/2026 o painel dava +0,8% num dia de -0,7% contra a abertura. Sem o mapa, fica a conta antiga.
     m_ = next((r.get("mapa") for r in rows if r["ativo"] == "XAUUSD"), None)
-    if m_ and m_.get("ab_dia") and m_.get("preco"):
+    if m_ and m_.get("ab_dia") and m_.get("preco") and not m_.get("ab_estimada"):   # abertura estimada: fica a var. contra o fechamento anterior
         at_ = ler("mi_ativos.json")
         for x in at_:
             if x["ativo"] == "XAUUSD": x["var_1d"] = rnd((m_["preco"] / m_["ab_dia"] - 1) * 100, 2)
@@ -1175,6 +1175,7 @@ def b_0dte():
     if str(row.get("fixacao", "")).startswith("fixo") and not h.get("fixo") and faixa_ok:   # níveis fixos das 10h NY substituem o retrato provisório
         h = {k: row[k] for k in ("vencimento", "faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "regime")} | {"fixo": True, "fixacao": row["fixacao"]}
         if "cme" in hist.get(row["vencimento"], {}): h["cme"] = hist[row["vencimento"]]["cme"]
+    if h.get("pendente"): h.pop("cme", None)   # sem retrato do GLD ainda: o da CME acompanha o boletim atual
     h["ultimo_ouro"] = row["ouro"]   # o primeiro retrato do dia fica; o preço vai sendo atualizado até o vencimento
     if row.get("cme") and "cme" not in h:   # retrato da CME do mesmo vencimento, para comparar qual fonte acerta mais
         h["cme"] = {k: row["cme"].get(k) for k in ("faixa", "faixa_pct", "call_wall", "put_wall", "gamma_flip", "max_pain", "pregao")}
@@ -1615,7 +1616,7 @@ def b_score():
                 f.write(f"  [σ] fonte: {fx_.get('fonte')}; vol. {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.\n")
                 if m_.get("ab_dia"):
                     ab, sd = m_["ab_dia"], m_["sd_dia"]; fd = fx_["faixas"][0]; fs = fx_["faixas"][1]; z_ = math.log(m_["preco"] / ab) / sd
-                    f.write(f"  [DIA, FIXO desde a abertura {m_.get('dia_ini')}] abertura {ab}; ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}")
+                    f.write(f"  [DIA, FIXO desde a abertura {m_.get('dia_ini')}] abertura {ab}{' (ESTIMADA: sem a barra de abertura; avise)' if m_.get('ab_estimada') else ''}; ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}")
                     if dn_: f.write(f"; dia normal (metade dos dias) ±{dn_['q50']}σ = {ab * (math.exp(dn_['q50'] * sd) - 1):.5g}; 9 em 10 dias dentro de ±{dn_['q90']}σ")
                     f.write(f"\n  [SEMANA, FIXA] abertura {m_['ab_sem']}; ±1σ {fs['s1'][0]}–{fs['s1'][1]}; ±2σ {fs['s2'][0]}–{fs['s2'][1]}\n")
                     f.write(f"  [AGORA] preço {m_['preco']} = {z_:+.2f}σ da abertura; máx. do dia {m_['max_dia']} ({math.log(m_['max_dia'] / ab) / sd:+.2f}σ), mín. {m_['min_dia']} ({math.log(m_['min_dia'] / ab) / sd:+.2f}σ)\n")

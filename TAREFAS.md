@@ -20,10 +20,10 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 ## Tarefas
 | Estado | Dono | Tarefa | Arquivos / observação |
 |---|---|---|---|
-| aberto | CHAT | Confirmar o robô da CME no log de 27/11 depois das 03:00 | 26/11 19:25 ok pelo systemd; suspeita: chaveiro, aplicado `--password-store=basic` (desfazer: `git revert` do commit "Robô CME: sem chaveiro"); desfazer o envio do log: `git revert 61b44a5` |
+| feito | CHAT | Confirmar o robô da CME no log de 27/11 | rodou 03:00 a 05:30 sem falha; boletim novo não saiu pelo feriado de 26/11 |
 | feito | CHAT | CME 25/11 (ouro e iene) | 26/11 19:20, automático, 0 erro, commit 0bfd6c5. Desfazer: `git revert 0bfd6c5` |
 | aberto | CHAT | CME iene de 24/11 | aguarda PDFs do Gabriel |
-| aberto | CHAT | Recalibrar a régua da Vantage com 2 pares | aguarda preços simultâneos; `coletor.py` (`b_precos`) |
+| aberto | CHAT | Remedir a régua da Vantage 1 vez por semana (próxima até 02/12) e na troca de contrato | candle M1 do MT5 no mesmo minuto; `REGUA` no `coletor.py` e constantes no `confere_opcoes.py` |
 | feito | CODE | Conferir a coleta depois da troca de contrato do GC (ouro e níveis da CME coerentes) | 26/11: coerente (sem salto de ~US$ 29 entre 24 e 25/11; régua dez. + 1,9 = US$ 29,3; níveis GLD e CME em volta do preço). Só corrigido o texto `como` do `mi_geral` (dizia 6,5 fixo). Desfazer: `git revert` deste commit |
 | aberto | CODE | Euro e franco na CME só se precisar de dado ao vivo; a leitura dos PDFs é do chat | combinar antes (não iniciado). Obs. 26/11: o Code voltou ao ambiente "painel-mercado" (Yahoo, FRED, DTCC etc. liberados; incluído `cdn-api.cboe.com`, para onde a Cboe agora redireciona o GLD.json) |
 | feito | CHAT | Recados P1, P4, P5, P8, P9, P10, P11 (texto da IA), P12 e `mi_quant_diario.json` | 26/11, commit ef5f8c5, conferido na coleta 16:51. Desfazer: `git revert ef5f8c5`. Arquivos liberados |
@@ -33,7 +33,7 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | feito | CODE | P7: `dtcc.py` só marcar dia coberto com arquivo fechado; ver 88 erros; avaliar mínimo > 5 negócios | 26/11: só arquivo fechado marca o dia; erros por rodada (os 88 eram acumulado de conexão derrubada); mínimo 10 negócios com janela 48/72 h. Desfazer: `git revert` deste commit |
 | feito | CODE | P11 (resto): σ do NAS100 pelo VXN | 26/11: testado (dia ±1σ 77–78%, ±2σ 97,5%, 2001+), no `mi_faixa`, sem mapa. Desfazer: `git revert` deste commit |
 | feito | CHAT | NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura; `feriado_eua` no diário quant; IA com mais espaço de resposta | 26/11 21:05, conferido na coleta. Desfazer: `git revert 2531c9b f8c09ec`. Arquivos liberados |
-| fazendo | CHAT | Recados de 27/11: auditoria das opções (0DTE inválido, régua medida, trava na coleta, flip, charm, cadeia CME inteira) e P13 | `coletor.py`, `cme_pdf.py`, `cme/`, `docs/app.js` |
+| feito | CHAT | Recados de 27/11: auditoria das opções (0DTE inválido, régua medida, trava na coleta, flip, charm, cadeia CME inteira) | 27/11 05:50, conferidor com 0 falha. Desfazer: `git revert --no-commit 3e0bedf~1..HEAD` dos commits "Opções do ouro" e "CME: busca do flip"; originais dos registros em `mi_invalidos.json`. Arquivos liberados |
 | feito | CODE | Mapa do ouro não virou a sessão: 26/11 21:05 ainda "qua 25/11 20h a qui 26/11 20h" (moedas já em 26/11 20h) | 27/11: era o Yahoo (sem barras da CME desde 25/11 23h NY) + sessão pela última barra; agora pelo relógio, abertura estimada se faltar barra (`mapa.ab_estimada`). Desfazer: `git revert` deste commit |
 | feito | CODE | Liquidez (Tesouro e Fed de NY) estoura o tempo em algumas coletas (26/11 20:16 e 21:01) | 27/11: o Tesouro (TGA) dá 504/lento; reserva FRED WTREGEN e o Fed de NY não cai junto. Desfazer: `git revert` deste commit |
 

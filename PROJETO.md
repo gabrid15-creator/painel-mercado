@@ -257,7 +257,7 @@
 5. Pergunta sem resposta: suavizar o gamma flip do GLD (média de 15 min)?
 6. Conferir os leitores em 01/01/2027. Databento quando ela assinar.
 
-- Auditoria de 26/11 (recados P1 a P14): resta P13 (robô da CME, log de 27/11) e ver o P1 ao vivo em 30/11. Code: virada da sessão do ouro e tempo esgotado da Liquidez (`TAREFAS.md`).
+- Auditoria de 26/11: resta ver o P1 ao vivo em 30/11. Opções do ouro (27/11) corrigidas, falta a reconferência de Estratégias. Régua: remedir até 02/12.
 
 ---
 

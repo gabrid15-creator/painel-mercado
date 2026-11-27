@@ -371,3 +371,5 @@ NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou
 - Registros CME anteriores a 27/11 (`mi_0dte_hist`, diário) foram gravados com a régua antiga (~US$ 7 a 10 de diferença) e não foram refeitos.
 - Marcados como inválidos: diário 18 e 19/11 (parte do GLD), put/call 26/11 (feriado), retrato 27/11.
 - Robô da CME (P13): rodou de 03:00 a 05:30 em 27/11 sem falha; sem boletim novo por causa do feriado de 26/11.
+
+27/11 (complemento): flip da CME buscado em ±8%; corrigido comentário que apagava a conta da CME (trava passa a acusar CME ausente); abertura do ouro pelo 5 min quando falta o 1 h; com abertura estimada a var. do dia volta a ser contra o fechamento anterior; retrato da CME em dia pendente do histórico 0DTE acompanha o boletim atual.
