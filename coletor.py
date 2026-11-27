@@ -1457,13 +1457,24 @@ def b_regua_auto():
         idade = time.time() - t
         if s.get("stale"): motivo = "fonte marcou preço atrasado"
         elif not -30 <= idade <= 120: motivo = "preço com mais de 120 s"
-        else:
-            q = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{REGUA['contrato']}.CMX?range=1d&interval=1m", timeout=10))["chart"]["result"][0]
-            gc = next((v for ts, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and ts <= t < ts + 60), None)
-            if gc is None: motivo = "sem a barra do GC no mesmo minuto"
-            elif not any(a[0] == int(t) for a in d["amostras"]): d["amostras"].append([int(t), rnd(gc, 1), rnd(spot, 2), rnd(gc - spot, 2)])
+        elif not any(a[0] == int(t) for a in d["amostras"] + d.get("pendentes", [])): d.setdefault("pendentes", []).append([int(t), rnd(spot, 2)])
     except Exception as e:
         motivo = "erro: " + type(e).__name__; d["ultimo_erro"] = str(e)[:150]
+    # o futuro do Yahoo chega com ~10 min de atraso: o à vista fica pendente e casa com a barra do MESMO minuto numa coleta seguinte
+    if d.get("pendentes"):
+        try:
+            q = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{REGUA['contrato']}.CMX?range=2d&interval=1m", timeout=10))["chart"]["result"][0]
+            barras = {ts // 60: v for ts, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None}
+            if barras: barras.pop(max(barras))   # a última barra ainda está se formando
+            resta = []
+            for t, spot in d["pendentes"]:
+                gc = barras.get(t // 60)
+                if gc is not None: d["amostras"].append([t, rnd(gc, 1), spot, rnd(gc - spot, 2)])
+                elif time.time() - t < 3600: resta.append([t, spot])
+                else: d["descartes"]["sem a barra do GC no mesmo minuto"] = d["descartes"].get("sem a barra do GC no mesmo minuto", 0) + 1
+            d["pendentes"] = resta
+        except Exception as e:
+            motivo = "erro no futuro: " + type(e).__name__; d["ultimo_erro"] = str(e)[:150]
     if motivo: d["descartes"][motivo] = d["descartes"].get(motivo, 0) + 1
     if d["amostras"]:
         med = rnd(st.median([a[3] for a in d["amostras"]]), 2); atual = base_vantage(dia)
