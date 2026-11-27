@@ -29,10 +29,10 @@ if c and not c.get("sem_dado"):
     cad = [o for o in ler("ouro_cadeia.json") if o["venc"] == z["vencimento"]]
     sp = p + c["base"]
     for tipo, campo, lado in (("C", "call_wall", lambda k: k >= sp), ("P", "put_wall", lambda k: k <= sp)):
-        tem = any(o["tipo"].startswith(tipo) and o["oi"] > 0 and lado(o["strike"]) and abs(o["strike"] / sp - 1) <= 0.029 for o in cad)
+        tem = any(o["tipo"].startswith(tipo) and o["oi"] > 0 and lado(o["strike"]) and abs(o["strike"] / sp - 1) <= 0.03 for o in cad)
         e(tem and c.get(campo) is None, f"CME {campo} vazio, mas há contratos perto do preço")
     top = max((r[0] for r in c.get("perfil", [])), default=0)
-    fora = [o for o in cad if o["oi"] > 0 and o["strike"] - c["base"] > top + 1 and abs(o["strike"] / sp - 1) <= 0.029]
+    fora = [o for o in cad if o["oi"] > 0 and o["strike"] - c["base"] > top + 1 and abs(o["strike"] / sp - 1) <= 0.03]
     e(fora, f"CME gráfico corta {len(fora)} linhas com contratos acima de {top}")
     dia = dt.date.fromisoformat(z["vencimento"])
     esperada = round(BASE_MEDIDA * (VENCE - dia).days / (VENCE - MEDIDO_EM).days, 1)

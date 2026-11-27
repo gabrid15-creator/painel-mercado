@@ -1064,14 +1064,15 @@ def b_0dte():
                 except Exception as e: STATUS.append({"bloco": "0DTE CME contrato do GC", "ok": False, "msg": str(e)[:120]})
             except Exception as e: STATUS.append({"bloco": "0DTE CME régua", "ok": False, "msg": str(e)[:120]})
             if base is None: base = (fut - V) / fut   # reserva: sem o preço do ajuste, trata como o mesmo contrato
-            cv = lambda k: rnd(k * base, 1) if k is not None else None
+            desc = fut * (1 - base)   # desconto fixo em US$: nível = strike - desc (em razão, strikes longe do futuro saíam ~US$ 2 errados)
+            cv = lambda k: rnd(k - desc, 1) if k is not None else None
             cc, pp, setl = {}, {}, {}
             for o in cme:
                 k = float(o["strike"]); c = str(o["tipo"]).startswith("C")
                 (cc if c else pp)[k] = (cc if c else pp).get(k, 0) + (o.get("oi") or 0); setl[(k, "C" if c else "P")] = float(o["settle"])
             kk = sorted(set(cc) | set(pp))
             dor2 = {k: sum(max(0, k - x) * n for x, n in cc.items()) + sum(max(0, x - k) * n for x, n in pp.items()) for k in kk}
-            sp = ouro / base   # ouro à vista levado para a escala do futuro
+            sp = ouro + desc   # ouro à vista levado para a escala do futuro
             perto = lambda m, f: max((k for k in m if f(k) and m[k] > 0 and abs(k / sp - 1) <= 0.03), key=lambda k: m[k], default=None)
             # faixa do dia: straddle no dinheiro do ajuste anterior (vale para o dia inteiro do vencimento)
             atm = min((k for k in kk if (k, "C") in setl and (k, "P") in setl), key=lambda k: abs(k - fut), default=None)
@@ -1146,9 +1147,9 @@ def b_0dte():
                 if uso.get(k) is not None and (not isinstance(uso[k], list) or None not in uso[k]): row[k] = uso[k]
         # flip da CME: fixo desde o boletim (a 1ª conta depois que o PDF chega); guardado na escala do futuro, para seguir a régua do dia
         if cm_ and cm_.get("pregao"):
-            ck = f"cme2|{vk}|{cm_['pregao']}"; b_ = 1 - cm_["base"] / cm_["futuro"]
+            ck = f"cme2|{vk}|{cm_['pregao']}"; d_ = cm_["base"]
             if ck not in FXd and cm_.get("gamma_flip_f") is not None: FXd[ck] = cm_["gamma_flip_f"]
-            if ck in FXd: row["cme"]["gamma_flip"] = rnd(FXd[ck] * b_, 1)
+            if ck in FXd: row["cme"]["gamma_flip"] = rnd(FXd[ck] - d_, 1)
         if uso and uso.get("faixa"):   # com nível fixo em uso, o GLD volta a ser válido
             row["gld_ok"] = True; row.pop("sem_dado_gld", None)
         FXd[vk] = est
