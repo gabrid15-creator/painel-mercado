@@ -373,3 +373,4 @@ NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou
 - Robô da CME (P13): rodou de 03:00 a 05:30 em 27/11 sem falha; sem boletim novo por causa do feriado de 26/11.
 
 27/11 (complemento): flip da CME buscado em ±8%; corrigido comentário que apagava a conta da CME (trava passa a acusar CME ausente); abertura do ouro pelo 5 min quando falta o 1 h; com abertura estimada a var. do dia volta a ser contra o fechamento anterior; retrato da CME em dia pendente do histórico 0DTE acompanha o boletim atual.
+27/11: níveis da CME = strike menos o desconto em US$ (antes em razão). Coleta ao vivo 05:58 BRT: conferidor do repo e o de Estratégias com 0 falha.
