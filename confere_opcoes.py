@@ -25,6 +25,9 @@ for ativo, pref in (("XAUUSD", "ouro"), ("USDJPY", "iene")):
     if not r: erros.append(f"{ativo}: há cadeia, mas não há registro das paredes"); continue
     if r.get("sem_dado"): resumo.append(f"{ativo} sem dado ({r['sem_dado']})"); continue
     pg = cad[0]["data_pregao"]
+    if ativo == "XAUUSD":
+        mens = [o for o in ler("ouro_mensal.json") if o.get("data_pregao") == pg]; cad = cad + mens
+        e(bool(mens) and not r.get("com_mensal"), "ouro: há vencimento mensal do mesmo boletim, mas as paredes não o somam")
     e(r["pregao"] != pg, f"{ativo}: parede do boletim {r['pregao']}, cadeia é de {pg}")
     fut = {o["venc"]: float(o["futuro"]) for o in cad if o["venc"] > pg}
     F = fut[min(fut)]; vivos = sorted(v for v in fut if abs(fut[v] / F - 1) < 0.004)
@@ -60,6 +63,31 @@ for ativo, pref in (("XAUUSD", "ouro"), ("USDJPY", "iene")):
         for x in (w, r.get(lado + "2")):
             if x: e(not any(abs(b[0] - x["nivel"]) < tol and b[1 if lado == "call" else 2] == x["oi"] for b in r.get("barras", [])), f"{ativo}: o mapa não mostra a {lado} wall {x['nivel']} com {x['oi']} contratos")
         resumo.append(f"{ativo} {lado} {w['nivel']}" + (" rompida" if r.get("rompida_" + lado) else "") + (f", 2ª {r[lado + '2']['nivel']}" if r.get(lado + "2") else ""))
+# GLD complementar: só com pregão aberto, contratos em aberto, no máximo 1 dia útil de idade; não soma nem move a CME
+r = paredes.get("XAUUSD") or {}; g = r.get("gld") or {}
+if g and not g.get("sem_dado"):
+    f = (ler("mi_gld_oi.json") or [None])[0]
+    if not f: erros.append("GLD publicado sem a foto mi_gld_oi.json")
+    else:
+        d0 = dt.date.fromisoformat(f["dia"])
+        e(d0.weekday() >= 5 or not "10:00" <= f["hora_ny"] < "16:00", f"GLD coletado fora do pregão ({f['dia']} {f['hora_ny']} NY)")
+        e(g["dia"] != f["dia"] or abs(g["r"] - f["r"]) > 1e-9, "GLD publicado não é o da foto gravada")
+        e((dt.date.today() - d0).days > 4, f"GLD velho ({d0})")
+        e(any(c < 0 or p_ < 0 for _, c, p_ in f["linhas"]) or sum(c + p_ for _, c, p_ in f["linhas"]) <= 0, "GLD sem contratos em aberto")
+        aj, sd = r["ajuste_nivel"], r["sd_sem"]
+        for lado, i in (("call", 1), ("put", 2)):
+            oi = {l[0]: l[i] for l in f["linhas"] if l[i] > 0 and (aj < l[0] * f["r"] <= aj * (1 + sd) + 0.06 if lado == "call" else aj * (1 - sd) - 0.06 <= l[0] * f["r"] < aj)}
+            w = g.get(lado)
+            if not oi: e(w is not None, f"GLD {lado} wall publicada sem contratos no limite"); continue
+            if not w: erros.append(f"GLD {lado} wall vazia"); continue
+            e(oi.get(w["strike_gld"]) != max(oi.values()), f"GLD {lado} wall strike {w['strike_gld']} não é o maior")
+            e(abs(w["nivel"] - w["strike_gld"] * f["r"]) > 0.11 or abs(w["oi"] - w["contratos_gld"] / f["r"]) > 1, f"GLD {lado} wall: conversão errada {w}")
+            e((r["preco"] > w["nivel"] if lado == "call" else r["preco"] < w["nivel"]) and not g.get("rompida_" + lado), f"GLD {lado} wall passada sem marca")
+        for c_ in ("call", "call2", "put", "put2"):
+            perto = [g[x]["nivel"] for x in (c_.rstrip("2"), c_.rstrip("2") + "2") if r.get(c_) and g.get(x) and abs(g[x]["nivel"] - r[c_]["nivel"]) <= 6]
+            e(bool(perto) != (c_ in g.get("coincide", {})), f"'coincide com o GLD' errado na {c_}")
+        resumo.append("GLD " + ", ".join(f"{l} {g[l]['nivel']}" for l in ("call", "put") if g.get(l)) + (f" (coincide: {g['coincide']})" if g.get("coincide") else ""))
+elif r: resumo.append("GLD sem dado" + (f" ({g.get('sem_dado')})" if g else ""))
 z = (ler("mi_0dte.json") or [{}])[0]
 e(bool(z) and not z.get("preco_hora"), "preço do ouro sem horário (campo preco_hora)")
 

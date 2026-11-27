@@ -33,7 +33,7 @@ else:   # último horário noturno (20h ou 0h) que já passou
     hoje0 = agora.replace(hour=0, minute=0, second=0, microsecond=0)
     marcos = [m for m in (hoje0 - dt.timedelta(hours=4), hoje0, hoje0 + dt.timedelta(hours=20)) if m <= agora]
     vencida = not ultima or ultima < max(marcos)
-formato_velho = bool(ant) and ant[0].get("formato") != 4   # formato novo (sem viés): refaz uma vez
+formato_velho = bool(ant) and ant[0].get("formato") != 5   # formato novo (sem viés): refaz uma vez
 if ultima and not red_depois and not formato_velho and (not vencida or fim_de_semana):
     print(f"leitura de {ultima:%d/%m %H:%M} ainda vale"); sys.exit(0)
 
@@ -48,7 +48,7 @@ prompt = (
     "- GERAL: o ambiente agora (volatilidade alta ou baixa, estresse no radar institucional) e o próximo evento que pode aumentar o movimento.\n"
     "- Cada ativo (TODOS com o MESMO roteiro e a mesma ordem, mudando só o que é específico do ativo): (1) o σ do dia FIXO, em preços (±1σ e o dia normal) e onde o preço está agora em σ da abertura; "
     "(2) o σ da semana FIXO, em preços; (3) lateralidade: se ontem foi estreito, normal ou largo e o que isso diz sobre hoje, payroll se for o caso, e o resto do dia (Ásia+Londres); "
-    "(4) o que move o ativo agora (regime com DXY/juros) e o evento de risco mais próximo; (5) opções: ouro e iene citam só a call wall e a put wall da CME como referência sem teste, dizendo se foi rompida e a 2ª parede (SEM DADO: diga só que não há dado); nunca fale em gamma flip, max pain, regime de gamma, gregas, pin nem faixa de opções; os demais dizem que o σ vem das opções de balcão. "
+    "(4) o que move o ativo agora (regime com DXY/juros) e o evento de risco mais próximo; (5) opções: ouro e iene citam só a call wall e a put wall da CME como referência sem teste, dizendo se foi rompida e a 2ª parede (SEM DADO: diga só que não há dado); no ouro, o GLD é só complemento: se a linha disser que coincide, escreva exatamente 'coincide com o GLD' (nunca 'confirmada' ou 'confirma'), se vier parede só do GLD, cite como linha do GLD, e se vier 'GLD sem dado' diga isso em poucas palavras; nunca fale em gamma flip, max pain, regime de gamma, gregas, pin nem faixa de opções; os demais dizem que o σ vem das opções de balcão. "
     "Use os números das linhas [DIA], [SEMANA], [AGORA], [LATERALIDADE], [RESTO DO DIA] e [OPÇÕES] exatamente como estão, sem recalcular.\n"
     "IMPORTANTE: os níveis do dia e da semana (±1σ, ±2σ), definidos na abertura (20h de Brasília), e as paredes da CME, definidas na chegada do boletim, são FIXOS. Cite-os exatamente como estão nos dados e não calcule outra faixa; só o preço muda durante o dia.\n"
     "Nunca escreva rótulos entre colchetes (como DIA ou AGORA). Ativo com a linha [FAIXA] em vez de [DIA] e [AGORA] (hoje o NAS100): cite a faixa do dia e da semana dizendo que parte do preço atual (não é fixa), sem falar em dia normal, lateralidade ou resto do dia; ativo sem nenhuma dessas linhas: não cite σ nem faixa. "
@@ -68,7 +68,7 @@ if resp.stop_reason == "refusal":
 txt = "".join(b.text for b in resp.content if b.type == "text")
 try:
     itens = json.loads(txt[txt.index("["): txt.rindex("]") + 1])
-    rows = [{"ativo": x["ativo"], "formato": 4, "texto": re.sub(r"\[(?:σ|FAIXA|DIA|SEMANA|AGORA|LATERALIDADE|RESTO DO DIA|OPÇÕES)[^\]]*\]\s*", "", x["texto"]).strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
+    rows = [{"ativo": x["ativo"], "formato": 5, "texto": re.sub(r"\[(?:σ|FAIXA|DIA|SEMANA|AGORA|LATERALIDADE|RESTO DO DIA|OPÇÕES)[^\]]*\]\s*", "", x["texto"]).strip(), "gerado_em": f"{agora:%Y-%m-%d %H:%M}"} for x in itens if x.get("ativo") in ATIVOS and x.get("texto")]
 except Exception as e:
     print(f"resposta fora do formato; leitura anterior mantida: {e} (parou por {resp.stop_reason}, {resp.usage.output_tokens} tokens de saída, começo: {txt[:150]!r})"); sys.exit(0)
 if len(rows) < 5:

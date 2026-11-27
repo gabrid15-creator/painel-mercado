@@ -988,6 +988,18 @@ def b_0dte():
     r_ok = r is not None
     if r is None: r = ouro / S
     Sv = ouro / r   # ouro ao vivo na escala do GLD
+    try:   # GLD complementar das paredes (27/11 11h28): 1 foto por dia, só com pregão aberto (10h às 16h NY), contratos em aberto e GLD não parado
+        if ny.weekday() < 5 and 10 <= ny.hour < 16 and r_ok and not parado:
+            ant_ = ler("mi_gld_oi.json"); mens = ler("ouro_mensal.json")
+            if mens and (not ant_ or ant_[0].get("dia") != ny.date().isoformat()):
+                lim = dt.date.fromisoformat(mens[0]["venc"]); tot = {}; vs = set()
+                for o in ops:
+                    if ny.date() <= o["venc"] <= lim and o["oi"] > 0:
+                        tot.setdefault(o["k"], [0, 0])[0 if o["tipo"] == "C" else 1] += int(o["oi"]); vs.add(o["venc"])
+                if tot: save("mi_gld_oi.json", [{"dia": ny.date().isoformat(), "hora_ny": ny.strftime("%H:%M"), "hora": NOW.astimezone(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m %H:%M"),
+                                                   "r": rnd(r, 5), "gld": rnd(S, 2), "ate": lim.isoformat(), "vencimentos": len(vs), "fonte": j.get("_fonte", "Cboe"),
+                                                   "linhas": [[k, c_, p_] for k, (c_, p_) in sorted(tot.items())]}])
+    except Exception as e: STATUS.append({"bloco": "Paredes: foto do GLD", "ok": False, "msg": str(e)[:120]})
     grade = [Sv * (1 + i / 1000) for i in range(-40, 41)]; g = [gex(x) for x in grade]
     flip = None
     for i in range(1, len(grade)):
@@ -1352,6 +1364,34 @@ def b_0dte_iene():
     save("mi_0dte_iene_hist.json", sorted(hist.values(), key=lambda x: x["vencimento"])[-500:])
 b_0dte_iene()
 
+def paredes_gld(r, p, hora, hoje):
+    """GLD como COMPLEMENTO das paredes da CME (27/11 11h28): mesma regra (1σ semanal em torno do ajuste, call acima, put abaixo), foto única
+    do dia com o pregão aberto, strike convertido pela razão do mesmo instante, tamanho em equivalente de contrato CME. Não soma nas barras
+    da CME nem move os níveis dela. Parede a até US$ 6 da CME = "coincide com o GLD" (coincidência não é teste)."""
+    f = (ler("mi_gld_oi.json") or [None])[0]
+    if not f: return {"sem_dado": "ainda sem coleta com o pregão do GLD aberto"}
+    d0 = dt.date.fromisoformat(f["dia"])
+    uteis = sum((d0 + dt.timedelta(days=i)).weekday() < 5 for i in range(1, (hoje - d0).days + 1))
+    if uteis > 1: return {"sem_dado": f"última coleta válida é de {d0:%d/%m}"}
+    aj, sd = r["ajuste_nivel"], r["sd_sem"]; rz = f["r"]
+    niv = [(rnd(k * rz, 1), int(round(c_ / rz)), int(round(p_ / rz)), k, c_, p_) for k, c_, p_ in f["linhas"]]
+    cc = sorted(({"nivel": n, "oi": ce, "strike_gld": k, "contratos_gld": c_} for n, ce, pe, k, c_, p_ in niv if c_ > 0 and aj < n <= aj * (1 + sd)), key=lambda x: -x["contratos_gld"])
+    pp = sorted(({"nivel": n, "oi": pe, "strike_gld": k, "contratos_gld": p_} for n, ce, pe, k, c_, p_ in niv if p_ > 0 and aj * (1 - sd) <= n < aj), key=lambda x: -x["contratos_gld"])
+    ant = r.get("gld") or {}; chave = f"{f['dia']}|{f['hora_ny']}|{r['chave']}"
+    g = {"chave": chave, "dia": f["dia"], "hora": f["hora"], "fonte": f["fonte"], "ate": f["ate"], "r": rz, "call": cc[0] if cc else None, "put": pp[0] if pp else None,
+         "call2": None, "put2": None, "rompida_call": None, "rompida_put": None}
+    if ant.get("chave") == chave: g.update({k: ant.get(k) for k in ("call2", "put2", "rompida_call", "rompida_put")})
+    for lado, passou, cand in (("call", lambda n: p > n, cc), ("put", lambda n: p < n, pp)):
+        w = g[lado]
+        if not w: continue
+        if not g["rompida_" + lado] and passou(w["nivel"]): g["rompida_" + lado] = {"hora": hora, "preco": p}
+        if g["rompida_" + lado] and (g[lado + "2"] is None or passou(g[lado + "2"]["nivel"])):
+            g[lado + "2"] = next((x for x in cand if x["strike_gld"] != w["strike_gld"] and not passou(x["nivel"])), None)
+    g["coincide"] = {c_: g[x]["nivel"] for lado in ("call", "put") for c_ in (lado, lado + "2") for x in (lado, lado + "2")
+                     if r.get(c_) and g.get(x) and abs(g[x]["nivel"] - r[c_]["nivel"]) <= 6}
+    g["barras"] = [[n, ce, pe] for n, ce, pe, *_ in sorted(niv) if abs(n / aj - 1) <= max(sd * 1.15, 0.025) and (ce or pe)]
+    return g
+
 @bloco("Paredes das opções (CME)")
 def b_paredes():
     """CALL WALL e PUT WALL (27/11/2026, decisão do Gabriel; claude/quant-opcoes-fica-sai.md). Referência, SEM TESTE.
@@ -1366,11 +1406,13 @@ def b_paredes():
         try:
             cad = [o for o in ler(arq) if o.get("settle") not in (None, "") and len(str(o.get("venc"))) == 10]
             if not cad: continue
-            pg = cad[0]["data_pregao"]; bol = (ler(arq.replace("cadeia", "boletim")) or [{}])[0]
+            pg = cad[0]["data_pregao"]
+            mens = [o for o in ler("ouro_mensal.json") if o.get("data_pregao") == pg] if ativo == "XAUUSD" else []   # mensal somado (27/11 11h28)
+            cad = cad + mens; bol = (ler(arq.replace("cadeia", "boletim")) or [{}])[0]
             vivos = sorted({o["venc"] for o in cad if o["venc"] > pg})
             F = float(next(o["futuro"] for o in cad if o["venc"] == vivos[0]))
             vivos = [v for v in vivos if abs(float(next(o["futuro"] for o in cad if o["venc"] == v)) / F - 1) < 0.004]   # só o mesmo contrato futuro
-            chave = f"{pg}|{bol.get('situacao')}" + (f"|{REGUA['medido']}|{REGUA['base']}" if ativo == "XAUUSD" else "")
+            chave = f"{pg}|{bol.get('situacao')}" + (f"|{REGUA['medido']}|{REGUA['base']}|mensal{len(mens)}" if ativo == "XAUUSD" else "")
             fr = next((r for r in ler("mi_faixa.json") if r["ativo"] == ativo), None)
             if not fr: raise ValueError("sem a faixa da volatilidade")
             r = ant.get(ativo)
@@ -1401,7 +1443,14 @@ def b_paredes():
                 r = {"ativo": ativo, "chave": chave, "pregao": pg, "situacao": bol.get("situacao"), "vencimentos": vivos, "ajuste": F,
                      "desconto": desc, "ajuste_nivel": rnd(F - desc, 1) if desc is not None else rnd(ref, 3), "sd_sem": rnd(sd, 6),
                      "fixado_em": NOW.strftime("%d/%m %H:%M"), "candidatas_call": cc, "candidatas_put": pp, "call": cc[0] if cc else None,
-                     "put": pp[0] if pp else None, "call2": None, "put2": None, "rompida_call": None, "rompida_put": None, "rotulo": "referência, sem teste"}
+                     "put": pp[0] if pp else None, "call2": None, "put2": None, "rompida_call": None, "rompida_put": None, "rotulo": "referência, sem teste",
+                     "com_mensal": bool(mens), "mudancas": []}
+                a_ = ant.get(ativo)
+                if a_ and a_.get("pregao") == pg and a_.get("call") is not None:   # refixou no mesmo boletim: registra o que mudou
+                    r["mudancas"] = (a_.get("mudancas") or []) + [{"hora": NOW.astimezone(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m %H:%M"),
+                        "antes": {l: a_.get(l) for l in ("call", "put", "call2", "put2")}, "vencimentos_antes": a_.get("vencimentos")}]
+                    for l in ("call", "put"):
+                        if r[l] and a_.get(l) and a_[l]["nivel"] == r[l]["nivel"]: r["rompida_" + l] = a_.get("rompida_" + l)
             # barras do mapa (mesma soma das paredes): [nível, calls, puts] na ótica do ativo, até 1σ da semana com uma pequena folga
             bar = {}
             for o in cad:
@@ -1423,10 +1472,13 @@ def b_paredes():
                     if w2 is None or passou(w2["nivel"]):   # a 2ª só troca quando o preço passa dela (não anda para trás)
                         r[lado + "2"] = next((x for x in r["candidatas_" + lado] if x["strike"] != w["strike"] and not passou(x["nivel"])), None)
             r["preco"] = p; r.pop("sem_dado", None)
+            if ativo == "XAUUSD": r["gld"] = paredes_gld(r, p, hora, ny.date())
             saida.append(r)
             if dia_s.weekday() < 5:
                 h = hist.get((dia_s.isoformat(), ativo)) or {"dia": dia_s.isoformat(), "ativo": ativo, "max_visto": p, "min_visto": p}
                 h.update({k: r[k] for k in ("pregao", "ajuste", "desconto", "sd_sem", "call", "put", "call2", "put2", "rompida_call", "rompida_put")})
+                h.update({"vencimentos": r["vencimentos"], "mudancas": r.get("mudancas")})
+                if r.get("gld"): h["gld"] = {k: v for k, v in r["gld"].items() if k != "barras"}
                 h.update({"max_visto": max(h["max_visto"], p), "min_visto": min(h["min_visto"], p), "ultimo": p, "atualizado": hora})
                 hist[(dia_s.isoformat(), ativo)] = h
         except Exception as e:
@@ -1789,7 +1841,19 @@ def b_score():
                         if pw_.get("rompida_" + l):
                             w2 = pw_.get(l + "2"); t += f" (ROMPIDA; 2ª {nm} {w2['nivel']})" if w2 else " (ROMPIDA; sem outra dentro de 1σ semanal)"
                         return t
-                    f.write(f"  [OPÇÕES] CME, boletim de {pw_['pregao']}, fixas até o próximo boletim, referência sem teste: {lado_('call', 'call wall')}; {lado_('put', 'put wall')}.\n")
+                    txt_ = f"  [OPÇÕES] CME, boletim de {pw_['pregao']}, fixas até o próximo boletim, referência sem teste: {lado_('call', 'call wall')}; {lado_('put', 'put wall')}."
+                    if x["ativo"] == "XAUUSD":
+                        g_ = pw_.get("gld") or {}
+                        if g_.get("sem_dado") or not g_: txt_ += " GLD sem dado."
+                        else:
+                            ditos = []
+                            for l_, nm in (("call", "call wall"), ("put", "put wall")):
+                                for c_ in (l_, l_ + "2"):
+                                    if c_ in g_.get("coincide", {}): ditos.append(f"a {'2ª ' if c_.endswith('2') else ''}{nm} da CME coincide com o GLD ({g_['coincide'][c_]})")
+                                for k_ in (l_, l_ + "2"):
+                                    if g_.get(k_) and g_[k_]["nivel"] not in g_.get("coincide", {}).values(): ditos.append(f"{'2ª ' if k_.endswith('2') else ''}{nm} só do GLD em {g_[k_]['nivel']}" + (" (rompida)" if g_.get("rompida_" + k_) else ""))
+                            txt_ += f" Complemento GLD (foto de {g_['hora']}): " + ("; ".join(ditos) or "sem parede dentro de 1σ semanal") + "."
+                    f.write(txt_ + "\n")
         rd = {k: mac.get(k) for k in ("Liquidez líquida Fed", "VIX ÷ VIX 3 meses", "MOVE (vol. de Treasuries)", "Condições financeiras (NFCI)", "US2Y", "US10Y", "Juro real 10a", "Spread 2a EUA−Alemanha")}
         f.write("\nRadar institucional e juros: " + "; ".join(f"{k} {v['valor']} (20d {v['var_20d']}{v['unidade_var']}, pctil 1a {v['pctil_1a']})" for k, v in rd.items() if v) + "\n")
         eu = ler("mi_eua.json")
