@@ -33,8 +33,8 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | feito | CODE | P7: `dtcc.py` só marcar dia coberto com arquivo fechado; ver 88 erros; avaliar mínimo > 5 negócios | 26/11: só arquivo fechado marca o dia; erros por rodada (os 88 eram acumulado de conexão derrubada); mínimo 10 negócios com janela 48/72 h. Desfazer: `git revert` deste commit |
 | feito | CODE | P11 (resto): σ do NAS100 pelo VXN | 26/11: testado (dia ±1σ 77–78%, ±2σ 97,5%, 2001+), no `mi_faixa`, sem mapa. Desfazer: `git revert` deste commit |
 | feito | CHAT | NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura; `feriado_eua` no diário quant; IA com mais espaço de resposta | 26/11 21:05, conferido na coleta. Desfazer: `git revert 2531c9b f8c09ec`. Arquivos liberados |
-| aberto | CODE | Mapa do ouro não virou a sessão: 26/11 21:05 ainda "qua 25/11 20h a qui 26/11 20h" (moedas já em 26/11 20h) | conferir se é atraso do GC=F 1 h no Yahoo (feriado) ou erro em `b_faixa` |
-| aberto | CODE | Liquidez (Tesouro e Fed de NY) estoura o tempo em algumas coletas (26/11 20:16 e 21:01) | `coletor.py` (`b_liq`); o dado anterior é mantido |
+| fazendo | CODE | Mapa do ouro não virou a sessão: 26/11 21:05 ainda "qua 25/11 20h a qui 26/11 20h" (moedas já em 26/11 20h) | conferir se é atraso do GC=F 1 h no Yahoo (feriado) ou erro em `b_faixa` |
+| fazendo | CODE | Liquidez (Tesouro e Fed de NY) estoura o tempo em algumas coletas (26/11 20:16 e 21:01) | `coletor.py` (`b_liq`); o dado anterior é mantido |
 
 Linhas `feito` com mais de 30 dias: apagar (o detalhe fica no `HISTORICO.md`).
 
