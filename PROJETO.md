@@ -141,6 +141,7 @@
      - tabela **Precisão medida** visível (`faixa_backtest.json`).
    - **Conferência diária** (`mi_validacao.json`): toque real × chance prevista, faixa e 0DTE (GLD e CME separados).
    - **Call wall e put wall (CME)** (`.op-card.pw`, `b_paredes` → `mi_paredes.json`; histórico `mi_paredes_hist.json`; rótulo "referência, sem teste"): fixas na chegada do boletim; soma o contrato em aberto dos vencimentos coletados ainda vivos (ouro: semanais + próximo mensal, desde 27/11 11h28; mudança registrada em `mudancas`); só strikes a até 1σ semanal do ajuste; call = mais calls acima, put = mais puts abaixo; ouro nível = strike − régua; iene = USDJPY às 15h NY × F ÷ strike (call do USDJPY vem das puts de iene); preço passou = "rompida" + 2ª parede. Mapa (`drawMapaOp`): puts à esquerda, calls à direita, paredes, 2ª tracejada, preço com horário. Conferente independente `confere_opcoes.py` (roda em toda coleta). 25/11: ouro 3573 / 2ª 3673 / put 3473.
+   - **Grandes fora da faixa** (27/11 12:22): strikes entre 1σ e 2σ semanal do ajuste com mais contratos que a parede do mesmo lado (`fora_call`/`fora_put`); aparecem na tabela, no mapa (eixo até 2σ no máximo), no digest e na IA; não são parede. Boletim 25/11: calls 3723, 3773, 3873; puts nenhuma.
    - **GLD complementar** (27/11): foto única do dia (`mi_gld_oi.json`) na 1ª coleta com pregão aberto (10h–16h NY), contratos em aberto > 0 e GLD não parado, vencimentos até o mensal; vale no máximo até o dia útil seguinte; mesma regra de parede sobre o ajuste da CME; tamanho em contratos equivalentes (n ÷ razão); a até US$ 6 da parede CME = "coincide com o GLD" (nunca "confirmada": não é teste); mais longe = linha roxa própria; sem foto válida = "GLD sem dado". Não soma nem move a CME. Uso: referência no gráfico, não serve para entrada, saída nem proteção.
    - **Vencimento mensal da CME** (`ouro_mensal.json`, só para teste futuro; leitor e `confere_cme.py`).
    - **Balcão (DTCC):** não aparece na tela, só grava.
@@ -244,7 +245,7 @@
 5. Pergunta sem resposta: suavizar o gamma flip do GLD (média de 15 min)?
 6. Conferir os leitores em 01/01/2027. Databento quando ela assinar.
 
-- **Régua automática em paralelo** (27/11, `b_regua_auto` → `mi_regua_auto.json`): GC fev − ouro à vista (xaus.com) no mesmo minuto, mediana do dia, descarte > 120 s, trava US$ 3. Só grava; após 3 pregões comparar com a régua datada e medir à vista × Vantage antes de trocar.
+- **Régua automática (27/11 12:22):** fonte xaus.com reprovada e removida. Vale a régua datada. Ideia nova aguardando ok do Gabriel: programa só de leitura no MT5 (XAUUSD 1 min) num computador sempre ligado.
 - Auditoria de 26/11: resta ver o P1 ao vivo em 30/11. Opções do ouro (27/11) corrigidas, falta a reconferência de Estratégias. Régua: remedir até 02/12.
 
 ---

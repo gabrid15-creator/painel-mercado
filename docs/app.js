@@ -954,7 +954,8 @@
           [l, l + '2'].forEach((k) => { if (!g || !g[k] || Object.values(g.coincide || {}).includes(g[k].nivel)) return; const y = g[k], ry = g['rompida_' + k];
             out.push([(k.endsWith('2') ? '2ª ' : '') + 'GLD ' + nome.toLowerCase(), 'lv-mp', nf(y.nivel, cs), 'linha do GLD · strike ' + nf(y.strike_gld, 0) + ' · ' + nf(y.oi, 0) + ' contratos equivalentes' + (ry ? ' · ROMPIDA em ' + ry.hora : '')]); });
           return out; };
-        const linhas = [...lado('call', 'Call wall', 'lv-cw'), [NOME[atv] + ' agora', 'lv-now', nf(w.preco, cs), ''], ...lado('put', 'Put wall', 'lv-pw')];
+        const fora = (l, c) => (w['fora_' + l] || []).map((x) => [(l === 'call' ? 'Call' : 'Put') + ' grande fora da faixa', c, nf(x.nivel, cs), det(x) + ' · entre 1σ e 2σ da semana, mais contratos que a ' + l + ' wall']);
+        const linhas = [...lado('call', 'Call wall', 'lv-cw'), ...fora('call', 'lv-cw'), [NOME[atv] + ' agora', 'lv-now', nf(w.preco, cs), ''], ...lado('put', 'Put wall', 'lv-pw'), ...fora('put', 'lv-pw')];
         const num = (x) => parseFloat(String(x[2]).replace(/\./g, '').replace(',', '.'));
         linhas.sort((a, b) => (isNaN(num(b)) ? -1e12 : num(b)) - (isNaN(num(a)) ? -1e12 : num(a))).forEach((x) => lin(...x));
         if (atv === 'XAUUSD') { const tr = document.createElement('tr'), c_ = td(tr, g ? 'GLD: foto de ' + g.hora + ' (pregão aberto, fonte ' + g.fonte + '), vencimentos até ' + dm(g.ate) + '.' : 'GLD sem dado' + (w.gld && w.gld.sem_dado ? ': ' + w.gld.sem_dado : '') + '.'); c_.colSpan = 3; t.appendChild(tr); }
@@ -970,7 +971,8 @@
     const marc = [['call', 'CALL WALL', 'var(--color-bad)'], ['call2', '2ª CALL', 'var(--color-bad)'], ['put', 'PUT WALL', 'var(--color-ok)'], ['put2', '2ª PUT', 'var(--color-ok)']].filter(([k]) => w[k]);
     const g = w.gld && !w.gld.sem_dado ? w.gld : null, gb = (g && g.barras) || [], coin = (g && g.coincide) || {};
     const soGld = g ? ['call', 'put', 'call2', 'put2'].filter((k) => g[k] && !Object.values(coin).includes(g[k].nivel)) : [];
-    const ys = [...rows.map((r) => r[0]), ...gb.map((r) => r[0]), ...soGld.map((k) => g[k].nivel), w.preco, ...marc.map(([k]) => w[k].nivel)], lo = d3.min(ys), hi = d3.max(ys), folga = (hi - lo) * 0.03;
+    const fora = [['call', 'var(--color-bad)'], ['put', 'var(--color-ok)']].flatMap(([l, cor]) => (w['fora_' + l] || []).map((v) => ({ ...v, l, cor })));
+    const ys = [...fora.map((v) => v.nivel), ...rows.map((r) => r[0]), ...gb.map((r) => r[0]), ...soGld.map((k) => g[k].nivel), w.preco, ...marc.map(([k]) => w[k].nivel)], lo = d3.min(ys), hi = d3.max(ys), folga = (hi - lo) * 0.03;
     const y = d3.scaleLinear([lo - folga, hi + folga], [H - m.b, m.t]), M = d3.max([...rows, ...gb], (r) => Math.max(r[1], r[2])) || 1, x = d3.scaleLinear([-M, M], [m.l, W - m.r]);
     const sv = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('width', '100%').style('display', 'block').style('font-size', '11px');
     const passo = d3.min(d3.pairs(rows.map((r) => y(r[0]))), ([a, b]) => Math.abs(a - b)) || 6, h = Math.max(1.5, Math.min(8, passo * 0.85));
@@ -988,6 +990,8 @@
       sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', cor).attr('stroke-width', coin[k] ? 4 : 2).attr('stroke-dasharray', k.endsWith('2') ? '6 4' : null);
       rot.push({ y: y(v) - 4, x: m.l + 3, a: 'start', c: cor, t: nome + ' ' + nf(v, cs) + (romp ? ' (rompida)' : '') });
       if (coin[k]) rot.push({ y: y(v) + 13, x: m.l + 3, a: 'start', c: '#7b5cc4', t: '★ coincide com o GLD' }); });
+    fora.forEach((v) => { sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v.nivel)).attr('y2', y(v.nivel)).attr('stroke', v.cor).attr('stroke-width', 1.5).attr('stroke-dasharray', '10 3 2 3');
+      rot.push({ y: y(v.nivel) - 4, x: W - m.r - 2, a: 'end', c: v.cor, t: v.l.toUpperCase() + ' grande fora da faixa ' + nf(v.nivel, cs) }); });
     soGld.forEach((k) => { const v = g[k].nivel;
       sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', '#7b5cc4').attr('stroke-width', 2).attr('stroke-dasharray', '2 3');
       rot.push({ y: y(v) - 4, x: W - m.r - 2, a: 'end', c: '#7b5cc4', t: (k.endsWith('2') ? '2ª ' : '') + 'GLD ' + k.replace('2', '').toUpperCase() + ' ' + nf(v, cs) + (g['rompida_' + k] ? ' (rompida)' : '') }); });

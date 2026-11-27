@@ -62,6 +62,22 @@ for ativo, pref in (("XAUUSD", "ouro"), ("USDJPY", "iene")):
             else: e(w2["strike"] not in resto or oi.get(w2["strike"]) != w2["oi"] or abs(w2["nivel"] - nivel(w2["strike"])) > tol, f"{ativo} 2ª {lado} wall {w2} inválida")
         for x in (w, r.get(lado + "2")):
             if x: e(not any(abs(b[0] - x["nivel"]) < tol and b[1 if lado == "call" else 2] == x["oi"] for b in r.get("barras", [])), f"{ativo}: o mapa não mostra a {lado} wall {x['nivel']} com {x['oi']} contratos")
+        # grandes fora da faixa: exatamente os strikes entre 1σ e 2σ com mais contratos que a parede do mesmo lado, e todos no mapa
+        todos = {}
+        for o in cad:
+            k = float(o["strike"])
+            if o["venc"] in vivos and str(o["tipo"]).startswith(tipo) and (o.get("oi") or 0) > 0: todos[k] = todos.get(k, 0) + o["oi"]
+        esp = {k: n for k, n in todos.items() if n > w["oi"] and (F * (1 + sd) < k <= F * (1 + 2 * sd) if acima else F * (1 - 2 * sd) <= k < F * (1 - sd))}
+        pub = r.get("fora_" + lado)
+        if pub is None: erros.append(f"{ativo}: falta a lista de {lado} grande fora da faixa")
+        else:
+            e({x["strike"]: x["oi"] for x in pub} != esp, f"{ativo} {lado} grande fora da faixa: publicado {[(x['strike'], x['oi']) for x in pub]}, esperado {sorted(esp.items())}")
+            for x in pub:
+                e(abs(x["nivel"] - nivel(x["strike"])) > tol, f"{ativo} {lado} fora da faixa {x['strike']}: nível errado {x['nivel']}")
+                e(not any(abs(b[0] - x["nivel"]) < tol and b[1 if lado == "call" else 2] == x["oi"] for b in r.get("barras", [])), f"{ativo}: o mapa não mostra a {lado} fora da faixa {x['nivel']}")
+        lims = sorted(nivel(F * (1 + s * 2 * sd)) for s in (-1, 1))
+        e(any(not lims[0] - tol <= b[0] <= lims[1] + tol for b in r.get("barras", [])), f"{ativo}: o mapa tem barra além de 2σ")
+        if pub: resumo.append(f"{ativo} {lado} fora da faixa " + ", ".join(f"{x['nivel']} ({x['oi']})" for x in pub))
         resumo.append(f"{ativo} {lado} {w['nivel']}" + (" rompida" if r.get("rompida_" + lado) else "") + (f", 2ª {r[lado + '2']['nivel']}" if r.get(lado + "2") else ""))
 # GLD complementar: só com pregão aberto, contratos em aberto, no máximo 1 dia útil de idade; não soma nem move a CME
 r = paredes.get("XAUUSD") or {}; g = r.get("gld") or {}

@@ -1451,11 +1451,28 @@ def b_paredes():
                         "antes": {l: a_.get(l) for l in ("call", "put", "call2", "put2")}, "vencimentos_antes": a_.get("vencimentos")}]
                     for l in ("call", "put"):
                         if r[l] and a_.get(l) and a_[l]["nivel"] == r[l]["nivel"]: r["rompida_" + l] = a_.get("rompida_" + l)
-            # barras do mapa (mesma soma das paredes): [nível, calls, puts] na ótica do ativo, até 1σ da semana com uma pequena folga
-            bar = {}
+            # GRANDES FORA DA FAIXA (27/11 12:22): strikes entre 1σ e 2σ semanal do ajuste com MAIS contratos que a parede do mesmo lado.
+            # Só aparecem no mapa, na tabela e no texto; não mudam as paredes nem a regra delas.
+            A, sd_ = r["ajuste"], r["sd_sem"]; fora = {"call": [], "put": []}
+            for lado in ("call", "put"):
+                w = r.get(lado)
+                if not w: continue
+                acima = (lado == "call") == (ativo == "XAUUSD"); soma = {}
+                for o in cad:
+                    k = float(o["strike"])
+                    if o["venc"] in r["vencimentos"] and str(o["tipo"])[0] == ("C" if acima else "P") and (o.get("oi") or 0) > 0 \
+                            and (A * (1 + sd_) < k <= A * (1 + 2 * sd_) if acima else A * (1 - 2 * sd_) <= k < A * (1 - sd_)):
+                        soma[k] = soma.get(k, 0) + o["oi"]
+                nv = (lambda k: rnd(k - r["desconto"], 1)) if ativo == "XAUUSD" else (lambda k: rnd(r["ajuste_nivel"] * A / k, 3))
+                fora[lado] = sorted(({"strike": k, "oi": int(n), "nivel": nv(k)} for k, n in soma.items() if n > w["oi"]), key=lambda x: x["nivel"])
+            r["fora_call"], r["fora_put"] = fora["call"], fora["put"]
+            # barras do mapa (mesma soma das paredes): [nível, calls, puts] na ótica do ativo, até 1σ da semana com folga, ou até o maior
+            # strike fora da faixa daquele lado; nunca além de 2σ
+            bar = {}; ac_ = lambda lado: (lado == "call") == (ativo == "XAUUSD")
+            janela = {ac_(l): min(max([max(sd_ * 1.15, 0.025)] + [abs(x["strike"] / A - 1) for x in fora[l]]), 2 * sd_) for l in ("call", "put")}
             for o in cad:
                 k = float(o["strike"])
-                if o["venc"] in r["vencimentos"] and (o.get("oi") or 0) > 0 and abs(k / r["ajuste"] - 1) <= max(r["sd_sem"] * 1.15, 0.025):
+                if o["venc"] in r["vencimentos"] and (o.get("oi") or 0) > 0 and abs(k / A - 1) <= janela[k > A] + 1e-9:
                     nv = rnd(k - r["desconto"], 1) if ativo == "XAUUSD" else rnd(r["ajuste_nivel"] * r["ajuste"] / k, 3)
                     cima_ = str(o["tipo"])[0] == ("C" if ativo == "XAUUSD" else "P")
                     bar.setdefault(nv, [0, 0])[0 if cima_ else 1] += int(o["oi"])
@@ -1477,7 +1494,7 @@ def b_paredes():
             if dia_s.weekday() < 5:
                 h = hist.get((dia_s.isoformat(), ativo)) or {"dia": dia_s.isoformat(), "ativo": ativo, "max_visto": p, "min_visto": p}
                 h.update({k: r[k] for k in ("pregao", "ajuste", "desconto", "sd_sem", "call", "put", "call2", "put2", "rompida_call", "rompida_put")})
-                h.update({"vencimentos": r["vencimentos"], "mudancas": r.get("mudancas")})
+                h.update({"vencimentos": r["vencimentos"], "mudancas": r.get("mudancas"), "fora_call": r["fora_call"], "fora_put": r["fora_put"]})
                 if r.get("gld"): h["gld"] = {k: v for k, v in r["gld"].items() if k != "barras"}
                 h.update({"max_visto": max(h["max_visto"], p), "min_visto": min(h["min_visto"], p), "ultimo": p, "atualizado": hora})
                 hist[(dia_s.isoformat(), ativo)] = h
@@ -1489,56 +1506,6 @@ def b_paredes():
     save("mi_paredes.json", saida)
     save("mi_paredes_hist.json", sorted(hist.values(), key=lambda h: (h["dia"], h["ativo"]))[-2000:])
 b_paredes()
-
-@bloco("Régua automática (só gravando)")
-def b_regua_auto():
-    """27/11/2026 (aprovado pelo Gabriel; claude/quant-opcoes-fica-sai.md): GC fev menos o ouro à vista (xaus.com) no MESMO minuto, mediana do dia.
-    FASE PARALELA: só grava em mi_regua_auto.json por 3 pregões; o painel segue com a REGUA datada. Fonte falhou = nada muda."""
-    dias = {d["dia"]: d for d in ler("mi_regua_auto.json")}
-    dia = (NOW.astimezone(ZoneInfo("America/New_York")) + dt.timedelta(hours=6)).date()
-    if dia.weekday() >= 5: return
-    d = dias.get(dia.isoformat()) or {"dia": dia.isoformat(), "amostras": [], "descartes": {}}
-    motivo = None
-    try:
-        s = json.loads(get("https://xaus.com/api/v1/spot", timeout=10))
-        s = s if "spot_usd_oz" in s else s.get("data", s)
-        spot = float(s["spot_usd_oz"]); asof = s["price_as_of"]
-        if isinstance(asof, (int, float)): t = asof / 1000 if asof > 1e11 else float(asof)
-        else:
-            x = dt.datetime.fromisoformat(str(asof).replace("Z", "+00:00")); t = (x if x.tzinfo else x.replace(tzinfo=dt.timezone.utc)).timestamp()
-        idade = time.time() - t
-        if s.get("stale"): motivo = "fonte marcou preço atrasado"
-        elif not -30 <= idade <= 120: motivo = "preço com mais de 120 s"
-        elif not any(a[0] == int(t) for a in d["amostras"] + d.get("pendentes", [])): d.setdefault("pendentes", []).append([int(t), rnd(spot, 2)])
-    except Exception as e:
-        motivo = "erro: " + type(e).__name__; d["ultimo_erro"] = str(e)[:150]
-    # o futuro do Yahoo chega com ~10 min de atraso: o à vista fica pendente e casa com a barra do MESMO minuto numa coleta seguinte
-    if d.get("pendentes"):
-        try:
-            q = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{REGUA['contrato']}.CMX?range=2d&interval=1m", timeout=10))["chart"]["result"][0]
-            barras = {ts // 60: v for ts, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None}
-            if barras: barras.pop(max(barras))   # a última barra ainda está se formando
-            resta = []
-            for t, spot in d["pendentes"]:
-                gc = barras.get(t // 60)
-                if gc is not None: d["amostras"].append([t, rnd(gc, 1), spot, rnd(gc - spot, 2)])
-                elif time.time() - t < 3600: resta.append([t, spot])
-                else: d["descartes"]["sem a barra do GC no mesmo minuto"] = d["descartes"].get("sem a barra do GC no mesmo minuto", 0) + 1
-            d["pendentes"] = resta
-        except Exception as e:
-            motivo = "erro no futuro: " + type(e).__name__; d["ultimo_erro"] = str(e)[:150]
-    if motivo: d["descartes"][motivo] = d["descartes"].get(motivo, 0) + 1
-    if d["amostras"]:
-        med = rnd(st.median([a[3] for a in d["amostras"]]), 2); atual = base_vantage(dia)
-        ant = next((dias[k]["mediana"] for k in sorted(dias, reverse=True) if k < d["dia"] and dias[k].get("mediana") is not None and not dias[k].get("travada")), None)
-        d.update({"n": len(d["amostras"]), "mediana": med, "regua_atual": atual, "mediana_menos_regua": rnd(med - atual, 2),
-                  "travada": ant is not None and abs(med - ant) > 3})
-    dias[d["dia"]] = d
-    saida = [dias[k] for k in sorted(dias)][-60:]
-    for x in saida[:-5]: x["amostras"] = []   # dias antigos: fica só o resumo
-    save("mi_regua_auto.json", saida)
-    STATUS.append({"bloco": "Régua automática (só gravando)", "ok": True, "msg": f"{d.get('n', 0)} amostras hoje, mediana GC − à vista {d.get('mediana')}" + (f"; última: {motivo}" if motivo else "")})
-b_regua_auto()
 
 @bloco("Backtest diário")
 def b_valid():
@@ -1842,6 +1809,9 @@ def b_score():
                             w2 = pw_.get(l + "2"); t += f" (ROMPIDA; 2ª {nm} {w2['nivel']})" if w2 else " (ROMPIDA; sem outra dentro de 1σ semanal)"
                         return t
                     txt_ = f"  [OPÇÕES] CME, boletim de {pw_['pregao']}, fixas até o próximo boletim, referência sem teste: {lado_('call', 'call wall')}; {lado_('put', 'put wall')}."
+                    for l_ in ("call", "put"):
+                        ls_ = pw_.get("fora_" + l_) or []
+                        txt_ += (f" {l_.capitalize()} grande fora da faixa (entre 1σ e 2σ da semana, mais contratos que a {l_} wall): " + ", ".join(f"{y['nivel']} ({y['oi']} contratos)" for y in ls_) + ".") if ls_ else f" Nenhuma {l_} grande fora da faixa."
                     if x["ativo"] == "XAUUSD":
                         g_ = pw_.get("gld") or {}
                         if g_.get("sem_dado") or not g_: txt_ += " GLD sem dado."
