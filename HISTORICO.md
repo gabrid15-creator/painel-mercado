@@ -357,3 +357,6 @@ Conclusão: o σ prevê QUANTO o ouro anda (forte), não o FORMATO (ping-pong ×
 ## 26/11/2026 — robô da CME
 Timer falhou em 25 e 26/11 ("o Brave não baixou"); rodado à mão em 26/11 19:20 funcionou: boletim de 25/11 publicado com 0 erro (0bfd6c5). Falta testar pelo systemd.
 26/11 19:25: pelo systemd também funcionou. Aplicado `--password-store=basic` no Brave do robô (hipótese: janela do chaveiro de madrugada).
+
+## 26/11/2026 21h — recados da reconferência
+NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou -0,73%); `feriado_eua` no `mi_quant_diario`; IA falhava por resposta cortada (7.698 de 8.000 tokens) → 16.000. Testado: 72 casos visuais sem estouro nem erro, conferido na coleta 21:05.
