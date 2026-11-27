@@ -25,7 +25,7 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | aberto | CHAT | CME iene de 24/11 | aguarda PDFs do Gabriel |
 | feito | CHAT | Recados URGENTES de Estratégias 27/11 (opções enxutas, paredes fixas, mapa, faixa única, abertura, mensal, régua em paralelo) | 031368e, 35e9d35, 8e82e55, d6f132c, 44f0d45 (11h28: mensal somado + GLD complementar). Desfazer tudo: `git revert --no-commit 44f0d45 d6f132c 8e82e55 35e9d35 031368e && git commit && git push` (só o 11h28: `git revert --no-commit 44f0d45 d6f132c`). Arquivos liberados |
 | feito | CHAT | Recado de 27/11 12:22: grandes fora da faixa (1σ a 2σ) no mapa, digest, IA e conferidor; retirar a régua automática (xaus.com) | 27/11 12:32, no ar, 0 falha. Desfazer: `git revert 21f337c`. Arquivos liberados |
-| aberto | CHAT | Régua pelo MT5 (só leitura, XAUUSD 1 min): aguarda o Gabriel escolher o computador sempre ligado | candidato: servidor de 29/11; programa ainda não escrito, nada instalado |
+| aberto | CHAT | Régua pelo MT5 (só leitura, XAUUSD 1 min): computador escolhido pelo Gabriel em 27/11 12:59 = servidor previsto para 29/11 | falta escrever o programa (próximo passo) e instalar quando o servidor existir; nada instalado; sem senha ou chave no repositório |
 | feito | CHAT | Recado FAIXA DO OURO (27/11 12:34), itens 1 a 3 | 27/11 12:47, no ar, 0 falha. Desfazer: `git revert --no-commit d6b8ae7 bd18942 448c8fe && git commit`. Arquivos liberados |
 | aberto | CHAT | Faixa do ouro item 4: HAR + GVZ em sombra | aguarda a semente de variância de 5 min de Estratégias |
 | aberto | CHAT | Remedir a régua da Vantage 1 vez por semana (próxima até 02/12) e na troca de contrato | candle M1 do MT5 no mesmo minuto; `REGUA` no `coletor.py` e constantes no `confere_opcoes.py` |
