@@ -816,7 +816,7 @@ def b_faixa():
                         reg = {x["dia"]: x for x in ler("mi_faixa_ouro.json")}; ds = hoje_s.isoformat(); d_ = reg.get(ds) or {"dia": ds}
                         horas = len({(b[0].date(), b[0].hour) for b in dia})
                         if ab_est or horas >= d_.get("barras", 0):
-                            d_.update({"gvz": FIXO[kd].get("gvz"), "sigma_pct": rnd(s_ * 100, 4), "k": e_["k"], "k_dia": e_["dia"], "abertura": mp["ab_dia"], "ab_estimada": ab_est,
+                            d_.update({"gvz": FIXO[kd].get("gvz") or e_.get("gvz"), "sigma_pct": rnd(s_ * 100, 4), "k": e_["k"], "k_dia": e_["dia"], "abertura": mp["ab_dia"], "ab_estimada": ab_est,
                                        "maxima": mp["max_dia"], "minima": mp["min_dia"], "barras": 0 if ab_est else horas, "feriado": ds in FERIADOS_EUA, "faixas": fxs,
                                        "saiu": None if ab_est else {str(f_["p"]): bool(mp["max_dia"] > f_["cima"] or mp["min_dia"] < f_["baixo"]) for f_ in fxs}})
                             reg[ds] = d_
