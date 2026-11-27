@@ -1402,7 +1402,18 @@ def b_paredes():
                      "desconto": desc, "ajuste_nivel": rnd(F - desc, 1) if desc is not None else rnd(ref, 3), "sd_sem": rnd(sd, 6),
                      "fixado_em": NOW.strftime("%d/%m %H:%M"), "candidatas_call": cc, "candidatas_put": pp, "call": cc[0] if cc else None,
                      "put": pp[0] if pp else None, "call2": None, "put2": None, "rompida_call": None, "rompida_put": None, "rotulo": "referência, sem teste"}
+            # barras do mapa (mesma soma das paredes): [nível, calls, puts] na ótica do ativo, até 1σ da semana com uma pequena folga
+            bar = {}
+            for o in cad:
+                k = float(o["strike"])
+                if o["venc"] in r["vencimentos"] and (o.get("oi") or 0) > 0 and abs(k / r["ajuste"] - 1) <= max(r["sd_sem"] * 1.15, 0.025):
+                    nv = rnd(k - r["desconto"], 1) if ativo == "XAUUSD" else rnd(r["ajuste_nivel"] * r["ajuste"] / k, 3)
+                    cima_ = str(o["tipo"])[0] == ("C" if ativo == "XAUUSD" else "P")
+                    bar.setdefault(nv, [0, 0])[0 if cima_ else 1] += int(o["oi"])
+            r["barras"] = [[n, c_, p_] for n, (c_, p_) in sorted(bar.items())]
             p = fr["preco"]; hora = NOW.strftime("%d/%m %H:%M")
+            z_ = (ler("mi_0dte.json") or [{}])[0]
+            r["preco_hora"] = z_.get("preco_hora") if ativo == "XAUUSD" and z_.get("ouro") == p else hora
             for lado, passou in (("call", lambda n: p > n), ("put", lambda n: p < n)):
                 w = r.get(lado)
                 if not w: continue
@@ -1426,6 +1437,45 @@ def b_paredes():
     save("mi_paredes.json", saida)
     save("mi_paredes_hist.json", sorted(hist.values(), key=lambda h: (h["dia"], h["ativo"]))[-2000:])
 b_paredes()
+
+@bloco("Régua automática (só gravando)")
+def b_regua_auto():
+    """27/11/2026 (aprovado pelo Gabriel; claude/quant-opcoes-fica-sai.md): GC fev menos o ouro à vista (xaus.com) no MESMO minuto, mediana do dia.
+    FASE PARALELA: só grava em mi_regua_auto.json por 3 pregões; o painel segue com a REGUA datada. Fonte falhou = nada muda."""
+    dias = {d["dia"]: d for d in ler("mi_regua_auto.json")}
+    dia = (NOW.astimezone(ZoneInfo("America/New_York")) + dt.timedelta(hours=6)).date()
+    if dia.weekday() >= 5: return
+    d = dias.get(dia.isoformat()) or {"dia": dia.isoformat(), "amostras": [], "descartes": {}}
+    motivo = None
+    try:
+        s = json.loads(get("https://xaus.com/api/v1/spot", timeout=10))
+        s = s if "spot_usd_oz" in s else s.get("data", s)
+        spot = float(s["spot_usd_oz"]); asof = s["price_as_of"]
+        if isinstance(asof, (int, float)): t = asof / 1000 if asof > 1e11 else float(asof)
+        else:
+            x = dt.datetime.fromisoformat(str(asof).replace("Z", "+00:00")); t = (x if x.tzinfo else x.replace(tzinfo=dt.timezone.utc)).timestamp()
+        idade = time.time() - t
+        if s.get("stale"): motivo = "fonte marcou preço atrasado"
+        elif not -30 <= idade <= 120: motivo = "preço com mais de 120 s"
+        else:
+            q = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{REGUA['contrato']}.CMX?range=1d&interval=1m", timeout=10))["chart"]["result"][0]
+            gc = next((v for ts, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and ts <= t < ts + 60), None)
+            if gc is None: motivo = "sem a barra do GC no mesmo minuto"
+            elif not any(a[0] == int(t) for a in d["amostras"]): d["amostras"].append([int(t), rnd(gc, 1), rnd(spot, 2), rnd(gc - spot, 2)])
+    except Exception as e:
+        motivo = "erro: " + type(e).__name__; d["ultimo_erro"] = str(e)[:150]
+    if motivo: d["descartes"][motivo] = d["descartes"].get(motivo, 0) + 1
+    if d["amostras"]:
+        med = rnd(st.median([a[3] for a in d["amostras"]]), 2); atual = base_vantage(dia)
+        ant = next((dias[k]["mediana"] for k in sorted(dias, reverse=True) if k < d["dia"] and dias[k].get("mediana") is not None and not dias[k].get("travada")), None)
+        d.update({"n": len(d["amostras"]), "mediana": med, "regua_atual": atual, "mediana_menos_regua": rnd(med - atual, 2),
+                  "travada": ant is not None and abs(med - ant) > 3})
+    dias[d["dia"]] = d
+    saida = [dias[k] for k in sorted(dias)][-60:]
+    for x in saida[:-5]: x["amostras"] = []   # dias antigos: fica só o resumo
+    save("mi_regua_auto.json", saida)
+    STATUS.append({"bloco": "Régua automática (só gravando)", "ok": True, "msg": f"{d.get('n', 0)} amostras hoje, mediana GC − à vista {d.get('mediana')}" + (f"; última: {motivo}" if motivo else "")})
+b_regua_auto()
 
 @bloco("Backtest diário")
 def b_valid():

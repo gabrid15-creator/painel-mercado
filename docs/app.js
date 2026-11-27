@@ -955,7 +955,37 @@
         const num = (x) => parseFloat(String(x[2]).replace(/\./g, '').replace(',', '.'));
         linhas.sort((a, b) => (isNaN(num(b)) ? -1e12 : num(b)) - (isNaN(num(a)) ? -1e12 : num(a))).forEach((x) => lin(...x));
       }
+      drawMapaOp($('.pw-mapa'), w, cs);
     }
+  }
+
+  // mapa das opções (CME): barras de calls (direita) e puts (esquerda) por nível, paredes e preço
+  function drawMapaOp(el, w, cs) {
+    el.replaceChildren(); const rows = w.barras || []; if (w.sem_dado || !rows.length) return;
+    const W = Math.max(260, el.clientWidth || 320), H = 480, m = { l: cs ? 52 : 46, r: 6, t: 22, b: 36 }, meio = (m.l + W - m.r) / 2;
+    const marc = [['call', 'CALL WALL', 'var(--color-bad)'], ['call2', '2ª CALL', 'var(--color-bad)'], ['put', 'PUT WALL', 'var(--color-ok)'], ['put2', '2ª PUT', 'var(--color-ok)']].filter(([k]) => w[k]);
+    const ys = [...rows.map((r) => r[0]), w.preco, ...marc.map(([k]) => w[k].nivel)], lo = d3.min(ys), hi = d3.max(ys), folga = (hi - lo) * 0.03;
+    const y = d3.scaleLinear([lo - folga, hi + folga], [H - m.b, m.t]), M = d3.max(rows, (r) => Math.max(r[1], r[2])) || 1, x = d3.scaleLinear([-M, M], [m.l, W - m.r]);
+    const sv = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('width', '100%').style('display', 'block').style('font-size', '11px');
+    const passo = d3.min(d3.pairs(rows.map((r) => y(r[0]))), ([a, b]) => Math.abs(a - b)) || 6, h = Math.max(1.5, Math.min(8, passo * 0.85));
+    y.ticks(8).forEach((v) => { sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', 'currentColor').attr('opacity', 0.1);
+      sv.append('text').attr('x', m.l - 4).attr('y', y(v) + 4).attr('text-anchor', 'end').attr('fill', 'currentColor').attr('opacity', 0.7).text(nf(v, cs ? 1 : 0)); });
+    rows.forEach(([n, c, p]) => { [[c, meio, x(c), '#d9645a'], [p, x(-p), meio, '#3fa76a']].forEach(([q, a, b, cor]) => { if (!q) return;
+      sv.append('rect').attr('x', a).attr('y', y(n) - h / 2).attr('width', Math.max(1, b - a)).attr('height', h).attr('fill', cor).attr('opacity', 0.55)
+        .append('title').text(nf(n, cs) + ' · calls ' + nf(c, 0) + ' · puts ' + nf(p, 0)); }); });
+    sv.append('line').attr('x1', meio).attr('x2', meio).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'currentColor').attr('opacity', 0.35);
+    const rot = [];
+    marc.forEach(([k, nome, cor]) => { const v = w[k].nivel, romp = !k.endsWith('2') && w['rompida_' + k];
+      sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', cor).attr('stroke-width', 2).attr('stroke-dasharray', k.endsWith('2') ? '6 4' : null);
+      rot.push({ y: y(v) - 4, x: m.l + 3, a: 'start', c: cor, t: nome + ' ' + nf(v, cs) + (romp ? ' (rompida)' : '') }); });
+    sv.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(w.preco)).attr('y2', y(w.preco)).attr('stroke', 'currentColor').attr('stroke-width', 2.5);
+    rot.push({ y: y(w.preco) - 4, x: W - m.r - 2, a: 'end', c: 'currentColor', t: 'PREÇO ' + nf(w.preco, cs) + ' (' + String(w.preco_hora || '').slice(-5) + ')' });
+    rot.sort((a, b) => a.y - b.y).forEach((r, i) => { r.y = Math.max(r.y, i ? rot[i - 1].y + 14 : 12);
+      sv.append('text').attr('x', r.x).attr('y', r.y).attr('text-anchor', r.a).attr('fill', r.c).attr('font-weight', 700)
+        .attr('stroke', 'var(--color-panel)').attr('stroke-width', 3).attr('paint-order', 'stroke').text(r.t); });
+    sv.append('text').attr('x', m.l).attr('y', H - 20).attr('fill', '#3fa76a').attr('font-weight', 700).text('← puts em aberto');
+    sv.append('text').attr('x', W - m.r).attr('y', H - 20).attr('text-anchor', 'end').attr('fill', '#d9645a').attr('font-weight', 700).text('calls em aberto →');
+    sv.append('text').attr('x', meio).attr('y', H - 5).attr('text-anchor', 'middle').attr('fill', 'currentColor').attr('opacity', 0.7).text('maior barra: ' + nf(M, 0) + ' contratos');
   }
 
   // ---------------------------------------------------------------- ajuda: "Como ler" e explicações ficam escondidos; botão "?" em cada card e um geral no topo
