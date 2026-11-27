@@ -1084,7 +1084,7 @@ def b_0dte():
                 for k, cp, n, iv in opc:
                     d1 = (math.log(S / k) + iv * iv / 2 * Tn) / (iv * math.sqrt(Tn)); tot += (1 if cp == "C" else -1) * math.exp(-d1 * d1 / 2) / (S * iv * math.sqrt(Tn)) * n
                 return tot
-            gr = [sp * (1 + i / 1000) for i in range(-40, 41)]; gv = [gx(x) for x in gr]; flip2 = None
+            gr = [sp * (1 + i / 1000) for i in range(-80, 81)]   # ±8%: com ±4% o flip sumia quando o ouro andava longe do ajuste; gv = [gx(x) for x in gr]; flip2 = None
             for i in range(1, len(gr)):
                 if (gv[i - 1] < 0) != (gv[i] < 0): flip2 = gr[i] if flip2 is None or abs(gr[i] - sp) < abs(flip2 - sp) else flip2
             try:
