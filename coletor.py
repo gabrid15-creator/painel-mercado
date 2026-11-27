@@ -706,6 +706,14 @@ def b_faixa():
             if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
             if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
             sd = FIXO[kd]["sd"]
+            if not dia:   # sem barra de 1 h: tenta as de 5 min (27/11/2026: o 1 h do GC=F seguia parado com o 5 min já andando)
+                try:
+                    j5 = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ATIVOS[a][0])}?range=5d&interval=5m"))["chart"]["result"][0]; q5_ = j5["indicators"]["quote"][0]
+                    b5 = [(dt.datetime.fromtimestamp(t, NYz), o * fz, h * fz, l * fz) for t, o, h, l in zip(j5["timestamp"], q5_["open"], q5_["high"], q5_["low"]) if o and h and l]
+                    b5 = [b for b in b5 if sess(b[0]) == hoje_s]
+                    if b5 and b5[0][0].hour == 18:   # só vale se pega a abertura das 18h NY
+                        dia = b5; sem = [b for b in sem if sess(b[0]) < hoje_s] + b5
+                except Exception: pass
             if not dia:
                 ab0 = FIXO[kd].setdefault("ab_est", px); ab_est = True
                 dia = [(NOW.astimezone(NYz), ab0, max(ab0, px), min(ab0, px))]
@@ -894,6 +902,7 @@ def travas_0dte(row, r_ok):
             c["perfil"] = []; c["sem_dado"] = f"régua da CME desconta US$ {c['base']}, esperado US$ {esp}"; avisos.append("CME: " + c["sem_dado"])
         elif c.get("max_pain") is not None and abs(c["max_pain"] / p - 1) > 0.10:
             c["max_pain"] = None; avisos.append("CME: max pain a mais de 10% do preço")
+    if not c and any(str(o.get("venc")) == row["vencimento"] for o in ler("ouro_cadeia.json")): avisos.append("CME: há cadeia para o vencimento, mas a conta falhou")
     if not row.get("preco_hora"): avisos.append("preço do ouro sem horário")
     if avisos: STATUS.append({"bloco": "Trava das opções do ouro", "ok": False, "msg": "; ".join(avisos)[:300]})
 
@@ -1084,7 +1093,7 @@ def b_0dte():
                 for k, cp, n, iv in opc:
                     d1 = (math.log(S / k) + iv * iv / 2 * Tn) / (iv * math.sqrt(Tn)); tot += (1 if cp == "C" else -1) * math.exp(-d1 * d1 / 2) / (S * iv * math.sqrt(Tn)) * n
                 return tot
-            gr = [sp * (1 + i / 1000) for i in range(-80, 81)]   # ±8%: com ±4% o flip sumia quando o ouro andava longe do ajuste; gv = [gx(x) for x in gr]; flip2 = None
+            gr = [sp * (1 + i / 1000) for i in range(-80, 81)]; gv = [gx(x) for x in gr]; flip2 = None   # ±8%: com ±4% o flip sumia com o ouro longe do ajuste
             for i in range(1, len(gr)):
                 if (gv[i - 1] < 0) != (gv[i] < 0): flip2 = gr[i] if flip2 is None or abs(gr[i] - sp) < abs(flip2 - sp) else flip2
             try:

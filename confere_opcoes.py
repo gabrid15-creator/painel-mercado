@@ -24,6 +24,7 @@ if not fixo:
     f = z.get("faixa"); e(f and not f[0] <= p <= f[1], f"GLD faixa {f} não contém o preço {p}")
 for nome, d in (("GLD", z), ("CME", c)):
     m = d.get("max_pain"); e(m is not None and abs(m / p - 1) > 0.10, f"{nome} max pain {m} a mais de 10% do preço")
+e(not c and any(o["venc"] == z["vencimento"] for o in ler("ouro_cadeia.json")), "CME ausente, mas há cadeia para o vencimento")
 if c and not c.get("sem_dado"):
     cad = [o for o in ler("ouro_cadeia.json") if o["venc"] == z["vencimento"]]
     sp = p + c["base"]

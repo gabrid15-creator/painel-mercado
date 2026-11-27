@@ -871,7 +871,7 @@
     lin('<b>Dia normal:</b> <span class="rs-n">±' + pp(Q[0]) + '</span> · metade dos dias fecha dentro: <b>tamanho da grade</b>. Stop além de ±' + pp(Q[1]) + ' (só 1 em cada 10 dias fecha além).');
     // níveis do dia
     const tb = document.createElement('table'); tb.className = 'op-table rs-t'; const tr1 = document.createElement('tr'), tr2 = document.createElement('tr');
-    for (const [x, nm, c] of [[-1, '−1σ', 'lv-pw'], [-Q[0], 'normal −', 'lv-s1'], [0, 'abertura', 'lv-now'], [Q[0], 'normal +', 'lv-s1'], [1, '+1σ', 'lv-cw']]) {
+    for (const [x, nm, c] of [[-1, '−1σ', 'lv-pw'], [-Q[0], 'normal −', 'lv-s1'], [0, m.ab_estimada ? 'abertura (estimada)' : 'abertura', 'lv-now'], [Q[0], 'normal +', 'lv-s1'], [1, '+1σ', 'lv-cw']]) {
       const th = document.createElement('th'); th.className = 'num'; th.innerHTML = '<span class="lv ' + c + '">' + nm + '</span>'; tr1.appendChild(th);
       const v = L(x), toc = x > 0 ? m.max_dia >= v : x < 0 ? m.min_dia <= v : false; td(tr2, nf(v, k) + (toc ? ' ✓' : ''), 'num').style.fontWeight = 600; }
     tb.innerHTML = '<thead></thead><tbody></tbody>'; tb.tHead.appendChild(tr1); tb.tBodies[0].appendChild(tr2);
