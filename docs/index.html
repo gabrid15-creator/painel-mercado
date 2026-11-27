@@ -488,6 +488,7 @@
       <div class="op-note ajuda guia"><p><b>Como ler.</b> Resumo do dia em um card, só com o que foi comprovado em teste estatístico.</p><ul>
 <li><b>σ (sigma) do dia:</b> o tamanho de um dia forte, tirado do preço das opções. Cerca de 8 em cada 10 dias fecham dentro de ±1σ da abertura.</li>
 <li><b>Dia normal:</b> metade dos dias fecha dentro dessa faixa. Bom tamanho para a grade do robô.</li>
+<li><b>Ouro, teto e piso:</b> faixas medidas pela maior distância que o preço andou desde a abertura. Em 80% e em 95% das sessões ele não saiu por nenhum dos dois lados; 50% é o dia normal. O tamanho é recalculado todo dia com as últimas 250 sessões. Use como tamanho do dia (grade e stop); não indica direção nem garante que o preço pare ali. No ouro, estas faixas valem no lugar do σ do dia.</li>
 <li><b>Níveis:</b> calculados na abertura das 20h de Brasília e fixos até a próxima. ✓ = já tocado hoje.</li>
 <li><b>Agora:</b> onde o preço está em relação aos níveis e o que costuma acontecer a partir daí (rompimento medido em anos de dados).</li>
 <li><b>Direção:</b> nenhum sinal de compra ou venda passou nos testes até hoje; os níveis dizem até onde vai, não para que lado.</li></ul></div>
@@ -526,6 +527,7 @@
   <div class="fx mp-fx"><h3 style="margin:14px 0 4px;font-size:15px">Faixa esperada <span class="op-note" style="font-weight:400">· de onde vem o σ</span></h3>
       <div class="op-note fx-ler"><b>Como ler:</b> até onde o preço costuma ir, calculado pela volatilidade: no ouro, pelo preço das opções (índice GVZ); nas moedas, pelos prêmios das opções de balcão negociadas nas últimas 24 h (DTCC); se faltar negócio, usa a oscilação dos últimos 21 dias. Mede <b>tamanho</b> do movimento, não direção; parte do preço atual.
         <ul style="margin:6px 0 0;padding-left:18px;line-height:1.7">
+          <li><b>Ouro, dia:</b> o card mostra as faixas de 80% e 95% (e o dia normal de 50%) em que o preço não sai por nenhum dos dois lados. A tabela de σ vale para semana e mês.</li>
           <li><b>Dia e semana</b> são calculados a partir do preço de abertura (20h de Brasília) e ficam fixos; o mês usa o preço de agora. É a mesma faixa do mapa e da leitura da IA.</li>
           <li><span class="lv lv-s1">±1σ</span> faixa normal: o preço fecha dentro em ~2 de cada 3 vezes (testado: veja a tabela Precisão medida abaixo, 71–83% conforme o ativo e o prazo).</li>
           <li><span class="lv lv-s2">±2σ</span> extremo: fora dela é raro (~5%). Perto dessa borda = movimento esticado.</li>

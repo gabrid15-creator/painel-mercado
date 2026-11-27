@@ -766,6 +766,21 @@
     const lin = (html) => { const p = document.createElement('p'); p.className = 'rs-l'; p.innerHTML = html; bx.appendChild(p); };
     const est = !!m.ab_estimada;
     if (est) lin('<span class="mi-neg"><b>Abertura estimada:</b></span> a fonte ainda não entregou o candle das 20h. Os níveis são aproximados e o painel não marca toque, máxima, mínima nem rompimento.');
+    const T = atv === 'XAUUSD' && m.teto;
+    if (T) { // ouro: teto e piso medidos pela maior distância da abertura (50/80/95%)
+      const [f5, f8, f9] = T.faixas, fora = (f) => (est ? '' : [m.max_dia > f.cima ? 'saiu em cima' : '', m.min_dia < f.baixo ? 'saiu embaixo' : ''].filter(Boolean).join(' e ') || 'dentro');
+      lin('<b>Teto e piso de 80%:</b><br><span class="rs-n" style="white-space:nowrap">' + nf(f8.baixo, k) + ' – ' + nf(f8.cima, k) + '</span><br><b>Teto e piso de 95%:</b><br><span class="rs-n" style="white-space:nowrap">' + nf(f9.baixo, k) + ' – ' + nf(f9.cima, k) + '</span>');
+      lin('Em 80% e em 95% das sessões o preço <b>não sai por nenhum dos dois lados</b>. Medido nas últimas ' + T.n + ' sessões; abertura ' + (est ? 'estimada ' : '') + nf(ab, k) + '.');
+      const tb = document.createElement('table'); tb.className = 'op-table rs-t'; tb.innerHTML = '<thead><tr><th>Faixa</th><th class="num">Piso</th><th class="num">Teto</th><th>Hoje</th></tr></thead><tbody></tbody>';
+      for (const [f, nm, c, forte] of [[f5, 'dia normal 50%', 'lv-s1', false], [f8, '80%', 'lv-gf', true], [f9, '95%', 'lv-cw', true]]) {
+        const tr = document.createElement('tr'), c0 = document.createElement('td'); c0.innerHTML = '<span class="lv ' + c + '">' + nm + '</span>'; tr.appendChild(c0);
+        td(tr, nf(f.baixo, k), 'num').style.fontWeight = forte ? 700 : 500; td(tr, nf(f.cima, k), 'num').style.fontWeight = forte ? 700 : 500; td(tr, fora(f) || 'sem marca'); tb.tBodies[0].appendChild(tr); }
+      const w = document.createElement('div'); w.className = 'tbl-x'; w.appendChild(tb); bx.appendChild(w);
+      const z = Math.log(P / ab) / sd, pos = P > f9.cima || P < f9.baixo ? 'fora da faixa de 95%: dia raro' : P > f8.cima || P < f8.baixo ? 'fora da faixa de 80%' : P > f5.cima || P < f5.baixo ? 'além do dia normal, dentro da faixa de 80%' : 'dentro do dia normal';
+      lin('<b>Agora:</b> ' + nf(P, k) + (est ? '.' : ' (' + (z >= 0 ? '+' : '') + nf(z, 2) + 'σ da abertura) · ' + pos + '.'));
+      const A = T.acerto || {};
+      lin('<span class="op-note">Acerto acumulado: ' + (A.sessoes ? A.sessoes + ' sessões desde ' + br(A.desde).slice(0, 5) + ' · não saiu da faixa de 50% em ' + nf(A['50'], 0) + '%, de 80% em ' + nf(A['80'], 0) + '%, de 95% em ' + nf(A['95'], 0) + '%.' : 'ainda sem sessão completa registrada.') + '</span>');
+    } else {
     lin('<b>σ (sigma) do dia:</b> <span class="rs-n">±' + pp(1) + '</span> · dia forte (' + (atv === 'XAUUSD' ? '82% dos dias fecham dentro; medido em 3.770 dias com o GVZ' : 'cerca de 8 em cada 10 dias fecham dentro') + ')');
     lin('<b>Dia normal:</b> <span class="rs-n">±' + pp(Q[0]) + '</span> · metade dos dias fecha dentro: <b>tamanho da grade</b>. Stop além de ±' + pp(Q[1]) + ' (só 1 em cada 10 dias fecha além).');
     // níveis do dia
@@ -780,6 +795,7 @@
     const pc = (x) => (x ? nf(x[0], 0) + '%' : '—');
     const sit = !R ? '' : e >= 1.5 ? 'passou de 1,5σ: rompimento forte, <b>' + pc(R.passou_15_fecha_fora) + '</b> das vezes fecha fora do 1σ' : e >= 1.25 ? 'passou de 1,25σ: rompimento confirmado, <b>' + pc(R.passou_125_fecha_fora) + '</b> fecha fora do 1σ (tendência; cuidado com a grade)' : e >= 1 ? 'tocou o 1σ: cara ou coroa, ' + pc(R.tocou_1s_fecha_fora) + ' fecha fora' : 'ainda dentro do 1σ: dia normal até agora';
     lin('<b>Agora:</b> ' + nf(P, k) + (est ? '.' : ' (' + (z >= 0 ? '+' : '') + nf(z, 2) + 'σ da abertura) · ' + sit + '.'));
+    }
     // tamanho do resto do dia (Ásia + Londres) e hora (ouro)
     const Cc = cCedo(atv), C = Cc && [Cc[0], Cc[1], Cc[5], Cc[6]];
     if (C && m.amp_cedo != null) { const g = m.amp_cedo >= C[1] ? 2 : m.amp_cedo < C[0] ? 0 : 1;
@@ -791,7 +807,7 @@
     { const w = (D('mi_paredes').data || []).find((r) => r.ativo === atv);
       if (w) lin('<b>Paredes das opções</b> (CME, <b>referência, sem teste</b>): ' + (w.sem_dado ? '<b>sem dado</b>.' : [['call', 'call wall', 'lv-cw'], ['put', 'put wall', 'lv-pw']].map(([l, nm, c]) => { const x = w[l], x2 = w[l + '2'];
         return '<span class="lv ' + c + '">' + nm + '</span> <b>' + (x ? nf(x.nivel, k) : 'sem dado') + '</b>' + (w['rompida_' + l] ? ' (rompida; 2ª: ' + (x2 ? '<b>' + nf(x2.nivel, k) + '</b>' : 'nenhuma dentro de 1σ da semana') + ')' : ''); }).join(' · ') + '.')); }
-    lin('<b>Direção (compra ou venda):</b> <span class="mi-neg">nenhum sinal comprovado</span>. Opere pelos níveis da faixa; as paredes e os demais cards são referência, não previsão.');
+    lin('<b>Direção (compra ou venda):</b> <span class="mi-neg">nenhum sinal comprovado</span>. Use os níveis da faixa para tamanho; as paredes e os demais cards são referência, não previsão.');
   }
 
   function drawMapa() {
@@ -839,8 +855,9 @@
         const pip = atv === 'XAUUSD' ? 1 : atv.includes('JPY') ? 0.01 : 0.0001, un = atv === 'XAUUSD' ? '' : ' pips', us = atv === 'XAUUSD' ? 'US$ ' : '';
         const pp = (x) => us + nf(m.ab_dia * (Math.exp(x * sd) - 1) / pip, 0) + un, L = (x) => nf(m.ab_dia * Math.exp(x * sd), k);
         const amp = Math.log(m.max_dia / m.min_dia) / sd;
+        const T = atv === 'XAUUSD' && m.teto;
         const h = document.createElement('div'); h.className = 'mp-romp-t'; h.innerHTML = '<b>Dia normal</b> · quanto o dia anda de verdade (' + (atv === 'XAUUSD' ? 'futuros da CME, 15 anos' : 'futuros da CME, 2 anos, com o σ das opções de balcão') + ')'; bx.appendChild(h);
-        const a1 = document.createElement('p'); a1.innerHTML = '<b>Metade dos dias</b> fecha entre <b>' + L(-Q[0]) + '</b> e <b>' + L(Q[0]) + '</b> (±' + pp(Q[0]) + ' da abertura, ' + nf(Q[0], 2) + 'σ). <b>9 em cada 10</b> fecham entre ' + L(-Q[1]) + ' e ' + L(Q[1]) + ' (±' + pp(Q[1]) + ').'; bx.appendChild(a1);
+        const a1 = document.createElement('p'); a1.innerHTML = '<b>Metade dos dias</b> fecha entre <b>' + L(-Q[0]) + '</b> e <b>' + L(Q[0]) + '</b> (±' + pp(Q[0]) + ' da abertura, ' + nf(Q[0], 2) + 'σ). <b>9 em cada 10</b> fecham entre ' + L(-Q[1]) + ' e ' + L(Q[1]) + ' (±' + pp(Q[1]) + ').'; if (T) a1.innerHTML = '<b>Dia normal (50% das sessões):</b> o preço não sai por nenhum dos dois lados de <b>' + nf(T.faixas[0].baixo, k) + ' – ' + nf(T.faixas[0].cima, k) + '</b>. Em 80%: <b>' + nf(T.faixas[1].baixo, k) + ' – ' + nf(T.faixas[1].cima, k) + '</b>; em 95%: <b>' + nf(T.faixas[2].baixo, k) + ' – ' + nf(T.faixas[2].cima, k) + '</b>.'; bx.appendChild(a1);
         const a2 = document.createElement('p'); a2.innerHTML = 'Distância típica entre a máxima e a mínima do dia: <b>' + pp(Q[2]) + '</b>.' + (m.ab_estimada ? '' : ' <b>Hoje até agora:</b> ' + us + nf((m.max_dia - m.min_dia) / pip, 0) + un + ' (' + nf(amp / Q[2] * 100, 0) + '% do típico).'); bx.appendChild(a2);
         if (atv === 'XAUUSD') {   // quanto o ouro anda em cada hora (testes/horas_lateral.py, GC 1 h, 2 anos, em σ do dia; hora de Brasília)
           const HR = hOuro();
@@ -853,7 +870,7 @@
           a3.innerHTML = '<b>Ásia + Londres (até 11h BRT):</b> andou ' + nf(ce, 2) + 'σ, ' + ['<b>pouco</b>', '<b>normal</b>', '<b>muito</b>'][g] + '. Daqui até o fim, o típico em dias assim é <b>' + pp(C[2 + g]) + '</b> entre a máxima e a mínima' + (g === 2 ? ' (' + C[5] + '% de chance de o resto do dia ser grande)' : g === 0 ? ' (só ' + C[6] + '% de chance de o resto do dia ser grande)' : '') + '.'; }
         else a3.innerHTML = '<b>Ásia + Londres:</b> a leitura do resto do dia aparece às 11h BRT.';
         bx.appendChild(a3);
-        const n = document.createElement('p'); n.className = 'op-note ajuda'; n.innerHTML = '<b>Como ler:</b> o σ mostra o limite de um dia forte; o dia comum anda mais ou menos metade disso. Use a faixa da metade dos dias como tamanho de um dia normal para a grade do robô, e o ±1σ como o dia forte. A linha da Ásia + Londres usa o quanto o preço andou até as 11h de Brasília: quando andou muito, o resto do dia também tende a ser grande; quando andou pouco, tende a ser pequeno (medido em 2 anos de futuros a cada hora, estável). Medido em 15 anos dos futuros da CME, com o mesmo σ do mapa e estável no tempo. Mostra o tamanho do dia, não a direção.' + (atv === 'XAUUSD' ? ' A linha da hora vem de 2 anos de candles de 1 h do futuro; no horário de verão americano (mar–nov) os horários vêm 1 h mais cedo.' : ''); bx.appendChild(n);
+        const n = document.createElement('p'); n.className = 'op-note ajuda'; n.innerHTML = '<b>Como ler:</b> ' + (T ? 'no ouro, cada faixa diz em quantas sessões o preço não saiu por nenhum dos dois lados desde a abertura; 80% e 95% são o teto e o piso. ' : 'o σ mostra o limite de um dia forte; o dia comum anda mais ou menos metade disso. Use a faixa da metade dos dias como tamanho de um dia normal para a grade do robô, e o ±1σ como o dia forte. ') + 'A linha da Ásia + Londres usa o quanto o preço andou até as 11h de Brasília: quando andou muito, o resto do dia também tende a ser grande; quando andou pouco, tende a ser pequeno (medido em 2 anos de futuros a cada hora, estável). Medido em 15 anos dos futuros da CME, com o mesmo σ do mapa e estável no tempo. Mostra o tamanho do dia, não a direção.' + (atv === 'XAUUSD' ? ' A linha da hora vem de 2 anos de candles de 1 h do futuro; no horário de verão americano (mar–nov) os horários vêm 1 h mais cedo.' : ''); bx.appendChild(n);
       } } }
     // rompimento do σ do dia (medido em futuros da CME, mesma régua do mapa): o que costuma acontecer depois de cada gatilho
     { const R = (D('rompimento').data || {})[atv], bx = $('.mp-romp');
@@ -926,12 +943,14 @@
       if (nv) { const cl = /bem acima/.test(nv.txt) ? 'lv-cw' : /acima/.test(nv.txt) ? 'lv-gf' : /abaixo/.test(nv.txt) ? 'lv-rg' : 'lv-now';
         const sig = /bem acima/.test(nv.txt) ? 'faixas largas' : /acima/.test(nv.txt) ? 'um pouco largas' : /bem abaixo/.test(nv.txt) ? 'faixas bem estreitas' : /abaixo/.test(nv.txt) ? 'faixas estreitas' : 'tamanho de sempre';
         f0.append(' contra a média ' + nf(nv.media, 1) + '% → ', lv(nv.txt, cl), ' ' + sig + ' (média 1a ' + nf(nv.m1, 1) + ' · 3a ' + nf(nv.m3, 1) + ' · 5a ' + nf(nv.m5, 1) + '%)'); }
-      fr.faixas.forEach(linha);
+      const T = atv === 'XAUUSD' && fr.mapa && fr.mapa.teto;
+      if (T) { const [f5, f8, f9] = T.faixas, e = fonte(''); e.innerHTML = '<b>Dia</b> (o preço não sai por nenhum dos dois lados): <b>80%</b> <span class="lv lv-gf">' + nf(f8.baixo, k) + ' – ' + nf(f8.cima, k) + '</span> · <b>95%</b> <span class="lv lv-cw">' + nf(f9.baixo, k) + ' – ' + nf(f9.cima, k) + '</span> · dia normal (50%) ' + nf(f5.baixo, k) + ' – ' + nf(f5.cima, k); e.style.color = 'var(--color-fg)'; e.style.fontSize = '14px'; }
+      fr.faixas.filter((f) => !(T && f.prazo === 'dia')).forEach(linha);
       // precisão medida (backtest longo, mesmo método do painel): visível, sem precisar abrir o ?
       const bt = (D('faixa_backtest').data || {})[atv], bx = $('.fx-bt');
       const dt = bt && bt.dtcc && /DTCC/.test(fr.fonte || ''), B = dt ? bt.dtcc : bt;   // moedas com σ da DTCC: mostra a precisão medida com ela
       if (bx) { bx.replaceChildren(); if (bt) {
-        const tit = document.createElement('div'); tit.className = 'fx-bt-t'; tit.innerHTML = '<b>Precisão medida</b> · quantas vezes o preço <b>fechou dentro</b> da faixa (' + (atv === 'XAUUSD' ? 'GVZ' : atv === 'NAS100' ? 'VXN' : dt ? 'opções de balcão DTCC' : 'vol. 21d × 1,09') + ', desde ' + B.dia.desde + ', ' + nf(B.dia.n, 0) + ' dias)'; bx.appendChild(tit);
+        const tit = document.createElement('div'); tit.className = 'fx-bt-t'; tit.innerHTML = '<b>Precisão medida</b> · quantas vezes o preço <b>fechou dentro</b> da faixa de σ' + (atv === 'XAUUSD' ? ' (fechamento, não é teto)' : '') + ' (' + (atv === 'XAUUSD' ? 'GVZ' : atv === 'NAS100' ? 'VXN' : dt ? 'opções de balcão DTCC' : 'vol. 21d × 1,09') + ', desde ' + B.dia.desde + ', ' + nf(B.dia.n, 0) + ' dias)'; bx.appendChild(tit);
         const tb = document.createElement('table'); tb.className = 'op-table'; tb.innerHTML = '<thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span><br><small>ideal 68%</small></th><th class="num"><span class="lv lv-s2">±2σ</span><br><small>ideal 95%</small></th><th class="num">Nem tocou<br><small>±1σ</small></th><th class="num">Ano<br><small>±1σ</small></th></tr></thead>';
         const bd = document.createElement('tbody'); tb.appendChild(bd);
         for (const p of ['dia', 'semana', 'mês']) { const r = B[p]; if (!r) continue; const tr = document.createElement('tr'); td(tr, p).style.fontWeight = 600;

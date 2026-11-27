@@ -617,6 +617,7 @@ def quantil(v, q):
     v = sorted(v); x = (len(v) - 1) * q; i = int(x); j = min(i + 1, len(v) - 1)
     return v[i] + (v[j] - v[i]) * (x - i)
 
+FERIADOS_EUA = ("2026-11-26", "2026-12-25", "2027-01-01", "2027-01-18", "2027-02-15", "2027-03-26", "2027-05-31", "2027-06-18", "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24")   # bolsa dos EUA fechada
 K_REF = (1.00, 1.55, 2.44)   # k de 50/80/95% medido por Estratégias no XAUUSD da Vantage até 20/11/2026 (claude/quant-aprende.py)
 
 def faixa_k(dia):
@@ -639,19 +640,19 @@ def faixa_k(dia):
         z.append((s, exc / (g[gd[i]] / 100 / math.sqrt(252))))
     z = z[-250:]
     if len(z) < 200: raise ValueError(f"só {len(z)} sessões completas no histórico do GC")
-    v = [x[1] for x in z]
-    return {"k": [rnd(quantil(v, p), 3) for p in (0.5, 0.8, 0.95)], "n": len(z), "de": z[0][0].isoformat(), "ate": z[-1][0].isoformat()}
+    v = [x[1] for x in z]; i = bisect.bisect_left(gd, dia) - 1
+    return {"gvz": rnd(g[gd[i]], 2), "gvz_data": gd[i].isoformat(), "k": [rnd(quantil(v, p), 3) for p in (0.5, 0.8, 0.95)], "n": len(z), "de": z[0][0].isoformat(), "ate": z[-1][0].isoformat()}
 
 @bloco("Faixa do ouro (k)")
 def b_faixa_k():
     NY = ZoneInfo("America/New_York"); dia = (NOW.astimezone(NY) + dt.timedelta(hours=6)).date()
     while dia.weekday() >= 5: dia += dt.timedelta(days=1)
-    ant = (ler("mi_faixa_k.json") or [{}])[0]
-    if ant.get("dia") == dia.isoformat(): return
+    lst = ler("mi_faixa_k.json")
+    if any(x.get("dia") == dia.isoformat() and x.get("gvz") for x in lst): return
     r = faixa_k(dia)
-    aprovado = bool(ant.get("aprovado")) or all(abs(a - b) <= 0.10 for a, b in zip(r["k"], K_REF))
+    aprovado = any(x.get("aprovado") for x in lst) or all(abs(a - b) <= 0.10 for a, b in zip(r["k"], K_REF))
     r.update({"dia": dia.isoformat(), "aprovado": aprovado, "ref": list(K_REF), "calculado": NOW.strftime("%d/%m %H:%M")})
-    save("mi_faixa_k.json", [r])
+    save("mi_faixa_k.json", sorted([x for x in lst if x.get("dia") != r["dia"]] + [r], key=lambda x: x["dia"])[-30:])
     if not aprovado: STATUS.append({"bloco": "Faixa do ouro (k)", "ok": False, "msg": f"k do GC {r['k']} difere mais de 0,10 da referência {list(K_REF)}: avisar Estratégias antes de publicar"})
 b_faixa_k()
 
@@ -745,7 +746,13 @@ def b_faixa():
             seg = hoje_s - dt.timedelta(days=hoje_s.weekday()); sem = [b for b in bars if sess(b[0]) >= seg]
             # σ congelado na 1ª coleta da sessão (dia) e da semana: os níveis são projetados na abertura e não mudam até a próxima
             kd, kw = f"{a}|{hoje_s}", f"{a}|sem|{seg}"   # chave da semana separada: na segunda hoje_s == seg e o σ da semana saía igual ao do dia
-            if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
+            if kd not in FIXO:
+                iv_d = iv
+                if a == "XAUUSD":   # ouro: σ do dia = fechamento ANTERIOR do GVZ (o mesmo do cálculo do k)
+                    try:
+                        gz = closes(yahoo("^GVZ", 0.1)); iv_d = [gz[d_] for d_ in sorted(gz) if d_ < hoje_s][-1]
+                    except Exception: pass
+                FIXO[kd] = {"sd": iv_d / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M"), "gvz": rnd(iv_d, 2)}
             if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
             sd = FIXO[kd]["sd"]
             # ouro: a abertura só é real se a 1ª barra é a das 18h NY. Sem ela, busca em 5 min e no próprio contrato, em toda coleta,
@@ -800,6 +807,30 @@ def b_faixa():
                            "ts_sem_fim": int(dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).timestamp() * 1000),
                            "preco": rnd(px, casas), "ab_estimada": ab_est}
             mp = row["mapa"]
+            if a == "XAUUSD":   # FAIXA DO OURO (27/11 12:34): teto e piso de 50/80/95% da maior distância da abertura; registro diário
+                try:
+                    ks_k = [x for x in ler("mi_faixa_k.json") if x.get("aprovado") and x["dia"] <= hoje_s.isoformat()]
+                    if ks_k:
+                        e_ = ks_k[-1]; s_ = FIXO[kd]["sd"]; o_ = mp["ab_dia"]
+                        fxs = [{"p": p_, "k": k_, "baixo": rnd(o_ * math.exp(-k_ * s_), casas), "cima": rnd(o_ * math.exp(k_ * s_), casas)} for p_, k_ in zip((50, 80, 95), e_["k"])]
+                        reg = {x["dia"]: x for x in ler("mi_faixa_ouro.json")}; ds = hoje_s.isoformat(); d_ = reg.get(ds) or {"dia": ds}
+                        horas = len({(b[0].date(), b[0].hour) for b in dia})
+                        if ab_est or horas >= d_.get("barras", 0):
+                            d_.update({"gvz": FIXO[kd].get("gvz"), "sigma_pct": rnd(s_ * 100, 4), "k": e_["k"], "k_dia": e_["dia"], "abertura": mp["ab_dia"], "ab_estimada": ab_est,
+                                       "maxima": mp["max_dia"], "minima": mp["min_dia"], "barras": 0 if ab_est else horas, "feriado": ds in FERIADOS_EUA, "faixas": fxs,
+                                       "saiu": None if ab_est else {str(f_["p"]): bool(mp["max_dia"] > f_["cima"] or mp["min_dia"] < f_["baixo"]) for f_ in fxs}})
+                            reg[ds] = d_
+                        s_rel_ = sess(NOW.astimezone(NYz)).isoformat()   # sessão encerrada = anterior à do relógio
+                        for x in reg.values():
+                            x["encerrada"] = x["dia"] < s_rel_
+                            x["conta"] = bool(x["encerrada"] and not x.get("ab_estimada") and not x.get("feriado") and x.get("barras", 0) >= 20 and x.get("saiu"))
+                        val = [x for x in reg.values() if x["conta"]]
+                        mp["teto"] = {"faixas": fxs, "k_dia": e_["dia"], "n": e_["n"],
+                                      "acerto": {"sessoes": len(val), "desde": min((x["dia"] for x in val), default=None),
+                                                 **{p_: rnd(100 * sum(not x["saiu"][p_] for x in val) / len(val), 0) if val else None for p_ in ("50", "80", "95")}}}
+                        save("mi_faixa_ouro.json", [reg[k_] for k_ in sorted(reg)][-1500:])
+                    else: STATUS.append({"bloco": "Faixa do ouro", "ok": False, "msg": "sem k aprovado: faixa nova não publicada"})
+                except Exception as e: STATUS.append({"bloco": "Faixa do ouro", "ok": False, "msg": str(e)[:150]})
             # faixa do DIA e da SEMANA: a partir do preço de ABERTURA e com o σ congelado, a mesma conta do mapa (24/11/2026: a faixa saía centrada no
             # preço de agora e mudava a cada coleta, e a leitura da IA, o mapa e o 0DTE mostravam números diferentes). Mês continua no preço de agora.
             def _recentra(fxl, base, sdv, ivc=None):
@@ -1816,11 +1847,16 @@ def b_score():
                 m_ = fx_.get("mapa") or {}; pd_ = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "padrao.json")))
                 lt_ = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "data", "lateralidade.json"))).get(x["ativo"]) or {}
                 dn_ = (pd_.get("dia_normal") or {}).get(x["ativo"]); ce_ = (pd_.get("cedo") or {}).get(x["ativo"]); cs_ = fx_["preco"]
-                f.write(f"  [σ] fonte: {fx_.get('fonte')}; vol. {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.\n")
+                T_ = m_.get("teto")
+                f.write(f"  [σ] fonte: {fx_.get('fonte')}; vol. {fx_['iv']}% ({(fx_.get('nivel') or {}).get('txt', '')}). " + ("\n" if T_ else "Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.\n"))
                 if m_.get("ab_dia"):
                     ab, sd = m_["ab_dia"], m_["sd_dia"]; fd = fx_["faixas"][0]; fs = fx_["faixas"][1]; z_ = math.log(m_["preco"] / ab) / sd
-                    f.write(f"  [DIA, FIXO desde a abertura {m_.get('dia_ini')}] abertura {ab}{' (ESTIMADA: sem a barra de abertura; avise)' if m_.get('ab_estimada') else ''}; ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}")
-                    if dn_: f.write(f"; dia normal (metade dos dias) ±{dn_['q50']}σ = {ab * (math.exp(dn_['q50'] * sd) - 1):.5g}; 9 em 10 dias dentro de ±{dn_['q90']}σ")
+                    f.write(f"  [DIA, FIXO desde a abertura {m_.get('dia_ini')}] abertura {ab}{' (ESTIMADA: sem a barra de abertura; avise)' if m_.get('ab_estimada') else ''}; ")
+                    if T_:
+                        t5_, t8_, t9_ = T_["faixas"]
+                        f.write(f"faixa em que o preço NÃO SAI por nenhum dos dois lados: em 80% das sessões {t8_['baixo']}–{t8_['cima']}; em 95% {t9_['baixo']}–{t9_['cima']}; dia normal (50%) {t5_['baixo']}–{t5_['cima']}")
+                    else: f.write(f"±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}")
+                    if dn_ and not T_: f.write(f"; dia normal (metade dos dias) ±{dn_['q50']}σ = {ab * (math.exp(dn_['q50'] * sd) - 1):.5g}; 9 em 10 dias dentro de ±{dn_['q90']}σ")
                     f.write(f"\n  [SEMANA, FIXA] abertura {m_['ab_sem']}; ±1σ {fs['s1'][0]}–{fs['s1'][1]}; ±2σ {fs['s2'][0]}–{fs['s2'][1]}\n")
                     if m_.get("max_dia") is None: f.write(f"  [AGORA] preço {m_['preco']}. Abertura ESTIMADA: não diga posição em σ, toque, máxima, mínima nem rompimento.\n")
                     else: f.write(f"  [AGORA] preço {m_['preco']} = {z_:+.2f}σ da abertura; máx. do dia {m_['max_dia']} ({math.log(m_['max_dia'] / ab) / sd:+.2f}σ), mín. {m_['min_dia']} ({math.log(m_['min_dia'] / ab) / sd:+.2f}σ)\n")
@@ -1880,7 +1916,7 @@ def b_quant():
     if NOW.weekday() >= 5: return
     hoje = NOW.date().isoformat()
     mac = {r["serie"]: r for r in ler("mi_macro.json")}
-    feriados = ("2026-11-26", "2026-12-25", "2027-01-01", "2027-01-18", "2027-02-15", "2027-03-26", "2027-05-31", "2027-06-18", "2027-07-05", "2027-09-06", "2027-11-25", "2027-12-24")   # bolsa dos EUA fechada
+    feriados = FERIADOS_EUA   # bolsa dos EUA fechada
     linha = {"data": hoje, "hora": NOW.strftime("%H:%M"), "feriado_eua": hoje in feriados}
     datas = {}
     for k, s in (("vix", "VIX"), ("vix_vix3m", "VIX ÷ VIX 3 meses"), ("move", "MOVE (vol. de Treasuries)"), ("us2y", "US2Y"), ("us10y", "US10Y"),

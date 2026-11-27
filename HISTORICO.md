@@ -381,3 +381,8 @@ NAS100 (VXN) na tela e na IA; var. do dia do ouro desde a abertura (+0,82% virou
 ## 27/11/2026 · recado de Estratégias 12:22 (aprovado pelo Gabriel) + correção 12:25
 - Mapa/tabela/digest/IA: "call/put grande fora da faixa" = strike entre 1σ e 2σ semanal do ajuste com mais contratos que a parede do mesmo lado (`fora_call`, `fora_put` em `mi_paredes.json` e no histórico). Paredes e regra iguais. Eixo no máximo em 2σ (salvo se o próprio preço passar). Boletim 25/11: calls 3723 (1.706), 3773 (4.496), 3873 (4.227); puts nenhuma; iene nenhuma. Conferidor recalcula a lista e o limite. IA formato 7.
 - Régua automática xaus.com: removida do coletor; `mi_regua_auto.json` apagado da branch `dados`. Motivo: GC menos à vista variou 17,5 a 39,95 em 30 min. Vale a régua datada. Régua pelo MT5: proposta ao Gabriel, nada instalado.
+
+## 27/11/2026 · recado FAIXA DO OURO (aprovado pelo Gabriel 12:34)
+- Teto e piso do ouro = abertura x exp(±k x σ); σ = fechamento anterior do GVZ / raiz(252); k = quantis 50/80/95% da maior distância da abertura / σ nas últimas 250 sessões completas do GC (1 h), recalculado por sessão (`mi_faixa_k.json`). 1º cálculo: 0,987 / 1,546 / 2,397 (Estratégias, Vantage: 1,00 / 1,55 / 2,44): aprovado.
+- Tela, digest e IA (formato 8): 80% e 95% em destaque, 50% = dia normal, "não sai por nenhum dos dois lados". Registro diário e acerto em `mi_faixa_ouro.json` (pregão curto, feriado e abertura estimada fora). `confere_faixa.py` roda em toda coleta.
+- HAR + GVZ em sombra: aguarda a semente de variância de 5 min de Estratégias.
