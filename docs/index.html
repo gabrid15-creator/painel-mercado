@@ -524,13 +524,13 @@
       <div class="mp-romp"></div>
       <div class="mp-teste"><label>Teste um preço: <input type="text" inputmode="decimal" class="mp-in" placeholder="ex.: 3950" style="font:inherit;width:110px;padding:3px 6px;border-radius:6px;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg)"></label> <span class="mp-out op-note"></span></div>
   <div class="fx mp-fx"><h3 style="margin:14px 0 4px;font-size:15px">Faixa esperada <span class="op-note" style="font-weight:400">· de onde vem o σ</span></h3>
-      <div class="op-note fx-ler"><b>Como ler:</b> até onde o preço costuma ir, calculado pela volatilidade: no ouro, pelo preço das opções (GVZ e CME); nas moedas, pelos prêmios das opções de balcão negociadas nas últimas 24 h (DTCC), com a CME no iene como conferência; se faltar negócio, usa a oscilação dos últimos 21 dias. Mede <b>tamanho</b> do movimento, não direção; parte do preço atual.
+      <div class="op-note fx-ler"><b>Como ler:</b> até onde o preço costuma ir, calculado pela volatilidade: no ouro, pelo preço das opções (índice GVZ); nas moedas, pelos prêmios das opções de balcão negociadas nas últimas 24 h (DTCC); se faltar negócio, usa a oscilação dos últimos 21 dias. Mede <b>tamanho</b> do movimento, não direção; parte do preço atual.
         <ul style="margin:6px 0 0;padding-left:18px;line-height:1.7">
           <li><b>Dia e semana</b> são calculados a partir do preço de abertura (20h de Brasília) e ficam fixos; o mês usa o preço de agora. É a mesma faixa do mapa e da leitura da IA.</li>
           <li><span class="lv lv-s1">±1σ</span> faixa normal: o preço fecha dentro em ~2 de cada 3 vezes (testado: veja a tabela Precisão medida abaixo, 71–83% conforme o ativo e o prazo).</li>
           <li><span class="lv lv-s2">±2σ</span> extremo: fora dela é raro (~5%). Perto dessa borda = movimento esticado.</li>
           <li><b>Etiqueta da volatilidade</b> (vol. de hoje contra a média de 1, 3 e 5 anos): <span class="lv lv-cw">bem acima</span> faixas largas, use stop maior e posição menor · <span class="lv lv-gf">acima</span> um pouco largas · <span class="lv lv-now">normal</span> tamanho de sempre · <span class="lv lv-rg">abaixo</span> faixas estreitas, mercado parado.</li>
-          <li><b>Fontes:</b> ouro tem duas (índice GVZ da Cboe e opções da CME). Moedas: opções de balcão (DTCC), que previram o tamanho do dia melhor que a oscilação passada nos 4 pares (testado em 2 anos: ±1σ 78–83%, ±2σ 96–99%); reserva: oscilação dos últimos 21 dias.</li>
+          <li><b>Fontes:</b> ouro usa o índice GVZ da Cboe. Moedas: opções de balcão (DTCC), que previram o tamanho do dia melhor que a oscilação passada nos 4 pares (testado em 2 anos: ±1σ 78–83%, ±2σ 96–99%); reserva: oscilação dos últimos 21 dias.</li>
         </ul></div>
       <table class="op-table fx-t"><thead><tr><th>Prazo</th><th class="num"><span class="lv lv-s1">±1σ</span> normal</th><th class="num"><span class="lv lv-s2">±2σ</span> extremo</th></tr></thead><tbody></tbody></table>
         <div class="fx-bt"></div>
@@ -544,53 +544,16 @@
 
 
 
-    <section class="op-card z0"><div class="ag-top"><h2>0DTE ouro · opções do vencimento mais próximo</h2><span class="tl-chip ia-chip z0-chip">—</span></div>
-      <div class="op-note ajuda guia"><p><b>Como ler.</b> Opções do vencimento mais próximo. O GLD vence todo dia às 16h de NY (18h de Brasília; 17h no horário de verão americano).</p><ul>
-<li><span class="lv lv-cw">Teto</span> é onde há mais calls (resistência); <span class="lv lv-pw">Piso</span>, onde há mais puts (suporte).</li>
-<li><span class="lv lv-gf">Gamma flip</span>: acima dele, os bancos tendem a segurar o preço; abaixo, a acelerar.</li>
-<li><span class="lv lv-mp">Max pain</span>: o preço em que os compradores de opções mais perdem.</li>
-<li><span class="lv lv-s1">Faixa do dia ±1σ</span>: a mesma faixa do mapa e do card "O que olhar hoje" (σ do GVZ, fixo na abertura das 20h de Brasília). É a faixa com teste: o dia fecha dentro dela em 78% a 83% das vezes. A coluna da CME é a opção de 1 dia do ajuste de ontem, que mede o mesmo dia por outro caminho: as duas costumam ter o mesmo tamanho.</li>
-<li><span class="lv lv-rg">O que falta andar</span>: o straddle do GLD que vence hoje às 16h de NY, centrado no preço de agora. Mostra só o movimento que o mercado ainda espera até o vencimento. Ele encolhe ao longo do dia (por isso é bem mais estreito que a faixa do dia) e muda de centro com o preço. <b>Não é a faixa do dia.</b></li>
-<li><b>Régua:</b> todos os preços estão na régua do XAUUSD da Vantage (futuro da CME menos US$ 6,5, calibrado em 16/11). GLD e CME são convertidos para ela.</li>
-<li><b>GLD:</b> ao vivo, com 15 min de atraso, das 11h30 às 18h. Com o GLD fechado (noite e fim de semana), os níveis dele ficam os do último pregão, e o regime de gamma é recalculado com o ouro ao vivo.</li>
-<li><b>CME:</b> fechamento do pregão anterior, tirado do PDF do boletim, com vencimentos de todos os dias. Cada número é conferido pela paridade antes de ser publicado.</li>
-<li><b>Linha dourada "✓ concordam":</b> GLD e CME a até 1 strike do GLD (~US$ 11). É o nível mais forte.</li>
-<li><b>Precisão:</b> ainda sem teste. Ela começa a ser medida depois de uns 30 vencimentos.</li></ul></div>
-      <table class="op-table z0-t"><tbody></tbody></table>
-      <div class="op-note ajuda guia"><p><b>Contratos por strike</b>, atualizados com o GLD a cada 5 min. Puts à esquerda, calls à direita.</p><ul>
-<li><b>Barra clara:</b> contratos em aberto do GLD e da CME somados. A CME entra em equivalente GLD (um contrato de 100 onças vale cerca de 11 do GLD).</li>
-<li><b>Barra escura, por dentro:</b> o volume negociado hoje no GLD, onde está a briga agora. O número mostra "em aberto | volume".</li>
-<li><b>Barra grande</b> significa muita gente posicionada ali; o preço costuma reagir por perto.</li>
-<li><b>Linhas:</b> a cheia é o preço; as tracejadas, os níveis do GLD (fixos desde as 10h de NY) e o ±1σ do dia (σ fixo da abertura); as pontilhadas, os níveis da CME (fixos no dia). A faixa dourada ✓ marca onde GLD e CME concordam, e a sombra azul é o que falta andar até o vencimento (ao vivo).</li>
-<li><b>Níveis fixos:</b> teto, piso, gamma flip, max pain e faixa são calculados só com os contratos em aberto, que não mudam durante o dia. Das 9h30 às 10h de NY o painel calibra (mediana das leituras); às 10h de NY eles ficam <b>fixos até o vencimento</b>. Só o preço, o regime de gamma de agora e as barras de volume (escuras) continuam ao vivo. Os níveis da CME também são fixos (boletim do dia anterior).</li>
-<li><b>PCR</b> (puts ÷ calls), embaixo: acima de 1, <b style="color:#c8443a">+Puts</b> (mais proteção ou aposta na queda); abaixo de 1, <b style="color:#1f8a5b">+Calls</b>. É um retrato do posicionamento: o PCR foi testado e, sozinho, não prevê direção.</li></ul></div>
-      <div class="mi-chart z0b-chart"></div>
+    <section class="op-card pw" hidden><div class="ag-top"><h2>Call wall e put wall · opções da CME</h2><span class="tl-chip ia-chip pw-chip">—</span></div>
+      <div class="op-note ajuda guia"><p><b>Como ler.</b> Os preços com mais contratos de opções em aberto perto do preço de ajuste. São uma <b>referência, sem teste</b>: não foi provado que o preço pare ou reaja neles.</p><ul>
+<li><span class="lv lv-cw">Call wall</span>: o preço acima do ajuste com mais calls em aberto. <span class="lv lv-pw">Put wall</span>: o preço abaixo do ajuste com mais puts.</li>
+<li><b>Fixas:</b> calculadas quando o boletim da CME chega e mantidas até o boletim seguinte. Não andam com o preço.</li>
+<li><b>O que entra:</b> contratos em aberto das opções coletadas que ainda não venceram, só até 1σ da semana do preço de ajuste.</li>
+<li><b>Rompida:</b> o preço já passou do nível. A parede fica no lugar e aparece a 2ª, a maior além do preço dentro do mesmo limite.</li>
+<li><b>Como usar:</b> como marcação no gráfico. Para tamanho de grade e stop, use a faixa do card "O que olhar hoje", que tem teste. Não indica direção.</li>
+<li><b>Régua:</b> ouro na régua do XAUUSD da Vantage; iene convertido para o dólar/iene à vista.</li></ul></div>
+      <div class="tbl-x"><table class="op-table pw-t"><tbody></tbody></table></div>
     </section>
-    <section class="op-card z0j" hidden><div class="ag-top"><h2>0DTE dólar/iene · opções do vencimento mais próximo</h2><span class="tl-chip ia-chip z0j-chip">—</span></div>
-      <div class="op-note ajuda guia"><p><b>Como ler.</b> Opções da CME do vencimento mais próximo que tenha contratos suficientes (10 strikes ou mais). Vencem às 9h de Chicago (12h de Brasília; 11h no horário de verão americano).</p><ul>
-<li>Os preços já estão convertidos para o dólar/iene à vista: uma call de iene equivale a uma put de dólar/iene.</li>
-<li><span class="lv lv-cw">Teto</span> é onde há mais calls (resistência); <span class="lv lv-pw">Piso</span>, onde há mais puts (suporte).</li>
-<li><span class="lv lv-gf">Gamma flip</span>: acima dele, os bancos tendem a segurar o preço; abaixo, a acelerar.</li>
-<li><span class="lv lv-mp">Max pain</span>: o preço em que os compradores de opções mais perdem.</li>
-<li><span class="lv lv-s1">Faixa do dia ±1σ</span>: a mesma faixa do mapa e do card "O que olhar hoje" (σ das opções de balcão, fixo na abertura das 20h de Brasília); o dia fecha dentro dela em 78% a 83% das vezes. <span class="lv lv-rg">Faixa até o vencimento</span> e o <span class="lv lv-s1">±1σ</span> logo abaixo são o movimento que a opção da CME paga até o vencimento da série (pode ser de vários dias), não a faixa do dia.</li>
-<li><b>CME:</b> fechamento do pregão anterior, tirado do PDF do boletim. Não muda durante o dia, porque o ETF de iene quase não negocia e não há fonte ao vivo. Cada número é conferido pela paridade antes de ser publicado.</li>
-<li>As séries de segunda a quinta costumam ter poucos contratos; as de sexta e de quarta, mais.</li>
-<li><b>Precisão:</b> ainda sem teste. Ela começa a ser medida depois de uns 30 vencimentos.</li></ul></div>
-      <table class="op-table z0j-t"><tbody></tbody></table>
-      <div class="op-note ajuda guia"><p><b>Contratos por strike</b> no dólar/iene, da CME. Puts à esquerda, calls à direita; o número é a quantidade de contratos em aberto.</p><ul>
-<li><b>Barra grande</b> significa muita gente posicionada ali; o preço costuma reagir por perto.</li>
-<li><b>Linhas:</b> a cheia é o preço atual; as tracejadas, teto, piso, gamma flip e max pain. A sombra azul é a faixa até o vencimento. Strike sem barra não tem contrato.</li>
-<li><b>PCR</b> (puts ÷ calls), embaixo: acima de 1, <b style="color:#c8443a">+Puts</b> (mais proteção ou aposta na queda); abaixo de 1, <b style="color:#1f8a5b">+Calls</b>. É um retrato do posicionamento: o PCR foi testado e, sozinho, não prevê direção.</li></ul></div>
-      <div class="mi-chart z0j-chart"></div>
-    </section>
-    <section class="op-card otc" hidden><div class="ag-top"><h2>Balcão (DTCC) · opções de câmbio dos bancos</h2><span class="tl-chip ia-chip otc-chip">—</span></div>
-      <p class="op-note"><b>Como ler:</b> opções de câmbio negociadas <b>direto entre bancos e fundos</b> (fora da bolsa), publicadas pela DTCC segundos depois do negócio, de graça. É o mercado grande do câmbio, bem maior que a CME. Cada barra = <b>soma dos negócios ainda vivos</b> naquele strike e vencimento, em <b>US$ milhões</b> (não é "contratos em aberto" oficial: é a soma dos negócios dos últimos 60 dias que não foram encerrados). <span class="lv lv-cw">Teto</span> = strike com mais calls acima do preço; <span class="lv lv-pw">Piso</span> = strike com mais puts abaixo. Vencimentos grandes perto do preço costumam <b>atrair e segurar</b> o preço até o corte (geralmente <b>10h de NY = 12h de Brasília</b>, 11h no horário de verão americano) — hipótese ainda <b>sem teste</b> (o painel grava todo dia para medir). Limites: só negócios com uma parte americana (fatia grande, não o mercado todo); negócios gigantes aparecem com teto de tamanho (marcados com +). Comece pelos vencimentos mais curtos (hoje, amanhã).</p>
-      <p class="otc-teste"><b>Testado em 2 anos</b> (dez/2024–nov/2026, 1.192 vencimentos, 4 pares): o preço <b>não</b> foi atraído pelo strike com mais dinheiro (46% × 46% do acaso), o range do dia <b>não</b> ficou mais dentro de piso–teto (47,6% × 47,2%) e a máxima/mínima <b>não</b> parou mais nas paredes (29,7% × 29,9%). Use como <b>retrato do posicionamento dos bancos</b>, não como suporte/resistência.</p>
-      <div class="op-legend otc-bt"></div>
-      <table class="op-table otc-t"><tbody></tbody></table>
-      <div class="mi-chart otc-chart"></div>
-    </section>
-
 
     </div>
 

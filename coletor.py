@@ -706,16 +706,19 @@ def b_faixa():
             if kd not in FIXO: FIXO[kd] = {"sd": iv / 100 / math.sqrt(252), "em": NOW.strftime("%d/%m %H:%M")}
             if kw not in FIXO: FIXO[kw] = {"sd": iv / 100 / math.sqrt(252) * math.sqrt(5), "em": NOW.strftime("%d/%m %H:%M")}
             sd = FIXO[kd]["sd"]
-            if not dia:   # sem barra de 1 h: tenta as de 5 min (27/11/2026: o 1 h do GC=F seguia parado com o 5 min já andando)
-                try:
-                    j5 = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(ATIVOS[a][0])}?range=5d&interval=5m"))["chart"]["result"][0]; q5_ = j5["indicators"]["quote"][0]
-                    b5 = [(dt.datetime.fromtimestamp(t, NYz), o * fz, h * fz, l * fz) for t, o, h, l in zip(j5["timestamp"], q5_["open"], q5_["high"], q5_["low"]) if o and h and l]
-                    b5 = [b for b in b5 if sess(b[0]) == hoje_s]
-                    if b5 and b5[0][0].hour == 18:   # só vale se pega a abertura das 18h NY
-                        dia = b5; sem = [b for b in sem if sess(b[0]) < hoje_s] + b5
-                except Exception: pass
-            if not dia:
-                ab0 = FIXO[kd].setdefault("ab_est", px); ab_est = True
+            # ouro: a abertura só é real se a 1ª barra é a das 18h NY. Sem ela, busca em 5 min e no próprio contrato, em toda coleta,
+            # até a fonte entregar (27/11/2026). Moedas: o Yahoo FX não tem o domingo 18h (tratado abaixo, na semana).
+            if not dia or (a == "XAUUSD" and dia[0][0].hour != 18):
+                for sym_, iv_ in ((ATIVOS[a][0], "5m"),) + (((REGUA["contrato"] + ".CMX", "1h"), (REGUA["contrato"] + ".CMX", "5m")) if a == "XAUUSD" else ()):
+                    try:
+                        j5 = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym_)}?range=5d&interval={iv_}"))["chart"]["result"][0]; q5_ = j5["indicators"]["quote"][0]
+                        b5 = [(dt.datetime.fromtimestamp(t, NYz), o * fz, h * fz, l * fz) for t, o, h, l in zip(j5["timestamp"], q5_["open"], q5_["high"], q5_["low"]) if o and h and l]
+                        b5 = [b for b in b5 if sess(b[0]) == hoje_s]
+                        if b5 and b5[0][0].hour == 18:
+                            dia = b5; sem = [b for b in sem if sess(b[0]) < hoje_s] + b5; break
+                    except Exception: pass
+            if not dia or (a == "XAUUSD" and dia[0][0].hour != 18):
+                ab0 = FIXO[kd].setdefault("ab_est", dia[0][1] if dia else px); ab_est = True
                 dia = [(NOW.astimezone(NYz), ab0, max(ab0, px), min(ab0, px))]
                 if not sem or sess(sem[-1][0]) < hoje_s: sem = sem + dia
             ab_sem = sem[0][1] if sem else None
@@ -746,7 +749,7 @@ def b_faixa():
                            "dia_ini": hb(hoje_s - dt.timedelta(days=1)), "dia_fim": hb(hoje_s),
                            "sem_ini": hb(seg - dt.timedelta(days=1)),
                            "sem_fim": dt.datetime.combine(seg + dt.timedelta(days=4), dt.time(17), NYz).astimezone(BRT).strftime("sex %d/%m %Hh"),   # fechamento de sexta (17h NY) para todos
-                           "ab_dia": rnd(dia[0][1], casas), "max_dia": rnd(max(b[2] for b in dia), casas), "min_dia": rnd(min(b[3] for b in dia), casas),
+                           "ab_dia": rnd(dia[0][1], casas), "max_dia": None if ab_est else rnd(max(b[2] for b in dia), casas), "min_dia": None if ab_est else rnd(min(b[3] for b in dia), casas),
                            "ab_sem": rnd(ab_sem, casas), "max_sem": rnd(max(b[2] for b in sem), casas), "min_sem": rnd(min(b[3] for b in sem), casas),
                            # horários (ms) de início e fim, para a chance "agora" (preço atual e tempo que falta)
                            "ts_dia_ini": int(dt.datetime.combine(hoje_s - dt.timedelta(days=1), dt.time(hab), NYz).timestamp() * 1000),
@@ -778,7 +781,8 @@ def b_faixa():
                         FIXO[kl] = {"ontem": bs[-1][0].isoformat(), "rel": rnd(rel_, 2), "estado": "estreito" if rel_ <= 0.70 else "largo" if rel_ >= 1.40 else "normal"}
                 if kl in FIXO: row["lateral"] = FIXO[kl]
             except Exception: pass
-            MH[f"{a}|dia|{hoje_s}"] = {"ativo": a, "tipo": "dia", "ini": str(hoje_s), "ab": mp["ab_dia"], "sd": mp["sd_dia"], "max": mp["max_dia"], "min": mp["min_dia"]}
+            if ab_est: MH.pop(f"{a}|dia|{hoje_s}", None)   # abertura estimada não entra na conferência
+            else: MH[f"{a}|dia|{hoje_s}"] = {"ativo": a, "tipo": "dia", "ini": str(hoje_s), "ab": mp["ab_dia"], "sd": mp["sd_dia"], "max": mp["max_dia"], "min": mp["min_dia"]}
             MH[f"{a}|sem|{seg}"] = {"ativo": a, "tipo": "sem", "ini": str(seg), "ab": mp["ab_sem"], "sd": mp["sd_sem"], "max": mp["max_sem"], "min": mp["min_sem"]}
           except Exception as e: STATUS.append({"bloco": "Mapa " + a, "ok": False, "msg": str(e)[:120]})
         rows.append(row)
@@ -794,7 +798,7 @@ def b_faixa():
             at_ = {}
             for r_ in rows:
                 m_ = r_.get("mapa") or {}
-                if m_.get("ab_dia") and m_.get("sd_dia"):
+                if m_.get("ab_dia") and m_.get("sd_dia") and m_.get("max_dia") is not None:
                     am = math.log(m_["max_dia"] / m_["min_dia"]); at_[r_["ativo"]] = {"abertura": m_["ab_dia"], "max": m_["max_dia"], "min": m_["min_dia"], "fechamento": m_["preco"],
                         "sigma_pct": rnd(m_["sd_dia"] * 100, 3), "amplitude_sigma": rnd(am / m_["sd_dia"], 2), "corpo_pct_amplitude": rnd(abs(math.log(m_["preco"] / m_["ab_dia"])) / am * 100, 0) if am else None}
             ld[sessN] = {"dia": sessN, "semana_dia": nyN.strftime("%a"), "red_folder": red, "ativos": at_, "atualizado": nyN.strftime("%H:%M") + " NY"}
@@ -904,7 +908,8 @@ def travas_0dte(row, r_ok):
             c["max_pain"] = None; avisos.append("CME: max pain a mais de 10% do preço")
     if not c and any(str(o.get("venc")) == row["vencimento"] for o in ler("ouro_cadeia.json")): avisos.append("CME: há cadeia para o vencimento, mas a conta falhou")
     if not row.get("preco_hora"): avisos.append("preço do ouro sem horário")
-    if avisos: STATUS.append({"bloco": "Trava das opções do ouro", "ok": False, "msg": "; ".join(avisos)[:300]})
+    if avisos:   # o GLD não aparece mais na tela (27/11/2026): falha só dele é informativa
+        STATUS.append({"bloco": "Trava das opções do ouro", "ok": all(a.startswith("GLD") for a in avisos), "msg": "; ".join(avisos)[:300]})
 
 @bloco("Opções: limpeza de registros inválidos")
 def b_limpa():
@@ -1347,6 +1352,81 @@ def b_0dte_iene():
     save("mi_0dte_iene_hist.json", sorted(hist.values(), key=lambda x: x["vencimento"])[-500:])
 b_0dte_iene()
 
+@bloco("Paredes das opções (CME)")
+def b_paredes():
+    """CALL WALL e PUT WALL (27/11/2026, decisão do Gabriel; claude/quant-opcoes-fica-sai.md). Referência, SEM TESTE.
+    Fixas na chegada do boletim: somam o contrato em aberto dos vencimentos coletados ainda vivos na data do boletim; só strikes a até
+    1σ semanal do ajuste; call = mais calls ACIMA do ajuste, put = mais puts ABAIXO. Não andam com o preço. Preço passou = "rompida" e
+    mostra a 2ª parede (maior em aberto além do preço, dentro do mesmo limite). Gravadas todo dia em mi_paredes_hist.json para o teste."""
+    NY = ZoneInfo("America/New_York"); ny = NOW.astimezone(NY)
+    ant = {x["ativo"]: x for x in ler("mi_paredes.json")}; saida = []
+    hist = {(h["dia"], h["ativo"]): h for h in ler("mi_paredes_hist.json")}
+    dia_s = (ny + dt.timedelta(hours=6)).date()
+    for ativo, arq in (("XAUUSD", "ouro_cadeia.json"), ("USDJPY", "iene_cadeia.json")):
+        try:
+            cad = [o for o in ler(arq) if o.get("settle") not in (None, "") and len(str(o.get("venc"))) == 10]
+            if not cad: continue
+            pg = cad[0]["data_pregao"]; bol = (ler(arq.replace("cadeia", "boletim")) or [{}])[0]
+            vivos = sorted({o["venc"] for o in cad if o["venc"] > pg})
+            F = float(next(o["futuro"] for o in cad if o["venc"] == vivos[0]))
+            vivos = [v for v in vivos if abs(float(next(o["futuro"] for o in cad if o["venc"] == v)) / F - 1) < 0.004]   # só o mesmo contrato futuro
+            chave = f"{pg}|{bol.get('situacao')}" + (f"|{REGUA['medido']}|{REGUA['base']}" if ativo == "XAUUSD" else "")
+            fr = next((r for r in ler("mi_faixa.json") if r["ativo"] == ativo), None)
+            if not fr: raise ValueError("sem a faixa da volatilidade")
+            r = ant.get(ativo)
+            if not r or r.get("chave") != chave:   # boletim novo: fixa
+                sd = (fr.get("mapa") or {}).get("sd_sem") or fr["iv"] / 100 * math.sqrt(5 / 252)
+                oi = {"C": {}, "P": {}}
+                for o in cad:
+                    if o["venc"] in vivos and (o.get("oi") or 0) > 0:
+                        t = str(o["tipo"])[0]; k = float(o["strike"]); oi[t][k] = oi[t].get(k, 0) + o["oi"]
+                alvo = dt.datetime.combine(dt.date.fromisoformat(pg), dt.time(13 if ativo == "XAUUSD" else 15, 30 if ativo == "XAUUSD" else 0), NY).timestamp()
+                sym = REGUA["contrato"] + ".CMX" if ativo == "XAUUSD" else "JPY=X"
+                q = json.loads(get(f"https://query2.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(sym)}?range=10d&interval=5m"))["chart"]["result"][0]
+                px = [(t, v) for t, v in zip(q["timestamp"], q["indicators"]["quote"][0]["close"]) if v is not None and t <= alvo - (300 if ativo == "XAUUSD" else 0)]
+                if not px or alvo - px[-1][0] > 3600: raise ValueError(f"sem o preço de {sym} no horário do ajuste de {pg}")
+                ref = px[-1][1]
+                if ativo == "XAUUSD":
+                    if abs(ref / F - 1) >= 0.004: raise ValueError(f"opções do boletim são de outro contrato que não {REGUA['contrato']} ({F} × {round(ref, 1)}): remedir a régua")
+                    desc = base_vantage(dt.date.fromisoformat(vivos[0])); nivel = lambda k: rnd(k - desc, 1)
+                    # no ouro e no iene os grupos abaixo já saem na ótica do ATIVO: "C" = parede de cima, "P" = parede de baixo
+                    cima = {k: n for k, n in oi["C"].items() if F < k <= F * (1 + sd)}
+                    baixo = {k: n for k, n in oi["P"].items() if F * (1 - sd) <= k < F}
+                else:   # call de USDJPY = put de iene (strike abaixo do ajuste em JPY/USD) e vice-versa; nível = 1/K na régua do à vista
+                    desc = None; base = ref * F; nivel = lambda k: rnd(base / k, 3)
+                    cima = {k: n for k, n in oi["P"].items() if F * (1 - sd) <= k < F}
+                    baixo = {k: n for k, n in oi["C"].items() if F < k <= F * (1 + sd)}
+                lista = lambda m: sorted(({"strike": k, "oi": int(n), "nivel": nivel(k)} for k, n in m.items()), key=lambda x: -x["oi"])
+                cc, pp = lista(cima), lista(baixo)
+                r = {"ativo": ativo, "chave": chave, "pregao": pg, "situacao": bol.get("situacao"), "vencimentos": vivos, "ajuste": F,
+                     "desconto": desc, "ajuste_nivel": rnd(F - desc, 1) if desc is not None else rnd(ref, 3), "sd_sem": rnd(sd, 6),
+                     "fixado_em": NOW.strftime("%d/%m %H:%M"), "candidatas_call": cc, "candidatas_put": pp, "call": cc[0] if cc else None,
+                     "put": pp[0] if pp else None, "call2": None, "put2": None, "rompida_call": None, "rompida_put": None, "rotulo": "referência, sem teste"}
+            p = fr["preco"]; hora = NOW.strftime("%d/%m %H:%M")
+            for lado, passou in (("call", lambda n: p > n), ("put", lambda n: p < n)):
+                w = r.get(lado)
+                if not w: continue
+                if not r.get("rompida_" + lado) and passou(w["nivel"]): r["rompida_" + lado] = {"hora": hora, "preco": p}
+                if r.get("rompida_" + lado):
+                    w2 = r.get(lado + "2")
+                    if w2 is None or passou(w2["nivel"]):   # a 2ª só troca quando o preço passa dela (não anda para trás)
+                        r[lado + "2"] = next((x for x in r["candidatas_" + lado] if x["strike"] != w["strike"] and not passou(x["nivel"])), None)
+            r["preco"] = p; r.pop("sem_dado", None)
+            saida.append(r)
+            if dia_s.weekday() < 5:
+                h = hist.get((dia_s.isoformat(), ativo)) or {"dia": dia_s.isoformat(), "ativo": ativo, "max_visto": p, "min_visto": p}
+                h.update({k: r[k] for k in ("pregao", "ajuste", "desconto", "sd_sem", "call", "put", "call2", "put2", "rompida_call", "rompida_put")})
+                h.update({"max_visto": max(h["max_visto"], p), "min_visto": min(h["min_visto"], p), "ultimo": p, "atualizado": hora})
+                hist[(dia_s.isoformat(), ativo)] = h
+        except Exception as e:
+            STATUS.append({"bloco": "Paredes das opções " + ativo, "ok": False, "msg": str(e)[:200]})
+            r = ant.get(ativo); atual = str((ler(arq.replace("cadeia", "boletim")) or [{}])[0].get("data_pregao"))
+            # nunca mostra parede de boletim antigo como se fosse a atual
+            saida.append(r if r and r.get("pregao") == atual else {"ativo": ativo, "sem_dado": str(e)[:200], "rotulo": "referência, sem teste"})
+    save("mi_paredes.json", saida)
+    save("mi_paredes_hist.json", sorted(hist.values(), key=lambda h: (h["dia"], h["ativo"]))[-2000:])
+b_paredes()
+
 @bloco("Backtest diário")
 def b_valid():
     # confere o que o painel projetou contra o que aconteceu: toque dos níveis do mapa, faixa das opções e 0DTE
@@ -1620,7 +1700,8 @@ def b_score():
                     f.write(f"  [DIA, FIXO desde a abertura {m_.get('dia_ini')}] abertura {ab}{' (ESTIMADA: sem a barra de abertura; avise)' if m_.get('ab_estimada') else ''}; ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}")
                     if dn_: f.write(f"; dia normal (metade dos dias) ±{dn_['q50']}σ = {ab * (math.exp(dn_['q50'] * sd) - 1):.5g}; 9 em 10 dias dentro de ±{dn_['q90']}σ")
                     f.write(f"\n  [SEMANA, FIXA] abertura {m_['ab_sem']}; ±1σ {fs['s1'][0]}–{fs['s1'][1]}; ±2σ {fs['s2'][0]}–{fs['s2'][1]}\n")
-                    f.write(f"  [AGORA] preço {m_['preco']} = {z_:+.2f}σ da abertura; máx. do dia {m_['max_dia']} ({math.log(m_['max_dia'] / ab) / sd:+.2f}σ), mín. {m_['min_dia']} ({math.log(m_['min_dia'] / ab) / sd:+.2f}σ)\n")
+                    if m_.get("max_dia") is None: f.write(f"  [AGORA] preço {m_['preco']}. Abertura ESTIMADA: não diga posição em σ, toque, máxima, mínima nem rompimento.\n")
+                    else: f.write(f"  [AGORA] preço {m_['preco']} = {z_:+.2f}σ da abertura; máx. do dia {m_['max_dia']} ({math.log(m_['max_dia'] / ab) / sd:+.2f}σ), mín. {m_['min_dia']} ({math.log(m_['min_dia'] / ab) / sd:+.2f}σ)\n")
                 else:   # sem mapa (NAS100): faixa pelo VXN a partir do preço de agora (testes/faixa_vxn.py)
                     fd, fs = fx_["faixas"][0], fx_["faixas"][1]
                     f.write(f"  [FAIXA, a partir do preço de agora {cs_} (sem abertura fixa)] dia ±1σ {fd['s1'][0]}–{fd['s1'][1]}; ±2σ {fd['s2'][0]}–{fd['s2'][1]}; semana ±1σ {fs['s1'][0]}–{fs['s1'][1]}; ±2σ {fs['s2'][0]}–{fs['s2'][1]}\n")
@@ -1635,19 +1716,19 @@ def b_score():
                     f.write(f"  [RESTO DO DIA] Ásia+Londres andaram {m_['amp_cedo']}σ: {['pouco (resto tende a ser pequeno)', 'normal', 'muito (resto tende a ser grande)'][g_]}.\n")
             rg_ = next((y for y in ler("mi_regime.json") if y["ativo"] == x["ativo"]), None)
             if rg_: f.write("  regime 26 semanas: " + "; ".join(f"{y['fator']} corr {y['corr26']}{' (quebrou)' if y['quebrou'] else ''}" for y in rg_["fatores"]) + "\n")
-            if x["ativo"] in ("EURUSD", "GBPUSD", "USDCHF"): f.write("  [OPÇÕES] sem 0DTE próprio; o σ vem das opções de balcão (DTCC, negócios das últimas 24 h).\n")
-            if x["ativo"] == "USDJPY":
-                zj_ = (ler("mi_0dte_iene.json") or [{}])[0]
-                if zj_ and zj_.get("vencimento"): f.write(f"  [OPÇÕES] 0DTE do iene na CME (vence {zj_.get('vencimento')}): teto {zj_.get('call_wall')}, piso {zj_.get('put_wall')}, gamma flip {zj_.get('gamma_flip')}, max pain {zj_.get('max_pain')}, faixa {zj_.get('faixa')}.\n")
-            if x["ativo"] == "XAUUSD":
-                z_ = (ler("mi_0dte.json") or [{}])[0]
-                nd = lambda v: "sem dado" if v is None else v
-                if z_ and z_.get("sem_dado_gld"): f.write(f"  0DTE GLD ({z_.get('vencimento')}): SEM DADO ({z_['sem_dado_gld']}). Não cite teto, piso, flip, max pain, faixa nem regime do GLD.\n")
-                elif z_: f.write(f"  0DTE GLD ({z_.get('vencimento')}; níveis {z_.get('fixacao')}): teto {nd(z_.get('call_wall'))}, piso {nd(z_.get('put_wall'))}, gamma flip {nd(z_.get('gamma_flip'))}, max pain {nd(z_.get('max_pain'))}, faixa do 0DTE até o vencimento (NÃO é a faixa do dia; a do dia é a linha [DIA]) {nd(z_.get('faixa'))}; regime de gamma agora: {nd(z_.get('regime'))}\n")
-                cm_ = z_.get("cme") or {}
-                if cm_.get("sem_dado"): f.write(f"  0DTE CME: SEM DADO ({cm_['sem_dado']}).\n")
-                elif cm_: f.write(f"  0DTE CME ({z_.get('vencimento')}, ajuste de {cm_.get('pregao')}): teto {nd(cm_.get('call_wall'))}, piso {nd(cm_.get('put_wall'))}, gamma flip {nd(cm_.get('gamma_flip'))}, max pain {nd(cm_.get('max_pain'))}\n")
-                if z_ and z_.get('vencimento') != NOW.astimezone(ZoneInfo('America/New_York')).date().isoformat(): f.write(f"  atenção: este 0DTE vence em {z_.get('vencimento')}, não hoje; não diga que os níveis foram fixados hoje.\n")
+            if x["ativo"] in ("EURUSD", "GBPUSD", "USDCHF"): f.write("  [OPÇÕES] o σ vem das opções de balcão (DTCC, negócios das últimas 24 h); sem paredes neste ativo.\n")
+            if x["ativo"] in ("XAUUSD", "USDJPY"):
+                pw_ = next((y for y in ler("mi_paredes.json") if y["ativo"] == x["ativo"]), None)
+                if not pw_ or pw_.get("sem_dado"): f.write("  [OPÇÕES] call wall e put wall da CME: SEM DADO. Não cite nível de opções.\n")
+                else:
+                    def lado_(l, nm):
+                        w = pw_.get(l)
+                        if not w: return f"{nm}: sem dado"
+                        t = f"{nm} {w['nivel']}"
+                        if pw_.get("rompida_" + l):
+                            w2 = pw_.get(l + "2"); t += f" (ROMPIDA; 2ª {nm} {w2['nivel']})" if w2 else " (ROMPIDA; sem outra dentro de 1σ semanal)"
+                        return t
+                    f.write(f"  [OPÇÕES] CME, boletim de {pw_['pregao']}, fixas até o próximo boletim, referência sem teste: {lado_('call', 'call wall')}; {lado_('put', 'put wall')}.\n")
         rd = {k: mac.get(k) for k in ("Liquidez líquida Fed", "VIX ÷ VIX 3 meses", "MOVE (vol. de Treasuries)", "Condições financeiras (NFCI)", "US2Y", "US10Y", "Juro real 10a", "Spread 2a EUA−Alemanha")}
         f.write("\nRadar institucional e juros: " + "; ".join(f"{k} {v['valor']} (20d {v['var_20d']}{v['unidade_var']}, pctil 1a {v['pctil_1a']})" for k, v in rd.items() if v) + "\n")
         eu = ler("mi_eua.json")

@@ -12,5 +12,6 @@ for padrao, pre in (("opcoes_*.json", "ouro"), ("iene_*.json", "iene")):
     try: atual = json.load(open(os.path.join(OUT, pre + "_boletim.json")))[0]["data_pregao"]
     except Exception: atual = ""
     if novo < atual: print(pre, "em out/ já é mais nova:", atual); continue
-    for k in (pre + "_cadeia", pre + "_boletim"): json.dump(d[k], open(os.path.join(OUT, k + ".json"), "w"), ensure_ascii=False, separators=(",", ":"))
+    for k in (pre + "_cadeia", pre + "_boletim", pre + "_mensal"):
+        if k in d: json.dump(d[k], open(os.path.join(OUT, k + ".json"), "w"), ensure_ascii=False, separators=(",", ":"))
     print("CME carregada:", os.path.basename(arqs[-1]))

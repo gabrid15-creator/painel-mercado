@@ -1,45 +1,66 @@
 #!/usr/bin/env python3
-"""Travas das opções do ouro (só leitura; escrito pela área Estratégias em 27/11/2026). Uso: python3 confere_opcoes.py <pasta da branch dados>
-Sai com código 1 se algum nível publicado não puder ser usado. A mesma trava roda dentro do coletor (travas_0dte); este é o conferente independente."""
-import sys, json, os, datetime as dt
+"""Conferente independente das opções mostradas na tela (call wall e put wall da CME). Só leitura. Uso: python3 confere_opcoes.py <pasta da branch dados>
+Regra (27/11/2026, claude/quant-opcoes-fica-sai.md): fixas na chegada do boletim; vencimentos coletados ainda vivos; só strikes a até 1σ
+semanal do ajuste; call = mais calls acima, put = mais puts abaixo; nível = strike menos o desconto; passou = rompida e mostra a 2ª.
+Sai com código 1 se alguma parede publicada não puder ser usada. Gamma, max pain etc. só são gravados em arquivo e não são conferidos aqui."""
+import sys, json, os, math, datetime as dt
 
 D = sys.argv[1]
-# GC fev - XAUUSD Vantage: 27,6 medido em 25/11/2026. O desconto é custo de carregar: encolhe até o vencimento do contrato
-# (estimativa linear, uns 0,30 por dia). Remedir 1 vez por semana e a cada troca de contrato (aqui e em REGUA no coletor.py).
+# GC fev - XAUUSD Vantage: 27,6 medido em 25/11/2026, encolhendo em linha reta até o vencimento. Remedir 1 vez por semana (aqui e em REGUA no coletor.py).
 BASE_MEDIDA, MEDIDO_EM, VENCE, TOL = 27.6, dt.date(2026, 11, 25), dt.date(2027, 2, 24), 3.0
-ler = lambda f: json.load(open(os.path.join(D, f), encoding="utf-8"))
-z = ler("mi_0dte.json")[0]; c = z.get("cme") or {}; p = z["ouro"]; erros = []
-fixo = str(z.get("fixacao", "")).startswith("fixo")
-niveis = ("call_wall", "put_wall", "gamma_flip", "max_pain", "faixa", "regime")
+def ler(f):
+    try: return json.load(open(os.path.join(D, f), encoding="utf-8"))
+    except FileNotFoundError: return []
+erros = []; resumo = []
 
 def e(cond, msg):
     if cond: erros.append(msg)
 
-if not z.get("abertos") and not fixo:   # com nível já fixado às 10h NY, uma falha posterior da fonte não o invalida
-    com = [k for k in niveis if z.get(k) is not None]
-    e(com, f"GLD sem contratos em aberto, mas publica: {', '.join(com)}")
-if not fixo:
-    e(z.get("call_wall") is not None and z["call_wall"] < p * 0.999, f"GLD teto {z.get('call_wall')} abaixo do preço {p}")
-    e(z.get("put_wall") is not None and z["put_wall"] > p * 1.001, f"GLD piso {z.get('put_wall')} acima do preço {p}")
-    f = z.get("faixa"); e(f and not f[0] <= p <= f[1], f"GLD faixa {f} não contém o preço {p}")
-for nome, d in (("GLD", z), ("CME", c)):
-    m = d.get("max_pain"); e(m is not None and abs(m / p - 1) > 0.10, f"{nome} max pain {m} a mais de 10% do preço")
-e(not c and any(o["venc"] == z["vencimento"] for o in ler("ouro_cadeia.json")), "CME ausente, mas há cadeia para o vencimento")
-if c and not c.get("sem_dado"):
-    cad = [o for o in ler("ouro_cadeia.json") if o["venc"] == z["vencimento"]]
-    sp = p + c["base"]
-    for tipo, campo, lado in (("C", "call_wall", lambda k: k >= sp), ("P", "put_wall", lambda k: k <= sp)):
-        tem = any(o["tipo"].startswith(tipo) and o["oi"] > 0 and lado(o["strike"]) and abs(o["strike"] / sp - 1) <= 0.03 for o in cad)
-        e(tem and c.get(campo) is None, f"CME {campo} vazio, mas há contratos perto do preço")
-    top = max((r[0] for r in c.get("perfil", [])), default=0)
-    fora = [o for o in cad if o["oi"] > 0 and o["strike"] - c["base"] > top + 1 and abs(o["strike"] / sp - 1) <= 0.03]
-    e(fora, f"CME gráfico corta {len(fora)} linhas com contratos acima de {top}")
-    dia = dt.date.fromisoformat(z["vencimento"])
-    esperada = round(BASE_MEDIDA * (VENCE - dia).days / (VENCE - MEDIDO_EM).days, 1)
-    e(abs(c["base"] - esperada) > TOL, f"régua: painel desconta {c['base']}, esperado {esperada}")
-    e((dia - MEDIDO_EM).days > 7, f"régua medida há mais de 7 dias ({MEDIDO_EM}): medir de novo no MT5")
-e(not z.get("preco_hora"), "preço do ouro sem horário (campo preco_hora)")
+paredes = {r["ativo"]: r for r in ler("mi_paredes.json")}
+faixa = {r["ativo"]: r for r in ler("mi_faixa.json")}
+for ativo, pref in (("XAUUSD", "ouro"), ("USDJPY", "iene")):
+    cad = [o for o in ler(pref + "_cadeia.json") if o.get("settle") not in (None, "") and len(str(o.get("venc"))) == 10]
+    r = paredes.get(ativo)
+    if not cad: e(r and not r.get("sem_dado"), f"{ativo}: parede publicada sem cadeia"); continue
+    if not r: erros.append(f"{ativo}: há cadeia, mas não há registro das paredes"); continue
+    if r.get("sem_dado"): resumo.append(f"{ativo} sem dado ({r['sem_dado']})"); continue
+    pg = cad[0]["data_pregao"]
+    e(r["pregao"] != pg, f"{ativo}: parede do boletim {r['pregao']}, cadeia é de {pg}")
+    fut = {o["venc"]: float(o["futuro"]) for o in cad if o["venc"] > pg}
+    F = fut[min(fut)]; vivos = sorted(v for v in fut if abs(fut[v] / F - 1) < 0.004)
+    e(r["vencimentos"] != vivos or abs(r["ajuste"] / F - 1) > 1e-9, f"{ativo}: vencimentos ou ajuste diferentes da cadeia")
+    sd = r["sd_sem"]; iv = (faixa.get(ativo) or {}).get("iv")
+    e(bool(iv) and not 0.7 < sd / (iv / 100 * math.sqrt(5 / 252)) < 1.4, f"{ativo}: 1σ semanal usado ({sd}) longe da volatilidade atual ({iv}%)")
+    if ativo == "XAUUSD":
+        venc = dt.date.fromisoformat(vivos[0]); desc = round(BASE_MEDIDA * (VENCE - venc).days / (VENCE - MEDIDO_EM).days, 1)
+        e(abs(r["desconto"] - desc) > TOL, f"régua: painel desconta {r['desconto']}, esperado {desc}")
+        e((venc - MEDIDO_EM).days > 14, f"régua medida há mais de 14 dias ({MEDIDO_EM}): medir de novo no MT5")
+    p = r["preco"]
+    for lado in ("call", "put"):
+        acima = (lado == "call") == (ativo == "XAUUSD")          # no iene a call wall do USDJPY vem das puts de iene (strike abaixo)
+        tipo = "C" if acima else "P"; oi = {}
+        for o in cad:
+            k = float(o["strike"])
+            if o["venc"] in vivos and str(o["tipo"]).startswith(tipo) and (o.get("oi") or 0) > 0 and (F < k <= F * (1 + sd) if acima else F * (1 - sd) <= k < F):
+                oi[k] = oi.get(k, 0) + o["oi"]
+        nivel = (lambda k: k - r["desconto"]) if ativo == "XAUUSD" else (lambda k: r["ajuste_nivel"] * F / k)
+        tol = 0.11 if ativo == "XAUUSD" else 0.005
+        w = r.get(lado)
+        if not oi: e(w is not None, f"{ativo} {lado} wall publicada sem contratos no limite"); continue
+        if not w: erros.append(f"{ativo} {lado} wall vazia, mas há contratos no limite"); continue
+        topo = max(oi.values())
+        e(oi.get(w["strike"]) != topo or w["oi"] != topo, f"{ativo} {lado} wall {w['strike']} ({w['oi']}) não é o strike com mais contratos ({topo})")
+        e(abs(w["nivel"] - nivel(w["strike"])) > tol, f"{ativo} {lado} wall nível {w['nivel']} diferente do strike convertido {nivel(w['strike']):.3f}")
+        passou = (lambda n: p > n) if lado == "call" else (lambda n: p < n)
+        e(passou(w["nivel"]) and not r.get("rompida_" + lado), f"{ativo} {lado} wall {w['nivel']} passada (preço {p}) sem marca de rompida")
+        if r.get("rompida_" + lado):
+            resto = [k for k in oi if k != w["strike"] and not passou(nivel(k))]; w2 = r.get(lado + "2")
+            if not w2: e(bool(resto), f"{ativo}: falta a 2ª {lado} wall")
+            else: e(w2["strike"] not in resto or oi.get(w2["strike"]) != w2["oi"] or abs(w2["nivel"] - nivel(w2["strike"])) > tol, f"{ativo} 2ª {lado} wall {w2} inválida")
+        resumo.append(f"{ativo} {lado} {w['nivel']}" + (" rompida" if r.get("rompida_" + lado) else "") + (f", 2ª {r[lado + '2']['nivel']}" if r.get(lado + "2") else ""))
+z = (ler("mi_0dte.json") or [{}])[0]
+e(bool(z) and not z.get("preco_hora"), "preço do ouro sem horário (campo preco_hora)")
 
-print(f"{z['vencimento']} {z['atualizado']} ouro {p}: {len(erros)} falha(s)")
+print(" | ".join(resumo)); print(f"paredes: {len(erros)} falha(s)")
 for x in erros: print(" -", x)
 sys.exit(1 if erros else 0)

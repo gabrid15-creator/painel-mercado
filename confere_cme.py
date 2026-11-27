@@ -63,6 +63,22 @@ def confere_ouro(pdf, arq):
         if not any((float(o["strike"]), float(o["settle"]), int(o["oi"])) in blocos.get(k, ()) for k in chaves): faltam.append(o)
     (erro if faltam else ok)(f"{len(rows) - len(faltam)}/{len(rows)} linhas encontradas no PDF no bloco certo" + (f"; sem par: {faltam[:3]}" if faltam else ""))
     paridade(rows, lambda r: r["tipo"][0], 0.0004, pregao, "ouro")
+    mm_ = d.get("ouro_mensal") or []   # mensal (só para teste): cada linha no bloco OG do mês certo e paridade
+    if mm_:
+        rot = (dt.date.fromisoformat(mm_[0]["venc"]).replace(day=1) + dt.timedelta(days=32)).strftime("%b%y").upper(); og, cur, mes = set(), None, None
+        for l in txt:
+            if re.match(r"^[A-Z0-9]{2,4} (PUT|CALL|MON|TUE|WED|THU|FRI|OPT)\b", l):
+                p_ = l.split(); novo = p_[1] if p_[0] == "OG" else None
+                if novo != cur: mes = None
+                cur = novo; continue
+            if re.match(r"^[A-Z]{3}\d{2}\s*$", l.strip()): mes = l.strip(); continue
+            r = rx.match(l) if cur and mes == rot else None
+            if r: og.add((cur, float(r.group(1)), float(r.group(2)), int(r.group(5))))
+        f_ = [o for o in mm_ if (o["tipo"].upper(), float(o["strike"]), float(o["settle"]), int(o["oi"])) not in og]
+        (erro if f_ else ok)(f"mensal {mm_[0]['venc']} ({rot}): {len(mm_) - len(f_)}/{len(mm_)} linhas no PDF")
+        C_ = {o["strike"]: o["settle"] for o in mm_ if o["tipo"] == "Call"}; P_ = {o["strike"]: o["settle"] for o in mm_ if o["tipo"] == "Put"}
+        ks = sorted((k for k in C_ if k in P_), key=lambda k: abs(C_[k] - P_[k]))[:3]; fs = [k + C_[k] - P_[k] for k in ks]
+        if not fs or max(fs) - min(fs) > fs[0] * 0.001 or abs(sorted(fs)[len(fs) // 2] / mm_[0]["futuro"] - 1) > 0.001: erro(f"mensal: paridade não fecha {fs}")
     from collections import Counter
     for (v, t), n in sorted(Counter((r["venc"], r["tipo"]) for r in rows).items()): print(f"    {v} {t}: {n} strikes, {sum(r['oi'] for r in rows if r['venc'] == v and r['tipo'] == t)} contratos em aberto")
     gc = yahoo_5m("GC=F", dt.datetime.combine(pregao, dt.time(13, 30), NY))

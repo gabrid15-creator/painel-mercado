@@ -117,8 +117,32 @@ for v, f in F.items():
     for x in vv:
         if x["oi"] > 0 or x["strike"] == kk or abs(x["strike"] / f - 1) <= 0.05:   # cadeia inteira (27/11/2026): o max pain usa todos os contratos em aberto
             x.update({"futuro": f, "data_pregao": pregao.isoformat(), "strike": int(x["strike"]) if x["strike"] % 1 == 0 else x["strike"]}); sel.append(x)
+# vencimento MENSAL seguinte (OG), gravado à parte só para teste futuro (27/11/2026): não entra na cadeia do painel
+mensal = []
+datas = [dt.date(pregao.year + (int(d[:2]) < pregao.month), int(d[:2]), int(d[3:])) for d in (re.search(r"^OG CALL ((?:\d\d/\d\d ?)+)", txt, re.M).group(1).split() if re.search(r"^OG CALL \d\d/", txt, re.M) else [])]
+vm = next((d for d in datas if d > pregao), None)
+if vm:
+    prox = vm.replace(day=1) + dt.timedelta(days=32); rot = prox.strftime("%b%y").upper()   # opção que vence em dez. chama JAN27
+    cur = mes = None
+    for l in txt.splitlines():
+        h = re.match(r"^(OG) (PUT|CALL)\s+(COMEX )?GOLD OPTIONS", l)
+        if h:
+            if h.group(2) != cur: mes = None
+            cur = h.group(2); continue
+        if re.match(r"^[A-Z0-9]{2,4} (PUT|CALL|MON|TUE|WED|THU|FRI|OPT)\b", l): cur = mes = None; continue
+        m_ = re.match(r"^([A-Z]{3}\d{2})\s*$", l.strip())
+        if m_: mes = m_.group(1); continue
+        r = rx.match(l) if cur and mes == rot else None
+        if r and int(r.group(5)) > 0: mensal.append({"venc": vm.isoformat(), "tipo": "Call" if cur == "CALL" else "Put", "strike": float(r.group(1)), "settle": float(r.group(2)), "oi": int(r.group(5))})
+    c = {x["strike"]: x["settle"] for x in mensal if x["tipo"] == "Call"}; p = {x["strike"]: x["settle"] for x in mensal if x["tipo"] == "Put"}
+    par = [k for k in c if k in p]
+    if par:
+        k = min(par, key=lambda k: abs(c[k] - p[k])); fm = round(k + c[k] - p[k], 1)
+        for x in mensal: x.update({"futuro": fm, "data_pregao": pregao.isoformat()})
+        print("mensal", vm, rot, ":", len(mensal), "linhas,", sum(x["oi"] for x in mensal), "contratos, futuro", fm)
+    else: mensal = []; print("mensal", vm, rot, ": sem par call/put, não gravado")
 if len(sel) < 10: sys.exit(f"poucas linhas ({len(sel)}): confira se é o PDF certo (Section 64)")
-out = {"ouro_cadeia": sel, "ouro_boletim": [{"data_pregao": pregao.isoformat(), "futuro": F[min(F)], "futuro_vencimento": "",
+out = {"ouro_cadeia": sel, "ouro_mensal": mensal, "ouro_boletim": [{"data_pregao": pregao.isoformat(), "futuro": F[min(F)], "futuro_vencimento": "",
        "situacao": situ, "recebido_em": __import__("datetime").datetime.now(__import__("zoneinfo").ZoneInfo("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M"), "fonte": "CME Daily Bulletin, Section 64 (PDF enviado pela usuária)"}]}
 nome = f"cme/opcoes_{pregao.isoformat()}.json"
 json.dump(out, open(nome, "w"), ensure_ascii=False, separators=(",", ":"))
