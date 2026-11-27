@@ -1399,7 +1399,9 @@ def b_0dte():
         if cb:
             cm = {"desconto": cb["base"], "s1": cb["s1"], "flip_f": cb.get("gamma_flip_f"), "pregao": cb["pregao"], "abertos": cb["abertos"],
                   "valido": cb["abertos"] > 0 and abs(cb["base"] - base_vantage(venc)) <= 3}
-        gl = {"s1": bruto["s1"] if strad else None, "original": (S - 1.25 * strad, S + 1.25 * strad), "r": r, "venc": venc.isoformat(),
+        s1g = bruto["s1"] if bruto["s1"] and None not in bruto["s1"] and bruto["s1"][0] < bruto["s1"][1] else None
+        # preço no GLD tirado do próprio nível: a conta da CME reaproveita a variável do straddle (1ª foto de 27/11 14h47 saiu com "original" errado)
+        gl = {"s1": s1g, "original": [v / r for v in s1g] if s1g else (None, None), "r": r, "venc": venc.isoformat(),
               "pregao": str(j.get("last_trade_time"))[:10], "abertos": bruto["abertos"], "parado": parado,
               "valido": r_ok and not parado and bruto["abertos"] > 0 and faixa_ok}
         ant_s = ler("mi_niveis_sombra.json")   # arquivo de teste: só acrescenta, nunca reescreve nem corta linha
