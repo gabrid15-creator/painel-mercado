@@ -1,0 +1,87 @@
+Data 28/11/2026 08:40 BRT. F&G 25.0, VIX pctil 88.0, DXY 20d 1.931%
+
+EURUSD: preço 1.09721 (1d 0.02%, 5d -0.01%, 20d -1.66%)
+  [σ] fonte: opções de balcão (DTCC, 38 negócios nas últimas 24 h); vol. 6.11% (normal). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura qui 26/11 20h] abertura 1.09733; ±1σ 1.09303–1.10165; ±2σ 1.08875–1.10598; dia normal (metade dos dias) ±0.54σ = 0.0023283; 9 em 10 dias dentro de ±1.4σ
+  [SEMANA, FIXA] abertura 1.09787; ±1σ 1.08867–1.10715; ±2σ 1.07955–1.11651
+  [AGORA] preço 1.09721 = -0.03σ da abertura; máx. do dia 1.09878 (+0.34σ), mín. 1.09337 (-0.92σ)
+  [LATERALIDADE] em 3751 dias: 24.2% estreitos, 15.1% largos. Ontem foi normal (95% do normal): chance de hoje ser estreito 24.2% (média 24.2%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr -0.94; EUA 2a corr -0.34; EUA 10a corr -0.2; Juro real 10a corr -0.37
+  [OPÇÕES] o σ vem das opções de balcão (DTCC, negócios das últimas 24 h); sem paredes neste ativo.
+
+GBPUSD: preço 1.31074 (1d 0.0%, 5d 0.08%, 20d -2.08%)
+  [σ] fonte: opções de balcão (DTCC, 16 negócios nas últimas 24 h); vol. 6.62% (normal). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura qui 26/11 20h] abertura 1.31039; ±1σ 1.30472–1.31608; ±2σ 1.29908–1.3218; dia normal (metade dos dias) ±0.57σ = 0.0032412; 9 em 10 dias dentro de ±1.5σ
+  [SEMANA, FIXA] abertura 1.30927; ±1σ 1.2979–1.32074; ±2σ 1.28662–1.33232
+  [AGORA] preço 1.31074 = +0.06σ da abertura; máx. do dia 1.31351 (+0.55σ), mín. 1.30921 (-0.21σ)
+  [LATERALIDADE] em 3745 dias: 27.0% estreitos, 16.9% largos. Ontem foi normal (134% do normal): chance de hoje ser estreito 27.0% (média 27.0%). Dia da semana e semana do mês não mudam nada.
+  [OPÇÕES] o σ vem das opções de balcão (DTCC, negócios das últimas 24 h); sem paredes neste ativo.
+
+USDJPY: preço 159.515 (1d 0.0%, 5d 0.38%, 20d 1.03%)
+  [σ] fonte: opções de balcão (DTCC, 10 negócios nas últimas 24 h); vol. 5.88% (bem abaixo do normal). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura qui 26/11 20h] abertura 159.222; ±1σ 158.52–159.927; ±2σ 157.822–160.634; dia normal (metade dos dias) ±0.43σ = 0.30263; 9 em 10 dias dentro de ±1.2σ
+  [SEMANA, FIXA] abertura 158.624; ±1σ 157.431–159.826; ±2σ 156.246–161.038
+  [AGORA] preço 159.515 = +0.42σ da abertura; máx. do dia 159.595 (+0.53σ), mín. 159.135 (-0.12σ)
+  [LATERALIDADE] em 3746 dias: 30.2% estreitos, 17.1% largos. Ontem foi normal (113% do normal): chance de hoje ser estreito 30.2% (média 30.2%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr 0.73; EUA 2a corr 0.18; EUA 10a corr 0.01; Juro real 10a corr 0.13
+  [OPÇÕES] CME, boletim de 2026-11-25, fixas até o próximo boletim, referência sem teste: call wall 160.278; put wall 159.006. Nenhuma call grande fora da faixa. Nenhuma put grande fora da faixa.
+
+USDCHF: preço 0.8357 (1d 0.0%, 5d -0.68%, 20d 2.11%)
+  [σ] fonte: opções de balcão (DTCC, 18 negócios nas últimas 24 h); vol. 8.4% (normal). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.
+  [DIA, FIXO desde a abertura qui 26/11 20h] abertura 0.83378; ±1σ 0.82916–0.83843; ±2σ 0.82457–0.8431; dia normal (metade dos dias) ±0.54σ = 0.0025053; 9 em 10 dias dentro de ±1.37σ
+  [SEMANA, FIXA] abertura 0.84037; ±1σ 0.83211–0.84871; ±2σ 0.82393–0.85714
+  [AGORA] preço 0.8357 = +0.41σ da abertura; máx. do dia 0.83739 (+0.78σ), mín. 0.83319 (-0.13σ)
+  [LATERALIDADE] em 3751 dias: 23.9% estreitos, 15.0% largos. Ontem foi largo (141% do normal): chance de hoje ser estreito 19.0% (média 23.9%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr 0.78; EUA 2a corr 0.59; EUA 10a corr 0.42; Juro real 10a corr 0.56
+  [OPÇÕES] o σ vem das opções de balcão (DTCC, negócios das últimas 24 h); sem paredes neste ativo.
+
+XAUUSD: preço 3641.8 (1d 1.28%, 5d -2.83%, 20d -11.17%)
+  [σ] fonte: índice GVZ (Cboe); vol. 31.78% (bem acima do normal). 
+  [DIA, FIXO desde a abertura qui 26/11 20h] abertura 3565.4 (ESTIMADA: sem a barra de abertura; avise); faixa em que o preço NÃO SAI por nenhum dos dois lados: em 80% das sessões 3443.41–3691.71; em 95% 3373.39–3768.34; dia normal (50%) 3486.91–3645.66
+  [SEMANA, FIXA] abertura 3570.16; ±1σ 3399.37–3749.53; ±2σ 3236.76–3937.9
+  [AGORA] preço 3641.8. Abertura ESTIMADA: não diga posição em σ, toque, máxima, mínima nem rompimento.
+  [LATERALIDADE] em 3641 dias: 31.0% estreitos, 19.2% largos. Ontem foi largo (172% do normal): chance de hoje ser estreito 22.3% (média 31.0%). Dia da semana e semana do mês não mudam nada.
+  regime 26 semanas: DXY corr -0.37; EUA 2a corr 0.0; EUA 10a corr 0.01; Juro real 10a corr -0.06
+  [OPÇÕES] CME, boletim de 2026-11-25, fixas até o próximo boletim, referência sem teste: call wall 3573.0 (ROMPIDA; 2ª call wall 3673.0); put wall 3473.0. Call grande fora da faixa (entre 1σ e 2σ da semana, mais contratos que a call wall): 3723.0 (1706 contratos), 3773.0 (4496 contratos), 3873.0 (4227 contratos). Nenhuma put grande fora da faixa. Complemento GLD (foto de 27/11 12:00): a 2ª call wall da CME coincide com o GLD (3674.2); call wall só do GLD em 3553.9 (rompida); put wall só do GLD em 3389.8.
+
+NAS100: preço 26726.4 (1d 2.61%, 5d 0.79%, 20d -9.1%)
+  [σ] fonte: índice VXN (Cboe); vol. 33.34% (bem acima do normal). Teste: o dia fecha dentro de ±1σ em ~77–83% das vezes e de ±2σ em ~96–99%.
+  [FAIXA, a partir do preço de agora 26726.4 (sem abertura fixa)] dia ±1σ 26170.9–27293.6; ±2σ 25627.0–27872.9; semana ±1σ 25500.3–28011.5; ±2σ 24330.4–29358.3
+
+Radar institucional e juros: Liquidez líquida Fed 5773.354 (20d 0.71%, pctil 1a 38.0); VIX ÷ VIX 3 meses 1.0 (20d 0.112p.p., pctil 1a 92.0); MOVE (vol. de Treasuries) 95.3 (20d 0.793%, pctil 1a 82.0); Condições financeiras (NFCI) -0.444 (20d 0.022p.p., pctil 1a 100.0); US2Y 4.69 (20d 0.02p.p., pctil 1a 87.0); US10Y 4.94 (20d -0.11p.p., pctil 1a 83.0); Juro real 10a 2.79 (20d 0.12p.p., pctil 1a 92.0); Spread 2a EUA−Alemanha 1.61 (20d 0.02p.p., pctil 1a 87.0)
+Últimos dados oficiais dos EUA (período de referência): Non-Farm Employment Change 2026-10 = 165.0K; Unemployment Rate 2026-10 = 4.1%; Average Hourly Earnings m/m 2026-10 = 0.37%; CPI m/m 2026-10 = 0.35%; Core CPI m/m 2026-10 = 0.296%; CPI y/y 2026-10 = 3.913%; PPI m/m 2026-10 = 0.348%; Core PPI m/m 2026-10 = 0.326%; Unemployment Claims 2026-11-21 = 189.0K; Retail Sales m/m 2026-10 = 0.212%; Core Retail Sales m/m 2026-10 = 0.628%; Core PCE Price Index m/m 2026-10 = 0.293%; JOLTS Job Openings 2026-09 = 7.523M; Advance GDP q/q 2026-07 = 4.3%
+
+Red folder da semana (BRT):
+  2026-11-25 10:30 USD Core PCE Price Index m/m prev 0.3% ant 0.3%
+  2026-11-25 10:30 USD Prelim GDP q/q prev 3.5% ant 3.4%
+Manchetes:
+  [Crypto News] Binance wins Brazil forex license, eyes $500K transfer cap
+  [WSJ] Bank of England Proposes Cut to U.K. Bank Capital Requirements
+  [Around Prague] Nasdaq's Best Week in 7 Months: What Is Behind the Tech Rebound and What Comes Next
+  [MarketBeat] International General Insurance (NASDAQ:IGIC) Stock Breaks Above Fifty Day Moving Average - Time to Sell?
+  [ChartMill] Remitly Global (NASDAQ:RELY) Shows Accelerating Growth and Improving Fundamentals
+  [Laodong.vn] World gold price today, November 28: Mixed signals after jumping above 3,600 USD
+  [bloomingbit] Arthur Hayes Says Bitcoin May Weaken if Nasdaq Selloff Resumes Monday
+  [Livemint] Gold prices near $3,650: US jobs data and inflation may decide whether bullion’s rebound can last through early December
+  [Kotak Neo] Gold Rate Today in India, 28 Nov 2026 - Live 18K, 22K & 24K Gold Prices
+  [ChartMill] Neurocrine Biosciences (NASDAQ:NBIX): High Growth Momentum Meets a Breakout Setup
+  [Crypto News] Bank of England urges firms to speed up quantum upgrades
+  [ChartMill] Costco Wholesale (NASDAQ:COST): A Quality Investing Case Study
+  [BCE] Boris Vujčić: Interview with Kurier
+  [Prothom Alo English] Gold price rises above Tk 200,000 per bhori again, increased by Tk 4,724 in 3 days
+  [Oninvest] "Sex, Lies, and Nvidia," Show Business on the Stock Market, "Dove" Lands at the ECB
+  [StoneX] S&P 500, Nasdaq, Dow Forecast: Wall Street Rebound Faces Major Resistance—Bull Trap or Breakout?
+  [Traders Union] Anthropic shares surge 11% amid volatile week on Nasdaq
+  [Seeking Alpha] SKYY: Sell-Off Overlooks AI's Broadening Into Cloud And Cybersecurity
+  [BitKE] REGULATION | Bank of Japan Says Stablecoins Need Reserve Rules to Preserve Monetary Unity
+  [BigGo Finance] 'Big Short' Burry Abandons Nasdaq Decline Bet — "I'll Short Nvidia Again If It Hits $200"
+  [巴士的報] Gold price pullback sparks buying frenzy as jewelry stores see customer surge in Jiangsu
+  [NAI500] Market Volatility Keeps Rising, QQQI Offers an Alternative Approach to the Nasdaq
+  [ABNA English] Euro zone inflation expectations jump, strengthening case for another ECB rate hike
+  [Forex Factory] The Global Week Ahead: The Set Up
+  [StoneX] Nasdaq 100 Forecast: Nasdaq plunges as Nvidia selloff continues
+  [Tekedia] Nasdaq 100 Futures Surge 2.5% as Thanksgiving Rally Lifts S&P 500 Above 7,300
+  [StoneX] Gold Price Forecast: XAU/USD Breaks Multi-Year Uptrend in Worst Week Since March
+  [FT] Iran hitting same ships twice to deter traffic from Strait of Hormuz
+  [FT] How to get more UK money into UK equity markets
+  [HDFC Sky] US Stock Market Weekly: Nasdaq Jumps 6.7%
