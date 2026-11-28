@@ -402,3 +402,7 @@ Programa `mt5/ReguaPainel.mq5` (só leitura, não compilado ainda), ramo `regua`
 - `mi_niveis_sombra.json` no ar (1ª foto 14h47). Defeito na 1ª foto: `original` do GLD saiu com o straddle da CME; corrigido (0929546), linhas antigas não reescritas.
 - Coleta para se a branch `dados` não for lida. Boletim atrasado aparece no status; `alarme_cme.yml` testado à mão (sucesso, boletim em dia).
 - Tarefa agendada de 17/05/2027 10h13 recriada (teste put/call e skew).
+
+## 28/11/2026 00h30: coleta parada por arquivo grande
+- Falhas desde 00:00 BRT: cada dia do `cleveland_nowcast.json` tinha 7,3 MB (série inteira desde 2013); no 16º dia passou de 100 MB e o push da branch `dados` foi recusado. Dados ficaram nos de 23:55 de 27/11.
+- Correção no `coletor.py`: bruto inteiro só no último dia; nos anteriores, os 3 gráficos mensais mais novos. Teste local: 98 MB para 8 MB.

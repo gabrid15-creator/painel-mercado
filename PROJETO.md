@@ -32,6 +32,7 @@
 | DTCC | `dtcc.py` (≤ 150 s): balcão de opções de câmbio; estado `dtcc_estado.json` → `mi_otc.json`, `mi_otc_hist.json`. Card escondido. **P7 (26/11, Code):** dia só vira coberto com o arquivo fechado lido (404 recente = tenta de novo; > 4 dias = feriado); dia lido só pelos pacotes fica em `prov` até o arquivo sair; `erros` = só da rodada (`erros_total` acumula); vol. implícita exige 10 negócios, alarga para 48 h/72 h (`janela`), < 5 em 72 h = sem vol. (`testes/min_negocios_dtcc.py`). |
 | Liquidez | `b_liq`: TGA pelo Tesouro (fiscaldata, 25 s); se falhar (27/11: 504/lento), TGA semanal pelo FRED (WTREGEN) com aviso no status; RRP, SOFR e Fed funds (Fed de NY) não caem mais junto. |
 | Proteções | `coleta.yml` para se não ler a branch `dados` (não apaga históricos). `b_boletim` marca no status quando o boletim não chegou até 12h30 do dia útil seguinte; `alarme_cme.yml` (12h45) falha nesse caso para o GitHub avisar por e-mail (e-mail não testado). |
+| Tamanho | O GitHub recusa arquivo acima de 100 MB e a coleta inteira falha (28/11, `cleveland_nowcast.json`). O Cleveland guarda o bruto inteiro só no último dia (anteriores: 3 meses). Arquivo novo que acumula precisa de limite. |
 | 1 min | `minutos.py` 1×/dia ~01h UTC → branch `minutos` (`AAAA-MM-DD.csv.gz`: GC, SI, DXY, 6E, 6J, 6S). |
 | Branches | `main` (código), `dados` (coleta), `minutos`, `pdfs`, `log` (log do robô do PC), `regua` (sem uso, pode apagar). |
 

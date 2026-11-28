@@ -1993,13 +1993,19 @@ def b_surpresa():
             x.update({"atual": e.get("valor"), "periodo": e.get("periodo"), "fonte": e.get("fonte"), "gravado": NOW.strftime("%Y-%m-%d %H:%M")})
     # nowcast de inflação do Fed de Cleveland (CPI/PCE): guarda o bruto 1× por dia para os eventos de inflação
     cl = ler("cleveland_nowcast.json"); hoje = NOW.date().isoformat()
+    antes = json.dumps(cl)
     if not cl or cl[-1].get("data") != hoje:
         for u in ("https://www.clevelandfed.org/-/media/files/webcharts/inflationnowcasting/nowcast_month.json",
                   "https://www.clevelandfed.org/-/media/files/webcharts/inflationnowcasting/nowcast_quarter.json"):
             try: cl.append({"data": hoje, "url": u, "bruto": json.loads(get(u))}); break
             except Exception as e: erro = (u[-25:] + " " + str(e))[:120]
         else: cl.append({"data": hoje, "erro": erro}); STATUS.append({"bloco": "Nowcast Cleveland", "ok": False, "msg": erro})   # tenta de novo só amanhã
-        save("cleveland_nowcast.json", cl[-30:])   # bruto: só 30 dias até definir o formato
+    # cada bruto traz a série inteira desde 2013 (~7 MB): inteiro só no último; nos anteriores, os 3 meses mais novos
+    # (acima de 100 MB o GitHub recusa a branch "dados" e a coleta inteira falha, como em 28/11/2026)
+    cl = cl[-30:]
+    cheios = [i for i, x in enumerate(cl) if x.get("bruto")]
+    for i in cheios[:-1]: cl[i]["bruto"] = cl[i]["bruto"][-3:]
+    if json.dumps(cl) != antes: save("cleveland_nowcast.json", cl)
     save("mi_surpresa_hist.json", sorted(h.values(), key=lambda x: (x["data"], x["hora"]))[-3000:])
 b_surpresa()
 
