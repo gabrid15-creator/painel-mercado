@@ -21,6 +21,7 @@ O chat faz o resto: PDFs da CME e `confere_cme.py`, robô do PC, textos e visual
 | Estado | Dono | Tarefa | Arquivos / observação |
 |---|---|---|---|
 | feito | CHAT | Coleta falhando desde 28/11 00:00: `cleveland_nowcast.json` acima de 100 MB | 28/11: texto bruto inteiro só no último dia; anteriores com os 3 meses mais novos (cerca de 8 MB). Desfazer: `git revert` deste commit (volta a falhar) |
+| feito | CHAT | Varredura 28/11 00h25: aviso de arquivo acima de 40 MB e componentes do GitHub Actions atualizados | 28/11. Desfazer: `git revert` do commit "Varredura 28/11" |
 | feito | CHAT | Pendências 27/11 14h40: ajustes de tela, `mi_niveis_sombra.json`, proteção dos históricos, alarme do boletim, tarefa agendada de 17/05/2027 | 27/11 14h50, coleta e alarme com sucesso. Desfazer: `git revert --no-commit 0929546 676eaa6 && git commit && git push`. Arquivos liberados |
 | feito | CHAT | Pedidos do Gabriel 27/11 13h08 e 13h13: mouse/toque no mapa; abertura pelo MT5; texto das 11h; MT5 em repositório separado; HAR + GVZ em sombra | 27/11 13h24, coleta sem falha. Desfazer: `git revert --no-commit 83936ad e055149 && git commit && git push`. Arquivos liberados |
 | feito | CHAT | Confirmar o robô da CME no log de 27/11 | rodou 03:00 a 05:30 sem falha; boletim novo não saiu pelo feriado de 26/11 |

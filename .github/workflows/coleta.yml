@@ -25,8 +25,8 @@ jobs:
       group: coleta
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Dados anteriores
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Montar site (com cópia dos dados mais recentes como reserva)
         run: |
           mkdir -p site && cp -r docs/* site/
@@ -94,7 +94,7 @@ jobs:
           rm -f site/data/digest.txt
           # versão do app.js = commit: o navegador sempre baixa o código novo após cada publicação
           sed -i "s/app.js?v=[^\"]*/app.js?v=${GITHUB_SHA::8}/" site/index.html
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
   deploy:
@@ -121,6 +121,6 @@ jobs:
             gh api -X POST "repos/$GITHUB_REPOSITORY/pages/deployments/$sha/cancel" >/dev/null 2>&1 && echo "cancelado: $sha" || true
           done
       - id: d
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         with:
           timeout: 300000

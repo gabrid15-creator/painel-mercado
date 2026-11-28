@@ -2216,6 +2216,14 @@ def b_boletim():
     if falta: raise ValueError("; ".join(falta))
 b_boletim()
 
+@bloco("Tamanho dos arquivos")
+def b_tamanho():
+    # o GitHub recusa arquivo acima de 100 MB e a coleta inteira falha (28/11): avisa bem antes
+    grandes = [f"{n} {os.path.getsize(os.path.join(OUT, n)) / 1e6:.0f} MB" for n in os.listdir(OUT)
+               if os.path.isfile(os.path.join(OUT, n)) and os.path.getsize(os.path.join(OUT, n)) > 40e6]
+    if grandes: raise ValueError("perto do limite de 100 MB: " + ", ".join(grandes))
+b_tamanho()
+
 # ---------------------------------------------------------------- painel geral (uma linha) + status
 ag = [r for r in ler("mi_agenda.json") if r["impacto"] == "Alto" and r["data"] == NOW.date().isoformat()]
 g, h = goldbach(NOW.date())

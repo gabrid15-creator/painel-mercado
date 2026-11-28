@@ -406,3 +406,4 @@ Programa `mt5/ReguaPainel.mq5` (só leitura, não compilado ainda), ramo `regua`
 ## 28/11/2026 00h30: coleta parada por arquivo grande
 - Falhas desde 00:00 BRT: cada dia do `cleveland_nowcast.json` tinha 7,3 MB (série inteira desde 2013); no 16º dia passou de 100 MB e o push da branch `dados` foi recusado. Dados ficaram nos de 23:55 de 27/11.
 - Correção no `coletor.py`: bruto inteiro só no último dia; nos anteriores, os 3 gráficos mensais mais novos. Teste local: 98 MB para 8 MB.
+- Varredura 28/11 00h30: conferidores 0 falha, telas (3 larguras, 2 temas, 5 ativos) sem erro, coleta em cerca de 45 s, dados do site cerca de 90 KB compactados. Incluído aviso de arquivo acima de 40 MB e atualizadas as ações do GitHub (aviso de Node 20).
